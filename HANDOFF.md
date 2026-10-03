@@ -281,3 +281,17 @@ Test: Sketch → ghosts → Accept; fail Prove → Suggest fix → Accept → pa
 - Shared helper `toJpegDataUrl(file)` moved to `src/core/image.ts` (the AI client uses it too).
 - **For Cursor (after U14, optional U16):** in the inspector, next to Regenerate, add **"From photo…"** (file input) → `regenerateFromImage(selectedId, await toJpegDataUrl(file))`. Same disabled state/tooltip as Regenerate when `isLiveAvailable()` is false.
 - Server: the Rodin route writes the reference to `cache/ref/<key>.jpg` and passes `--image` to the CLI. It also finds the CLI next to node.exe now (no dependency on `npm root -g`).
+
+---
+
+## 2026-10-04 ~00:25 — Cursor — U16 (hero demo polish)
+
+Built:
+- Visual polish: brighter emissive ghost boxes; larger readable proposal cards (source label, Would pass/fail, green Accept).
+- Inspector **From photo…** next to Regenerate → `regenerateFromImage(id, await toJpegDataUrl(file))`; same Hyper3D gate as Regenerate.
+- AI loading: button spinners + “~5–10 s · Ns” on Sketch/Command/Suggest fix/Style.
+- Heatmap legend bottom-left: red = seen by defenders, blue = hidden.
+
+Files: SidePanel, ProposalCards, AiPanel, ProveBanner, ProposalGhosts, Viewport, TopBar, index.css, PLAN, HANDOFF.
+
+Test: hero flow with clearer cards/ghosts/legend; From photo on cart (local Hyper3D only).

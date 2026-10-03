@@ -12,7 +12,7 @@ async function runAi(
   try {
     const out = await fn();
     if (out.note) onToast(out.note);
-    else if (out.proposal) onToast(`AI proposal ready (${out.proposal.source}).`);
+    else if (out.proposal) onToast(`AI proposal ready — Accept or Reject.`);
     else onToast("AI returned nothing.");
   } catch (e) {
     onToast(e instanceof Error ? e.message : String(e));
@@ -26,6 +26,7 @@ export function AiPanel({ onToast }: { onToast: (msg: string) => void }) {
   const sketchRef = useRef<HTMLInputElement>(null);
   const [aiOk, setAiOk] = useState<boolean | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const [elapsed, setElapsed] = useState(0);
   const [command, setCommand] = useState("");
 
   useEffect(() => {
@@ -38,6 +39,16 @@ export function AiPanel({ onToast }: { onToast: (msg: string) => void }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!busy) {
+      setElapsed(0);
+      return;
+    }
+    const t0 = Date.now();
+    const id = window.setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 250);
+    return () => window.clearInterval(id);
+  }, [busy]);
+
   const disabled = aiOk === false || busy != null;
   const tip = aiOk === false ? "AI not configured" : busy ? `${busy}…` : undefined;
 
@@ -46,9 +57,12 @@ export function AiPanel({ onToast }: { onToast: (msg: string) => void }) {
       <h2>AI co-designer</h2>
       {aiOk === false && <p className="muted">AI not configured (set Gemini key on the server).</p>}
       {busy && (
-        <p className="ai-busy">
+        <p className="ai-busy" role="status">
           <span className="btn-spin" aria-hidden />
-          {busy}… (10–30 s)
+          <span>
+            <strong>{busy}</strong>
+            <span className="ai-busy-sub"> ~5–10 s · {elapsed}s</span>
+          </span>
         </p>
       )}
 
@@ -66,12 +80,13 @@ export function AiPanel({ onToast }: { onToast: (msg: string) => void }) {
       />
       <button
         type="button"
-        className="ai-btn"
+        className={`ai-btn${busy === "Sketch → level" ? " ai-btn--busy" : ""}`}
         disabled={disabled || locked}
         title={locked ? "Unlock to replace the layout" : tip ?? "Upload a sketch / map → greybox proposal"}
         onClick={() => sketchRef.current?.click()}
       >
-        Sketch → level
+        {busy === "Sketch → level" && <span className="btn-spin" aria-hidden />}
+        {busy === "Sketch → level" ? "Reading sketch…" : "Sketch → level"}
       </button>
 
       <form
@@ -92,7 +107,7 @@ export function AiPanel({ onToast }: { onToast: (msg: string) => void }) {
           onChange={(e) => setCommand(e.target.value)}
         />
         <button type="submit" disabled={disabled || locked || !command.trim()} title={tip}>
-          Go
+          {busy === "Command" ? <span className="btn-spin" aria-hidden /> : "Go"}
         </button>
       </form>
     </div>

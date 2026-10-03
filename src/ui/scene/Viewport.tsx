@@ -3,6 +3,7 @@ import { Environment, OrbitControls } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
 import { usePlaybound } from "../../core/store";
 import { ProposalCards } from "../panels/ProposalCards";
+import { useUiPrefs } from "../uiPrefs";
 import { groundUnderCamera, setViewGroundPicker } from "../viewPick";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
@@ -46,6 +47,14 @@ export function Viewport() {
   const level = usePlaybound((s) => s.level);
   const viewMode = usePlaybound((s) => s.viewMode);
   const select = usePlaybound((s) => s.select);
+  const showHeatmap = useUiPrefs((s) => s.showHeatmap);
+  const prove = level.prove;
+  const showLegend =
+    showHeatmap &&
+    viewMode === "orbit" &&
+    prove &&
+    prove.status !== "idle" &&
+    !!prove.exposure?.length;
 
   return (
     <main className="viewport">
@@ -85,6 +94,15 @@ export function Viewport() {
 
       <ProveBanner />
       <ProposalCards />
+
+      {showLegend && (
+        <div className="heatmap-legend" aria-hidden>
+          <span className="heatmap-swatch heatmap-swatch--seen" />
+          Red = seen by defenders
+          <span className="heatmap-swatch heatmap-swatch--hidden" />
+          Blue = hidden
+        </div>
+      )}
 
       {viewMode === "fps" && (
         <div className="viewport-hint">Click to lock pointer · WASD move · Esc unlock</div>

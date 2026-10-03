@@ -12,6 +12,7 @@ export function ProveBanner() {
   const [fpsHidden, setFpsHidden] = useState(false);
   const [aiOk, setAiOk] = useState<boolean | null>(null);
   const [fixBusy, setFixBusy] = useState(false);
+  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     if (viewMode !== "fps") {
@@ -31,6 +32,16 @@ export function ProveBanner() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!fixBusy) {
+      setElapsed(0);
+      return;
+    }
+    const t0 = Date.now();
+    const id = window.setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 250);
+    return () => window.clearInterval(id);
+  }, [fixBusy]);
 
   if (!prove || prove.status === "idle") return null;
   if (viewMode === "fps" && fpsHidden) return null;
@@ -73,7 +84,7 @@ export function ProveBanner() {
         >
           {fixBusy ? (
             <>
-              <span className="btn-spin" aria-hidden /> Suggesting…
+              <span className="btn-spin" aria-hidden /> Suggesting… ~5–10 s · {elapsed}s
             </>
           ) : (
             "Suggest fix"

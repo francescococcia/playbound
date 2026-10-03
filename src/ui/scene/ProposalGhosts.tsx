@@ -13,7 +13,7 @@ function DashedEdges({ sx, sy, sz, color }: { sx: number; sy: number; sz: number
   return (
     <lineSegments ref={ref} position={[0, sy / 2, 0]}>
       <edgesGeometry args={[geo]} />
-      <lineDashedMaterial color={color} dashSize={0.35} gapSize={0.2} transparent opacity={0.85} />
+      <lineDashedMaterial color={color} dashSize={0.45} gapSize={0.18} transparent opacity={1} />
     </lineSegments>
   );
 }
@@ -22,7 +22,7 @@ function GhostBox({
   volume,
   color,
   dashed = true,
-  opacity = 0.35,
+  opacity = 0.42,
 }: {
   volume: Pick<Volume, "position" | "size" | "rotationY" | "role">;
   color?: string;
@@ -35,14 +35,21 @@ function GhostBox({
     <group position={[volume.position[0], volume.position[1], volume.position[2]]} rotation={[0, volume.rotationY, 0]}>
       <mesh position={[0, sy / 2, 0]}>
         <boxGeometry args={[sx, sy, sz]} />
-        <meshStandardMaterial color={c} transparent opacity={opacity} depthWrite={false} />
+        <meshStandardMaterial
+          color={c}
+          emissive={c}
+          emissiveIntensity={0.25}
+          transparent
+          opacity={opacity}
+          depthWrite={false}
+        />
       </mesh>
       {dashed ? (
         <DashedEdges sx={sx} sy={sy} sz={sz} color="#ffffff" />
       ) : (
         <mesh position={[0, sy / 2, 0]}>
           <boxGeometry args={[sx, sy, sz]} />
-          <meshBasicMaterial color={c} wireframe transparent opacity={0.9} />
+          <meshBasicMaterial color={c} wireframe transparent opacity={0.95} />
         </mesh>
       )}
     </group>

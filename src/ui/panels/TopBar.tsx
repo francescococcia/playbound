@@ -50,6 +50,7 @@ export function TopBar() {
     reader.readAsDataURL(file);
     // Also ask AI for style notes (proposal — designer must Accept).
     setStyleBusy(true);
+    setToast("Reading style… ~5–10 s");
     void aiStyle(file)
       .then((out) => {
         if (out.note) setToast(out.note);

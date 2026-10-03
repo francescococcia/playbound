@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
-import { isLiveAvailable, regenerate } from "../../core/dress/dress";
+import { useEffect, useRef, useState } from "react";
+import { isLiveAvailable, regenerate, regenerateFromImage } from "../../core/dress/dress";
+import { toJpegDataUrl } from "../../core/image";
 import { usePlaybound } from "../../core/store";
 import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { shortLabel } from "../label";
@@ -40,7 +41,9 @@ export function SidePanel() {
 
   const [liveOk, setLiveOk] = useState<boolean | null>(null);
   const [regenBusy, setRegenBusy] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
   const [regenError, setRegenError] = useState<string | null>(null);
+  const photoRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -52,13 +55,14 @@ export function SidePanel() {
     };
   }, []);
 
+  const generating =
+    selected?.status === "queued" || selected?.status === "generating" || regenBusy || photoBusy;
+
   const canRegen =
     selected != null &&
     DRESS_ROLES.includes(selected.role) &&
     liveOk === true &&
-    !regenBusy &&
-    selected.status !== "queued" &&
-    selected.status !== "generating";
+    !generating;
 
   const regenTitle =
     liveOk === false
@@ -67,7 +71,7 @@ export function SidePanel() {
         ? "Checking Hyper3D…"
         : !selected || !DRESS_ROLES.includes(selected.role)
           ? "Select a dressable volume"
-          : regenBusy || selected.status === "queued" || selected.status === "generating"
+          : generating
             ? "Generating…"
             : "Regenerate this volume (uses credits)";
 
@@ -81,6 +85,19 @@ export function SidePanel() {
       setRegenError(e instanceof Error ? e.message : String(e));
     } finally {
       setRegenBusy(false);
+    }
+  };
+
+  const onFromPhoto = async (file: File | undefined) => {
+    if (!file || !selected || !canRegen) return;
+    setPhotoBusy(true);
+    setRegenError(null);
+    try {
+      await regenerateFromImage(selected.id, await toJpegDataUrl(file));
+    } catch (e) {
+      setRegenError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setPhotoBusy(false);
     }
   };
 
@@ -251,20 +268,43 @@ export function SidePanel() {
             )}
             {DRESS_ROLES.includes(selected.role) && (
               <div className="field">
-                <button
-                  type="button"
-                  className="regen-btn"
-                  onClick={onRegenerate}
-                  disabled={!canRegen}
-                  title={regenTitle}
-                >
-                  {regenBusy || selected.status === "queued" || selected.status === "generating" ? (
-                    <span className="regen-spin" aria-hidden />
-                  ) : null}
-                  {regenBusy || selected.status === "queued" || selected.status === "generating"
-                    ? "Regenerating…"
-                    : "Regenerate"}
-                </button>
+                <input
+                  ref={photoRef}
+                  type="file"
+                  accept="image/*"
+                  hidden
+                  onChange={(e) => {
+                    const f = e.target.files?.[0];
+                    e.target.value = "";
+                    void onFromPhoto(f);
+                  }}
+                />
+                <div className="regen-row">
+                  <button
+                    type="button"
+                    className="regen-btn"
+                    onClick={onRegenerate}
+                    disabled={!canRegen}
+                    title={regenTitle}
+                  >
+                    {generating && !photoBusy ? <span className="regen-spin" aria-hidden /> : null}
+                    {regenBusy || (generating && !photoBusy) ? "Regenerating…" : "Regenerate"}
+                  </button>
+                  <button
+                    type="button"
+                    className="regen-btn regen-btn--photo"
+                    onClick={() => photoRef.current?.click()}
+                    disabled={!canRegen}
+                    title={
+                      liveOk === false
+                        ? "needs Hyper3D connection"
+                        : "Image-to-3D from a photo of this object (~2 min, 0.5 credits)"
+                    }
+                  >
+                    {photoBusy ? <span className="regen-spin" aria-hidden /> : null}
+                    {photoBusy ? "Generating…" : "From photo…"}
+                  </button>
+                </div>
                 {liveOk === false && (
                   <p className="muted" style={{ marginTop: "0.35rem" }}>
                     needs Hyper3D connection

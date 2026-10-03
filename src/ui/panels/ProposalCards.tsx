@@ -6,18 +6,34 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
   const rejectProposal = usePlaybound((s) => s.rejectProposal);
   const locked = usePlaybound((s) => s.level.locked);
   const preview = proposal.previewProve;
-  const layoutChange = !!(proposal.add?.length || proposal.update?.length || proposal.remove?.length || proposal.replaceAll);
+  const layoutChange = !!(
+    proposal.add?.length ||
+    proposal.update?.length ||
+    proposal.remove?.length ||
+    proposal.replaceAll
+  );
   const blocked = layoutChange && locked;
 
   const tone =
     preview?.status === "pass" ? "pass" : preview?.status === "fail" ? "fail" : "idle";
 
   const pct =
-    preview?.coveredFraction != null ? `${Math.round(preview.coveredFraction * 100)}% protected` : null;
+    preview?.coveredFraction != null
+      ? `${Math.round(preview.coveredFraction * 100)}% protected`
+      : null;
+
+  const sourceLabel =
+    proposal.source === "sketch"
+      ? "Sketch → level"
+      : proposal.source === "fix"
+        ? "Suggest fix"
+        : proposal.source === "style"
+          ? "Style notes"
+          : "Command";
 
   return (
     <article className={`proposal-card proposal-card--${tone}`}>
-      <div className="proposal-source">{proposal.source}</div>
+      <div className="proposal-source">{sourceLabel}</div>
       <p className="proposal-why">{proposal.why}</p>
       {proposal.replaceAll && <p className="proposal-flag">Replaces the current layout</p>}
       {proposal.styleNotes && !layoutChange && (
@@ -25,13 +41,21 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
       )}
       {preview && (
         <div className={`proposal-prove proposal-prove--${preview.status}`}>
-          {preview.message ?? preview.status}
-          {pct ? ` · ${pct}` : ""}
+          <strong>{preview.status === "pass" ? "Would pass" : preview.status === "fail" ? "Would fail" : "Prove"}</strong>
+          <span>
+            {preview.message ?? preview.status}
+            {pct ? ` · ${pct}` : ""}
+          </span>
         </div>
       )}
       {blocked && <p className="muted">Unlock to accept layout changes.</p>}
       <div className="proposal-actions">
-        <button type="button" className="proposal-accept" disabled={blocked} onClick={() => acceptProposal(proposal.id)}>
+        <button
+          type="button"
+          className="proposal-accept"
+          disabled={blocked}
+          onClick={() => acceptProposal(proposal.id)}
+        >
           Accept
         </button>
         <button type="button" className="proposal-reject" onClick={() => rejectProposal(proposal.id)}>
