@@ -142,7 +142,9 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | U12 | Cursor | Proposal UI: ghost boxes (translucent, dashed) for `add`, ghost + arrow for `update`, red tint for `remove`; proposal card(s) with `why`, Prove preview (pass/fail, %) and **Accept / Reject**. | done |
 | U13 | Cursor | AI panel: **Sketch → level** (image upload), **Style from image** (the style upload also calls `aiStyle`), command box, **Suggest fix** button on the fail banner. Loading states (10–30 s), errors as toasts. | done |
 
-**Francesco feedback R2-M2:** _(write here)_
+**Francesco feedback R2-M2:** Reviewed by Claude Code (4 Oct, ~00:00): the hero flow works end to end in the real UI. Sketch → 6 ghost boxes → Accept → Prove "Death corridor 0%" → **Suggest fix** → Accept → Prove "Playable 27%". Text command ("stone fountain near the well") ✅, style image → notes ✅, heatmap toggle present. **Live site AI works** (existing Vercel key is valid): style 5.8 s, fix 2.2 s.
+- Fixed by Claude Code: the Vercel AI function crashed (ESM imports without `.js`).
+- Francesco: check the visuals by eye (ghost boxes, cards, heatmap colours) and add notes here: _(fill in)_
 
 ## R2-M3 — Prove v2 (line of sight + heatmap)
 | ID | Owner | Task | Status |
