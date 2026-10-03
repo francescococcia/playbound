@@ -126,7 +126,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | ID | Owner | Task | Status |
 |---|---|---|---|
 | R1 | Claude Code | Store: `addVolume(role, pos?, patch?)`, `removeVolume`, `duplicateVolume`, `newLevel`, `setLevel`, `DEFAULT_SIZE`; `Proposal` contract + `addProposal / acceptProposal / rejectProposal / clearProposals` (tests) | done |
-| R3 | Claude Code | `src/core/share.ts`: `shareUrl(level)` (level compressed into the URL hash), `levelFromUrl()` on boot; `saveLevel / listSaves / loadSave / deleteSave` (browser storage) | todo |
+| R3 | Claude Code | `src/core/share.ts`: `shareUrl(level)` (level compressed into the URL hash), `levelFromUrl()` on boot; `saveLevel / listSaves / loadSave / deleteSave` (browser storage) | done |
 | U11 | Cursor | Edit tools: **Add** menu (role picker → `addVolume` at the view centre), **Delete** (button + Del key), **Duplicate** (button + Ctrl+D), inspector fields for label, role, W/H/D, rotation (°) → `updateVolume`; **New level** button. All disabled while locked. | done |
 | U15 | Cursor | **Share** button → copy `shareUrl(level)` + toast; **Save / Open** menu (list saves, load, delete). Uses R3 (wire when R3 lands; placeholder until then). | done |
 

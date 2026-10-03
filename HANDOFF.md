@@ -221,3 +221,10 @@ Files (Cursor only):
 - `src/index.css`, `PLAN.md`, `HANDOFF.md`
 
 Test: New level → Add cover at centre → edit size/rotation → Duplicate → Delete. Lock → tools disabled. Save → reload page → Open. Share → paste URL in new tab.
+
+## 2026-10-03 — Claude Code — R3 (share links + saves)
+
+`src/core/share.ts` (tests in `share.test.ts`, 26 tests pass in total):
+- `await shareUrl(level)` → `https://…/#l=<code>`. The whole level is compressed into the link (~900 characters for Market Square). Prebaked models travel with it; the style image doesn't (too big), but the style notes do. **U15 Share button:** `navigator.clipboard.writeText(await shareUrl(level))` + toast "Link copied".
+- Opening a link: `src/main.tsx` already calls `levelFromUrl()` on startup → `setLevel(...)`. Nothing to do in the UI.
+- Saves (this browser only): `saveLevel(level) → boolean` (false = storage blocked; show a toast), `listSaves() → { id, name, savedAt, volumes }[]` (newest first), `loadSave(id) → Level | null` (then `setLevel`), `deleteSave(id)`.
