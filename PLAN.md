@@ -144,7 +144,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 
 **Francesco feedback R2-M2:** Reviewed by Claude Code (4 Oct, ~00:00): the hero flow works end to end in the real UI. Sketch → 6 ghost boxes → Accept → Prove "Death corridor 0%" → **Suggest fix** → Accept → Prove "Playable 27%". Text command ("stone fountain near the well") ✅, style image → notes ✅, heatmap toggle present. **Live site AI works** (existing Vercel key is valid): style 5.8 s, fix 2.2 s.
 - Fixed by Claude Code: the Vercel AI function crashed (ESM imports without `.js`).
-- Francesco: check the visuals by eye (ghost boxes, cards, heatmap colours) and add notes here: _(fill in)_
+- Francesco visual notes (addressed in U16): brighter ghosts; larger Accept/Reject cards; heatmap legend (“red = seen by defenders, blue = hidden”); clearer AI loading (~5–10 s).
 
 ## R2-M3 — Prove v2 (line of sight + heatmap)
 | ID | Owner | Task | Status |
@@ -159,8 +159,47 @@ Then U10 polish. Stop after and tell Francesco what to test.
 |---|---|---|---|
 | R6 | Claude Code | Gemini key in Vercel (server-only), deploy, README update, demo rehearsal | done |
 | R7 | Claude Code | Bonus: object image → Rodin image-to-3D for one box (local) | done |
-| U16 | Cursor | Polish pass for the hero demo flow | todo |
+| U16 | Cursor | Polish pass for the hero demo flow | done |
 | H1 | Francesco | Record the demo video | todo |
+
+---
+
+# ROUND 3: make it clear, crafted and agent-first (planned 4 Oct, ~00:40)
+
+**Why:** Francesco's test of Prove + Suggest fix: "a bit ugly, the way of asking is confusing, the layout is not the best." Goals: (1) the pipeline guides the user (stepper), (2) a modern, human-crafted look with purposeful motion, (3) a **dedicated Co-designer panel** where the agent is genuinely useful.
+**Design source of truth:** [`DESIGN_BRIEF.md`](DESIGN_BRIEF.md) (layout, "blueprint workshop" visual direction, colours, type, motion, Co-designer behaviour).
+**Rules:** same as Round 2 (same branch, own paths, Cursor doesn't push/deploy, contract changes by Claude Code).
+
+## R3-M1: New shell + guided flow
+*Done when: the stepper drives the whole flow and the layout matches DESIGN_BRIEF §2–3 (Co-designer panel can still be a placeholder).*
+
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| C9 | Claude Code | Install `motion`, `lucide-react`, fonts (`@fontsource-variable/inter`, `@fontsource/space-grotesk`, `@fontsource/jetbrains-mono`). Store: `currentStep(level)` helper (block-out / prove / lock / dress / play), `acceptAll(ids)`, `highlightedProposalId` + `setHighlightedProposal`. | todo |
+| U17 | Cursor | Design tokens (CSS variables from the brief) + fonts + new layout shell: top stepper, left "Level" panel (boxes grouped by role + inspector + edit tools), centre viewport with floating controls, bottom step action bar, right "Co-designer" panel (placeholder). Blueprint ground grid. | todo |
+| U18 | Cursor | Stepper + action bar per step (brief §2): one primary action per step, disabled states with reasons, result card for Prove (pass/fail, % protected, m exposed). | todo |
+
+**Francesco feedback R3-M1:** _(write here)_
+
+## R3-M2: The Co-designer (agent)
+*Done when: from the Co-designer panel you can build from a sketch, fix a failing level, ask "why does it fail?", ask for changes in words, and accept 1–3 verified proposals per answer.*
+
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| C10 | Claude Code | Agent endpoint `/api/ai/agent` + client `aiAgent(message, image?)`: reads the level, the step and the Prove result; answers with a short **reply** + **0–3 proposals** (each validated + Prove-previewed; claims of "fixes it" re-checked, one feedback round) + **next-step chips**. Routes "fix" to the verified fix loop and "why" to an explanation built from Prove data (exposed stretch, metres in the open, what the objective sees). Conversation kept in the store (`agentThread`). | todo |
+| U19 | Cursor | Co-designer panel UI (brief §4): status, context chips, conversation cards, proposal rows with Preview / Accept / Dismiss / Accept all, image drop (sketch or style), text box. Violet = AI. | todo |
+
+**Francesco feedback R3-M2:** _(write here)_
+
+## R3-M3: Motion + polish
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| U20 | Cursor | Motion pass (brief §5): stepper fill, route draw-in, heatmap fade, fail shake / pass sweep, ghost pulse → accept morph, panel slides, card stagger. Reduced-motion respected. | todo |
+| U21 | Cursor | Phone layout (bottom sheets), "From photo…" in the inspector (R7), empty states, final polish. | todo |
+| C11 | Claude Code | Review, deploy, README screenshots/GIF, demo rehearsal | todo |
+| H1 | Francesco | Record the demo video (Hyper3D login right before) | todo |
+
+**Francesco feedback R3-M3:** _(write here)_
 
 ---
 
