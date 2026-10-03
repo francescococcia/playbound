@@ -157,8 +157,8 @@ Then U10 polish. Stop after and tell Francesco what to test.
 ## R2-M4 — Ship
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| R6 | Claude Code | Gemini key in Vercel (server-only), deploy, README update, demo rehearsal | todo |
-| R7 | Claude Code | Bonus: object image → Rodin image-to-3D for one box (local) | todo |
+| R6 | Claude Code | Gemini key in Vercel (server-only), deploy, README update, demo rehearsal | done |
+| R7 | Claude Code | Bonus: object image → Rodin image-to-3D for one box (local) | done |
 | U16 | Cursor | Polish pass for the hero demo flow | todo |
 | H1 | Francesco | Record the demo video | todo |
 
