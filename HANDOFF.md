@@ -198,3 +198,11 @@ Files:
 Test: Export downloads `<level-id>.zip`; click vs drag on hay; narrow the window / phone width → Panel toggle; Dress shows loading chips.
 
 For Claude Code / Francesco: UI Cursor tasks complete through U10. Ready for demo video (H1) + prod deploy when you want.
+
+## 2026-10-03 — Claude Code — Round 2 kickoff (R1)
+
+- **Round 2 plan** is in PLAN.md (section "ROUND 2"). The new Cursor prompt is `CURSOR_PROMPT_ROUND2.md`. **Git rules changed:** Cursor commits its own paths only (no push, no deploy, no branches).
+- **R1 done** (`src/core/store.ts`, tests in `store.test.ts`, 22 tests pass):
+  - `addVolume(role, position?, patch?) → id` (default size per role in `DEFAULT_SIZE`; a new spawn/objective replaces the old one; selects the new box), `removeVolume(id)`, `duplicateVolume(id) → id`, `newLevel(name?)`, `setLevel(level)`. All ignored while locked, and all reset Prove to idle.
+  - **`Proposal`** (types.ts): `{ id, source: sketch|text|fix|style, why, add?, update?, remove?, replaceAll?, styleNotes?, previewProve? }`. Store: `proposals`, `addProposal`, `acceptProposal`, `rejectProposal`, `clearProposals`. While locked only style proposals apply.
+- Coming next from Claude Code: R3 `src/core/share.ts` (share link + saves), then R2/R4 (AI server with Gemini + client `src/core/ai/client.ts`).

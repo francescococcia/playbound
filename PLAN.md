@@ -108,7 +108,62 @@ Then U10 polish. Stop after and tell Francesco what to test.
 
 ---
 
+# ROUND 2 — from demo to tool (started 3 Oct, evening)
+
+**Goal:** the AI helps at every stage, and the designer always approves.
+**Hero demo:** upload a sketch → AI builds the greybox → Prove fails (death corridor) → AI suggests cover → Accept → Lock → style image → AI writes the style → Dress → walk → share the link.
+
+**Rules (unchanged + git):**
+- Same folder, same branch (`main`). **No branches.**
+- Commit ONLY your own paths: Cursor → `git add src/ui src/index.css src/App.tsx PLAN.md HANDOFF.md`; never `git add -A` / `git add .`.
+- Cursor does NOT push or deploy. Claude Code pushes to GitHub and deploys after each milestone review.
+- Contract changes (`src/core/types.ts`) only by Claude Code; ask in HANDOFF.md.
+- **AI proposals are never applied automatically:** `addProposal` → designer clicks Accept (`acceptProposal`) or Reject.
+
+## R2-M1 — Editing + share/save
+*Done when: Francesco can start a blank level, add/resize/rotate/delete boxes, save it, reload it, and open a share link in another tab.*
+
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| R1 | Claude Code | Store: `addVolume(role, pos?, patch?)`, `removeVolume`, `duplicateVolume`, `newLevel`, `setLevel`, `DEFAULT_SIZE`; `Proposal` contract + `addProposal / acceptProposal / rejectProposal / clearProposals` (tests) | done |
+| R3 | Claude Code | `src/core/share.ts`: `shareUrl(level)` (level compressed into the URL hash), `levelFromUrl()` on boot; `saveLevel / listSaves / loadSave / deleteSave` (browser storage) | todo |
+| U11 | Cursor | Edit tools: **Add** menu (role picker → `addVolume` at the view centre), **Delete** (button + Del key), **Duplicate** (button + Ctrl+D), inspector fields for label, role, W/H/D, rotation (°) → `updateVolume`; **New level** button. All disabled while locked. | todo |
+| U15 | Cursor | **Share** button → copy `shareUrl(level)` + toast; **Save / Open** menu (list saves, load, delete). Uses R3 (wire when R3 lands; placeholder until then). | todo |
+
+**Francesco feedback R2-M1:** _(write here)_
+
+## R2-M2 — AI co-designer (Gemini)
+*Done when: sketch → ghost greybox → Accept; "Suggest fix" on a failing level proposes cover that passes; style image → style notes proposal; text command works.*
+
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| R2 | Claude Code | Prove robustness: snap spawn/objective to the nearest walkable cell (sketch imports put the gate on the wall → false NO_PATH) | todo |
+| R4 | Claude Code | AI server (`/api/ai/*`): one handler for the Vite dev server AND a Vercel function, key server-side, usage cap. `sketch` (image → replaceAll proposal), `style` (image → styleNotes proposal), `command` (text + level → add/update/remove proposal), `fix` (agent loop: model proposes cover spots → our Prove checks each → best passing one, with `previewProve`). Client: `src/core/ai/client.ts` → `aiSketch(file)`, `aiStyle(file)`, `aiCommand(text)`, `aiSuggestFix()`, `isAiAvailable()`. Each adds a proposal to the store. | todo |
+| U12 | Cursor | Proposal UI: ghost boxes (translucent, dashed) for `add`, ghost + arrow for `update`, red tint for `remove`; proposal card(s) with `why`, Prove preview (pass/fail, %) and **Accept / Reject**. | todo |
+| U13 | Cursor | AI panel: **Sketch → level** (image upload), **Style from image** (the style upload also calls `aiStyle`), command box, **Suggest fix** button on the fail banner. Loading states (10–30 s), errors as toasts. | todo |
+
+**Francesco feedback R2-M2:** _(write here)_
+
+## R2-M3 — Prove v2 (line of sight + heatmap)
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| R5 | Claude Code | Line of sight from the objective through solid boxes; `prove.exposure` grid for the heatmap; cover counts only if it blocks the view. Presets re-tuned so fail/pass still hold (tests). | todo |
+| U14 | Cursor | Heatmap overlay on the ground from `prove.exposure` (red = seen, blue = safe) + toggle. | todo |
+
+**Francesco feedback R2-M3:** _(write here)_
+
+## R2-M4 — Ship
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| R6 | Claude Code | Gemini key in Vercel (server-only), deploy, README update, demo rehearsal | todo |
+| R7 | Claude Code | Bonus: object image → Rodin image-to-3D for one box (local) | todo |
+| U16 | Cursor | Polish pass for the hero demo flow | todo |
+| H1 | Francesco | Record the demo video | todo |
+
+---
+
 ## Known facts (keep updated)
+- **AI provider test (3 Oct):** sketch → greybox JSON works on every model tested (6 boxes, right roles, positions within ~1 m). Speed: **Gemini 3.8 Flash direct 12 s (free)**, Cursor SDK + Claude Sonnet 5.5 27 s, Cursor SDK + Gemini 3.8 Flash 94 s. Cursor SDK on Windows needs `JsonlLocalAgentStore` (default SQLite path exceeds MAX_PATH); its custom tools were blocked by `tools: []`. Decision: **Gemini direct** for the app (free, fastest, works on the public site); the "fix" agent loop runs in our code (model proposes → our Prove checks).
 - **Live URL:** https://playbound-eta.vercel.app (Vercel project `playbound`, account francescococciaa-1965). First deploy: 3 Oct ~16:20. Deploys upload the working tree, so **deploy only when Cursor has stopped at a milestone** (no half-done UI). Command: `npx vercel deploy --prod --yes`. `/api/rodin` doesn't exist there (404), so Dress uses prebaked models and Regenerate shows the "needs Hyper3D connection" message.
 - **Rodin via CLI, measured 3 Oct:** ~2 min per model, 0.5 credits. Raw GLB is 28 MB / 375k verts; after our optimize step it's ~1.2 MB (meshopt + 1K webp). Models come back centred on their middle at arbitrary scale, so `fitToVolume` is required. Credits: 25 regular + 300 subscription.
 - **Prebake (3 Oct, 2 rounds, ~6 credits):** 10 assets, ~5.5 MB in total. Fill: tower 94%, chapel 95%, tavern 81%, guildhall 76%, cart 75%, fish stall 64%, bakery 60%, hay 42%, notice board 37%, barrels 100%. Each side of the corridor is now two 9 m buildings (tavern + bakery, chapel + guildhall). `fitToVolume` allows ≤25% sideways stretch.
