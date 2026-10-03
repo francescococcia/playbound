@@ -15,7 +15,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import { join, resolve } from "node:path";
 import type { Plugin } from "vite";
-import type { GenerateRequest, JobResponse, ManifestEntry } from "../src/core/dress/rodinTypes";
+import type { GenerateRequest, JobResponse, ManifestEntry } from "../src/core/dress/rodinTypes.ts";
 
 const ROOT = resolve(process.cwd());
 const GEN_DIR = join(ROOT, "public", "assets", "gen");

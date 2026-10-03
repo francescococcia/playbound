@@ -23,7 +23,10 @@ interface PlayboundState {
   unlock: () => void;
   setStyleRef: (url: string | undefined, notes?: string) => void;
   /** Dress-side updates (asset url, prompt, status). Allowed while locked: visuals only. */
-  setVolumeAsset: (id: string, patch: Partial<Pick<Volume, "assetUrl" | "prompt" | "status" | "error">>) => void;
+  setVolumeAsset: (
+    id: string,
+    patch: Partial<Pick<Volume, "assetUrl" | "prompt" | "status" | "error" | "stage" | "variant">>,
+  ) => void;
 }
 
 const clone = (l: Level): Level => structuredClone(l);

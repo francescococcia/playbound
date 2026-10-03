@@ -83,3 +83,21 @@ For Cursor (U7, when you get there):
 - **Clone before fitting:** `const obj = useMemo(() => gltf.scene.clone(true), [gltf])`, then `fitToVolume(obj, v.size)`, then render `<group position={v.position} rotation-y={v.rotationY}><primitive object={obj} /></group>`.
 - First load takes a few seconds (webp decode). Show the grey box until the GLB is ready (Suspense fallback = the box).
 - Keep the invisible collider = the contract box. Never use the mesh for collision.
+
+## 2026-10-03 — Claude Code — C4 (Dress engine)
+
+Built `src/core/dress/dress.ts`:
+- `dressLevel()`: dresses every cover/block/landmark/prop that isn't `ready`, 3 at a time. Throws `canDress(level).why` if not allowed.
+- `regenerate(id)`: bumps `variant` and generates a new model. The old `assetUrl` stays visible until the new one is ready.
+- `isLiveAvailable()`: true only on the local dev server (Hyper3D CLI route present).
+- Source order per box: prebaked (`/assets/gen/manifest.json`) → live (`/api/rodin`) → `status: "error"` with the message "Live generation needs a Hyper3D connection (run the app locally)". The grey box always stays.
+- 5 tests with a fake server (no credits): gate, prebaked, no-live error, live polling (positions/sizes unchanged), regenerate.
+
+Contract (additive, optional): `Volume.stage` (e.g. "mesh 2/5", "optimizing") and `Volume.variant`. `setVolumeAsset` accepts both.
+Presets now have default `styleNotes` (`MARKET_STYLE`). The prompt uses `level.styleNotes`; the style ref image is shown in the UI and gates Dress.
+
+For Cursor (U6/U7/U9):
+- Dress button: `onClick={() => dressLevel().catch(e => toast(e.message))}`, disabled when `!canDress(level).ok` (tooltip = `why`).
+- Progress list: each dressable volume shows `status` + `stage` (+ `error` in red).
+- Inspector: show `prompt`; Regenerate button → `regenerate(id)`. Disable it with the tooltip "needs Hyper3D connection" when `await isLiveAvailable()` is false.
+- Style ref: a text field for `styleNotes` next to the image (`setStyleRef(url, notes)`).

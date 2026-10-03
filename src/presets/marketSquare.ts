@@ -24,6 +24,8 @@ const base: Volume[] = [
   { id: "notice-board", label: "wooden notice board", role: "prop", position: [7, 0, 1], rotationY: 0.2, size: [1.6, 2.2, 0.3] },
 ];
 
+export const MARKET_STYLE = "stylised medieval European market town, warm hand-painted textures, readable game art";
+
 const cartFar: Volume = {
   id: "cart",
   label: "low open wooden market cart, no canopy",
@@ -39,6 +41,7 @@ export const marketSquareFail: Level = {
   id: "market-square-fail",
   name: "Market Square (fail)",
   bounds: 20,
+  styleNotes: MARKET_STYLE,
   locked: false,
   prove: { status: "idle" },
   volumes: [...base, cartFar],
@@ -48,6 +51,7 @@ export const marketSquarePass: Level = {
   id: "market-square-pass",
   name: "Market Square (pass)",
   bounds: 20,
+  styleNotes: MARKET_STYLE,
   locked: false,
   prove: { status: "idle" },
   volumes: [...base, cartNear],
