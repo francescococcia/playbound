@@ -2,14 +2,26 @@
 import { TopBar } from "./ui/panels/TopBar";
 import { SidePanel } from "./ui/panels/SidePanel";
 import { Viewport } from "./ui/scene/Viewport";
+import { useUiPrefs } from "./ui/uiPrefs";
 
 export default function App() {
+  const panelOpen = useUiPrefs((s) => s.panelOpen);
+  const setPanelOpen = useUiPrefs((s) => s.setPanelOpen);
+
   return (
-    <div style={{ display: "grid", gridTemplateRows: "auto 1fr", height: "100%" }}>
+    <div className="app-shell">
       <TopBar />
-      <div style={{ display: "grid", gridTemplateColumns: "300px 1fr", minHeight: 0 }}>
+      <div className={`app-body${panelOpen ? " app-body--panel-open" : ""}`}>
         <SidePanel />
         <Viewport />
+        {panelOpen && (
+          <button
+            type="button"
+            className="panel-backdrop"
+            aria-label="Close panel"
+            onClick={() => setPanelOpen(false)}
+          />
+        )}
       </div>
     </div>
   );

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { canDress, usePlaybound } from "../../core/store";
 import { dressLevel } from "../../core/dress/dress";
+import { downloadLevelZip } from "../../core/export/exportLevel";
+import { useUiPrefs } from "../uiPrefs";
 
 export function TopBar() {
   const level = usePlaybound((s) => s.level);
@@ -10,8 +12,12 @@ export function TopBar() {
   const lock = usePlaybound((s) => s.lock);
   const unlock = usePlaybound((s) => s.unlock);
   const setStyleRef = usePlaybound((s) => s.setStyleRef);
+  const panelOpen = useUiPrefs((s) => s.panelOpen);
+  const togglePanel = useUiPrefs((s) => s.togglePanel);
+  const setPanelOpen = useUiPrefs((s) => s.setPanelOpen);
   const fileRef = useRef<HTMLInputElement>(null);
   const [dressBusy, setDressBusy] = useState(false);
+  const [exportBusy, setExportBusy] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   const [notesDraft, setNotesDraft] = useState(level.styleNotes ?? "");
 
@@ -19,7 +25,17 @@ export function TopBar() {
     setNotesDraft(level.styleNotes ?? "");
   }, [level.id, level.styleNotes]);
 
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 761px)");
+    const onChange = () => {
+      if (mq.matches) setPanelOpen(false);
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [setPanelOpen]);
+
   const dressGate = canDress(level);
+  const dressing = level.volumes.some((v) => v.status === "queued" || v.status === "generating");
 
   const onStyleFile = (file: File | undefined) => {
     if (!file) return;
@@ -44,9 +60,33 @@ export function TopBar() {
     }
   };
 
+  const onExport = async () => {
+    if (exportBusy) return;
+    setExportBusy(true);
+    setToast(null);
+    try {
+      await downloadLevelZip(level);
+      setToast("Export downloaded.");
+    } catch (e) {
+      setToast(e instanceof Error ? e.message : String(e));
+    } finally {
+      setExportBusy(false);
+    }
+  };
+
   return (
     <header className="top-bar">
       <strong className="brand">PLAYBOUND</strong>
+
+      <button
+        type="button"
+        className={`panel-toggle${panelOpen ? " active" : ""}`}
+        aria-expanded={panelOpen}
+        onClick={togglePanel}
+        title="Toggle side panel"
+      >
+        {panelOpen ? "Close" : "Panel"}
+      </button>
 
       <div className="view-toggle" role="group" aria-label="Camera mode">
         <button
@@ -108,16 +148,25 @@ export function TopBar() {
         )}
         <button
           type="button"
+          className="btn-with-spin"
           onClick={onDress}
           disabled={!dressGate.ok || dressBusy}
           title={dressGate.ok ? (dressBusy ? "Dressing…" : "Dress locked volumes") : dressGate.why}
         >
-          {dressBusy ? "Dressing…" : "Dress"}
+          {(dressBusy || dressing) && <span className="btn-spin" aria-hidden />}
+          {dressBusy || dressing ? "Dressing…" : "Dress"}
         </button>
-        <button type="button" disabled title="Export zip — waiting on C6 (Claude Code)">
-          Export
+        <button
+          type="button"
+          className="btn-with-spin"
+          onClick={onExport}
+          disabled={exportBusy}
+          title={exportBusy ? "Building zip…" : "Download level.json + GLBs as zip"}
+        >
+          {exportBusy && <span className="btn-spin" aria-hidden />}
+          {exportBusy ? "Exporting…" : "Export"}
         </button>
-        <button type="button" disabled title="Share comes in M5">
+        <button type="button" disabled title="Share not in scope for the demo">
           Share
         </button>
       </div>

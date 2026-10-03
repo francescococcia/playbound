@@ -103,7 +103,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 |---|---|---|---|
 | C7 | Claude Code | Deploy to Vercel (static site + prebaked GLBs in `public/assets/`). README: how to log in to the CLI, prebake, limits, demo script. | done |
 | C8 | Claude Code | Prebake hero level: generate ≥ 6 (target 9) Rodin assets via CLI/MCP, commit the GLBs, reference them from the preset. | done |
-| U10 | Cursor | Polish pass: readable labels, loading states, phone-width check. | todo |
+| U10 | Cursor | Polish pass: readable labels, loading states, phone-width check. | done |
 | H1 | Francesco | Record the 2-minute demo video (script in the spec). | todo |
 
 ---

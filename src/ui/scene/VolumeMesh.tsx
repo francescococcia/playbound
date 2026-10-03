@@ -12,6 +12,8 @@ const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 const HIT = new THREE.Vector3();
 const NDC = new THREE.Vector2();
 const RAYCASTER = new THREE.Raycaster();
+/** Pointer must move this far before a drag starts (keeps click = select). */
+const DRAG_THRESHOLD_PX = 5;
 
 function alwaysLabel(role: Volume["role"]) {
   return role === "spawn" || role === "objective" || role === "cover";
@@ -63,7 +65,9 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
   const showColliders = useUiPrefs((s) => s.showColliders);
   const { controls, camera, gl } = useThree();
   const [hovered, setHovered] = useState(false);
+  const pending = useRef<{ x: number; y: number } | null>(null);
   const dragging = useRef(false);
+  const didDrag = useRef(false);
   const selected = selectedId === volume.id;
   const color = ROLE_COLORS[volume.role];
   const isMarker = volume.role === "spawn" || volume.role === "objective";
@@ -74,6 +78,7 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
       : alwaysLabel(volume.role) || selected || hovered;
   const yBase = volume.position[1];
   const hasAsset = Boolean(volume.assetUrl);
+  const loading = volume.status === "queued" || volume.status === "generating";
 
   const setOrbit = (on: boolean) => {
     const c = controls as { enabled?: boolean } | null;
@@ -91,15 +96,27 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
 
   useEffect(() => {
     const onMove = (e: PointerEvent) => {
+      if (pending.current && !dragging.current) {
+        const dx = e.clientX - pending.current.x;
+        const dy = e.clientY - pending.current.y;
+        if (Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) {
+          dragging.current = true;
+          didDrag.current = true;
+          setOrbit(false);
+          gl.domElement.style.cursor = "grabbing";
+        }
+      }
       if (!dragging.current) return;
       const pos = projectGround(e.clientX, e.clientY);
       if (pos) updateVolume(volume.id, { position: pos });
     };
     const onUp = () => {
-      if (!dragging.current) return;
-      dragging.current = false;
-      setOrbit(true);
-      gl.domElement.style.cursor = hovered ? "grab" : "";
+      pending.current = null;
+      if (dragging.current) {
+        dragging.current = false;
+        setOrbit(true);
+        gl.domElement.style.cursor = hovered ? "grab" : "";
+      }
     };
     window.addEventListener("pointermove", onMove);
     window.addEventListener("pointerup", onUp);
@@ -111,16 +128,20 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
 
   const onClick = (e: ThreeEvent<MouseEvent>) => {
     e.stopPropagation();
+    if (didDrag.current) {
+      didDrag.current = false;
+      return;
+    }
     select(volume.id);
   };
 
   const onPointerDown = (e: ThreeEvent<PointerEvent>) => {
     if (locked) return;
     e.stopPropagation();
-    dragging.current = true;
+    didDrag.current = false;
+    pending.current = { x: e.clientX, y: e.clientY };
+    dragging.current = false;
     select(volume.id);
-    setOrbit(false);
-    gl.domElement.style.cursor = "grabbing";
   };
 
   const [sx, sy, sz] = volume.size;
@@ -130,7 +151,21 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
 
   const label = showLabel ? (
     <Html position={[0, sy + 0.35, 0]} center style={{ pointerEvents: "none" }}>
-      <span className={`vol-label${selected ? " vol-label--selected" : ""}`}>{display}</span>
+      <span
+        className={`vol-label${selected ? " vol-label--selected" : ""}`}
+        style={{ borderColor: selected ? undefined : color }}
+      >
+        {display}
+      </span>
+    </Html>
+  ) : null;
+
+  const loadBadge = loading ? (
+    <Html position={[0, sy / 2, 0]} center style={{ pointerEvents: "none" }}>
+      <span className="vol-loading">
+        <span className="btn-spin" aria-hidden />
+        {volume.stage ?? (volume.status === "queued" ? "Queued" : "Loading…")}
+      </span>
     </Html>
   ) : null;
 
@@ -180,14 +215,18 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
         )}
         {showLabel && (
           <Html position={[0, 0.85, 0]} center style={{ pointerEvents: "none" }}>
-            <span className={`vol-label${selected ? " vol-label--selected" : ""}`}>{display}</span>
+            <span
+              className={`vol-label${selected ? " vol-label--selected" : ""}`}
+              style={{ borderColor: selected ? undefined : color }}
+            >
+              {display}
+            </span>
           </Html>
         )}
       </group>
     );
   }
 
-  // Bottom-centre group (matches fitToVolume / contract position).
   return (
     <group
       position={[cx, yBase, cz]}
@@ -198,7 +237,17 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
     >
       {hasAsset ? (
         <Suspense
-          fallback={<GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} />}
+          fallback={
+            <>
+              <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} />
+              <Html position={[0, sy / 2, 0]} center style={{ pointerEvents: "none" }}>
+                <span className="vol-loading">
+                  <span className="btn-spin" aria-hidden />
+                  Loading model…
+                </span>
+              </Html>
+            </>
+          }
         >
           <DressedModel url={volume.assetUrl!} size={volume.size} />
         </Suspense>
@@ -206,7 +255,6 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
         <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} />
       )}
 
-      {/* Invisible solid for picking/dragging when the grey box is hidden */}
       {hasAsset && (
         <mesh position={[0, sy / 2, 0]} visible={false}>
           <boxGeometry args={[sx, sy, sz]} />
@@ -215,6 +263,7 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
 
       {(showColliders || selected) && <WireCollider size={volume.size} color={selected ? "#ffffff" : "#58a6ff"} />}
 
+      {loading && loadBadge}
       {label}
     </group>
   );

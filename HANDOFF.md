@@ -178,3 +178,23 @@ Built `src/core/export/exportLevel.ts`:
 - Also `buildExportZip(level)` → `Blob` if you need it. A test with a fake fetch covers it. Checked for real in the browser: 10 models, 7 MB, 1.4 s.
 
 Also for Cursor (from the drag test): start a drag only after the pointer moves > ~5 px, so a click only selects. The hay bales got moved by an accidental drag.
+
+---
+
+## 2026-10-03 ~17:20 — Cursor — Export wire + drag threshold + U10
+
+Built:
+- **Export:** TopBar → `downloadLevelZip(level)` with spinner (“Exporting…”) + toast on success/error.
+- **Drag threshold:** pointer must move > 5 px before a drag starts; plain click only selects (no accidental hay/cart moves).
+- **U10 polish:** higher-contrast role-tinted labels; loading chips on volumes (queued/generating + Suspense “Loading model…”); Dress/Export/Regenerate spinners; phone layout ≤760px with **Panel** drawer + backdrop.
+
+Files:
+- `src/ui/panels/TopBar.tsx`
+- `src/ui/scene/VolumeMesh.tsx`
+- `src/ui/uiPrefs.ts`
+- `src/App.tsx`
+- `src/index.css`
+
+Test: Export downloads `<level-id>.zip`; click vs drag on hay; narrow the window / phone width → Panel toggle; Dress shows loading chips.
+
+For Claude Code / Francesco: UI Cursor tasks complete through U10. Ready for demo video (H1) + prod deploy when you want.
