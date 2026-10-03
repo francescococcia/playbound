@@ -125,6 +125,36 @@ button.active {
 .vol-row-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .vol-row-role { font-size: 0.75rem; color: #8b949e; text-transform: capitalize; }
 
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+.toggle-row input { accent-color: #58a6ff; }
+
+.dress-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.dress-row-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  text-align: left;
+  padding: 0.35rem 0.45rem;
+  background: transparent;
+}
+.dress-row-btn:hover { background: #21262d; }
+.dress-name { font-size: 0.85rem; }
+.dress-status { font-size: 0.72rem; color: #8b949e; }
+.dress-error { font-size: 0.72rem; color: #ff7b72; }
+.dress-row--ok .dress-status { color: #3fb950; }
+.dress-row--busy .dress-status { color: #79c0ff; }
+.dress-row--err .dress-status,
+.dress-row--err .dress-error { color: #ff7b72; }
+
 .viewport {
   position: relative;
   min-height: 0;

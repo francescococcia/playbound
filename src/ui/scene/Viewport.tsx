@@ -1,5 +1,5 @@
 import { Canvas, useThree } from "@react-three/fiber";
-import { OrbitControls } from "@react-three/drei";
+import { Environment, OrbitControls } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
 import { usePlaybound } from "../../core/store";
 import { FpsController } from "./FpsController";
@@ -8,7 +8,7 @@ import { ProveBanner } from "./ProveBanner";
 import { ProvePath } from "./ProvePath";
 import { VolumeMesh } from "./VolumeMesh";
 
-/** High 3/4 overview: whole square, gate → corridor → well, NW cart visible. */
+/** High 3/4 overview: whole square, gate → corridor → well. */
 const ORBIT_POS: [number, number, number] = [8, 48, 36];
 const ORBIT_TARGET: [number, number, number] = [0, 0, 0];
 
@@ -41,13 +41,14 @@ export function Viewport() {
         camera={{ position: ORBIT_POS, fov: 45, near: 0.1, far: 250 }}
         onPointerMissed={() => select(null)}
       >
-        <color attach="background" args={["#0d1117"]} />
-        <ambientLight intensity={0.6} />
+        <color attach="background" args={["#87a0b8"]} />
+        <fog attach="fog" args={["#87a0b8", 55, 120]} />
+        <ambientLight intensity={0.35} />
         <directionalLight
           castShadow
-          position={[20, 35, 12]}
-          intensity={1.15}
-          shadow-mapSize={[1024, 1024]}
+          position={[22, 40, 14]}
+          intensity={1.35}
+          shadow-mapSize={[2048, 2048]}
           shadow-camera-far={90}
           shadow-camera-left={-35}
           shadow-camera-right={35}
@@ -55,6 +56,7 @@ export function Viewport() {
           shadow-camera-bottom={-35}
         />
         <Suspense fallback={null}>
+          <Environment preset="city" environmentIntensity={0.55} />
           <Ground bounds={level.bounds} />
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} />
