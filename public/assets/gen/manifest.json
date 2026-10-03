@@ -6,5 +6,69 @@
     "generationId": "8aaef152-12e9-4fa7-9d22-a593af2e7206",
     "url": "/assets/gen/testcart01.glb",
     "createdAt": "2026-10-03T13:56:34.115Z"
+  },
+  "f2a59fef": {
+    "key": "f2a59fef",
+    "volumeId": "tower",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: clock tower.\nGameplay role: landmark (readable landmark visible from across a courtyard).\nExact real-world size: 4m wide x 14m tall x 4m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "ee03265f-5850-484f-b861-51f1ab8ceeb6",
+    "url": "/assets/gen/f2a59fef.glb",
+    "createdAt": "2026-10-03T14:34:32.374Z"
+  },
+  "48f44eaf": {
+    "key": "48f44eaf",
+    "volumeId": "tavern",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: timber-framed tavern.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 18m wide x 7m tall x 8m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "3aaecf76-fe6f-4368-a355-ff088b75794b",
+    "url": "/assets/gen/48f44eaf.glb",
+    "createdAt": "2026-10-03T14:36:08.550Z"
+  },
+  "09fbc8e9": {
+    "key": "09fbc8e9",
+    "volumeId": "guildhall",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: stone guildhall.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 18m wide x 8m tall x 8m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "61242d42-2b91-4dbf-97d9-e4cc7186f041",
+    "url": "/assets/gen/09fbc8e9.glb",
+    "createdAt": "2026-10-03T14:36:08.722Z"
+  },
+  "41af33b2": {
+    "key": "41af33b2",
+    "volumeId": "barrels",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: stack of wooden barrels.\nGameplay role: prop (set dressing prop that fits the space).\nExact real-world size: 1.6m wide x 1.3m tall x 1.6m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "f38e8905-c119-461c-b48a-32a783a6a644",
+    "url": "/assets/gen/41af33b2.glb",
+    "createdAt": "2026-10-03T14:36:39.348Z"
+  },
+  "a4e5c664": {
+    "key": "a4e5c664",
+    "volumeId": "fish-stall",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: fish market stall with canvas awning.\nGameplay role: prop (set dressing prop that fits the space).\nExact real-world size: 3m wide x 2.6m tall x 2m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "3b3d5309-3935-413d-b8ea-4ef49244f982",
+    "url": "/assets/gen/a4e5c664.glb",
+    "createdAt": "2026-10-03T14:37:24.678Z"
+  },
+  "79dfc135": {
+    "key": "79dfc135",
+    "volumeId": "hay",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: hay bales.\nGameplay role: prop (set dressing prop that fits the space).\nExact real-world size: 2.2m wide x 1m tall x 1.2m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "078ee9b5-6cf9-4113-8602-38e653ff9b28",
+    "url": "/assets/gen/79dfc135.glb",
+    "createdAt": "2026-10-03T14:38:34.229Z"
+  },
+  "ffd47840": {
+    "key": "ffd47840",
+    "volumeId": "notice-board",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: wooden notice board.\nGameplay role: prop (set dressing prop that fits the space).\nExact real-world size: 1.6m wide x 2.2m tall x 0.3m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "9bdefc2a-1e04-4031-9163-dad89ed881be",
+    "url": "/assets/gen/ffd47840.glb",
+    "createdAt": "2026-10-03T14:39:04.665Z"
+  },
+  "14a5bb8d": {
+    "key": "14a5bb8d",
+    "volumeId": "cart",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: low open wooden market cart, no canopy.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 1.2m wide x 1.2m tall x 2.5m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "5dcfdafa-b713-4c15-b1c6-30feba457dd3",
+    "url": "/assets/gen/14a5bb8d.glb",
+    "createdAt": "2026-10-03T14:39:34.625Z"
   }
 }

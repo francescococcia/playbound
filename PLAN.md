@@ -37,7 +37,13 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 | U2 | Cursor | Click a box → select (highlight). `SidePanel`: volume list synced to selection + inspector (label, role, size). | done |
 | U3 | Cursor | FPS mode: orbit/FPS toggle (`viewMode`), pointer lock, WASD ~4 m/s, eye height 1.6 m, start at the spawn. Collision **must** use `resolveCollision(x, z, 0.35, level.volumes, level.bounds)` from `src/core/geometry.ts`. | done |
 
-**Francesco feedback M1:** _(write here)_
+**Francesco feedback M1:** M1 works (render, labels, selection + inspector, Prove fail/pass messages, Lock gate, FPS starts at the gate facing the corridor). Fix these before/with M2:
+1. **Ground is pure black.** Boxes don't read. Use a mid-grey greybox ground with a 1 m grid (lines every 1 m, stronger every 5 m).
+2. **Starting camera is too low and close.** Start with a high 3/4 overview that shows the whole square, gate → corridor → well. In the fail preset the cart (far NW corner) is hidden behind the clock tower.
+3. **Labels:** sizes jump around with distance and overlap. Use a fixed screen size. Always show labels for spawn, objective and cover; for the rest, only on hover/selection.
+4. **Top bar jumps:** Prove/Lock move when the message length changes. Give the message a fixed slot (or move it to the U4 banner).
+5. **Objective is hard to spot.** Give the well a bright marker/beacon so "reach this" is obvious.
+- Walking test (Francesco, by hand): FPS → click the view → hold W down the corridor → try to walk into the tavern wall (you should stop) → Esc. Result: ✅ WASD + wall collision work (Francesco, 3 Oct).
 
 ---
 
@@ -46,9 +52,9 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| U4 | Cursor | Prove overlay: draw `prove.path`; segments green where `covered[i]`, red where exposed (the "heatmap"); banner with `prove.message`; small honest-limit line: "Prove = path + cover heuristic, not a combat sim." | todo |
-| U5 | Cursor | Drag a box on the ground (XZ only) when unlocked → `updateVolume(id, { position })`. Disabled when locked. | todo |
-| U6 | Cursor | TopBar: Style ref (file → data URL → `setStyleRef`) with thumbnail · Prove · Lock/Unlock · Dress (disabled, tooltip = `canDress(level).why`) · Export · Share (placeholders until M4). | todo |
+| U4 | Cursor | Prove overlay: draw `prove.path`; segments green where `covered[i]`, red where exposed (the "heatmap"); banner with `prove.message`; small honest-limit line: "Prove = path + cover heuristic, not a combat sim." | done |
+| U5 | Cursor | Drag a box on the ground (XZ only) when unlocked → `updateVolume(id, { position })`. Disabled when locked. | done |
+| U6 | Cursor | TopBar: Style ref (file → data URL → `setStyleRef`) with thumbnail · Prove · Lock/Unlock · Dress (disabled, tooltip = `canDress(level).why`) · Export · Share (placeholders until M4). | done |
 | C3 | Claude Code | Rodin access via the **Hyper3D CLI** (OAuth login, account credits; no API key, because the API needs the Business plan). Build a local dev-only route `/api/rodin` (Vite middleware) that runs `hyper3d generate` / `poll` / `result`, downloads the GLB to `public/assets/<hash>.glb`, and caches by `(prompt, size, style)` hash. Test with one real generation (~0.5 credits). | done |
 
 **Francesco feedback M2:** _(write here)_

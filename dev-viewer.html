@@ -1,26 +1,74 @@
 <!doctype html>
 <html><head><meta charset="UTF-8" /><title>PLAYBOUND asset viewer (dev)</title>
-<style>body{margin:0;background:#1b1f24;color:#ccc;font:13px system-ui}#i{position:fixed;top:8px;left:8px}</style></head>
-<body><div id="i"></div>
+<style>body{margin:0;background:#1b1f24;color:#ccc;font:13px system-ui}#i{position:fixed;top:8px;left:8px;white-space:pre}</style></head>
+<body><div id="i">loading…</div>
 <script type="module">
-// Dev tool: /dev-viewer.html?k=<asset key>. Uses the app's three + meshopt decoder.
+// Dev tool.
+//   /dev-viewer.html            -> gallery: every dressable volume of the hero preset, its
+//                                  prebaked model fitted (fitToVolume) inside its wireframe contract box
+//   /dev-viewer.html?only=cart,hay -> gallery limited to those volume ids
+//   /dev-viewer.html?k=<key>    -> one raw asset, unfitted
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
-const k = new URLSearchParams(location.search).get("k") ?? "testcart01";
-const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
-const s = new THREE.Scene(); s.background = new THREE.Color("#1b1f24");
+import { fitToVolume } from "/src/core/dress/fit.ts";
+import { assetKey, buildPrompt } from "/src/core/dress/prompt.ts";
+import { DRESS_ROLES } from "/src/core/types.ts";
+import { marketSquarePass } from "/src/presets/marketSquare.ts";
+
+const info = document.getElementById("i");
+const r = new THREE.WebGLRenderer({ antialias: true });
+r.setSize(innerWidth, innerHeight);
+document.body.appendChild(r.domElement);
+const s = new THREE.Scene();
+s.background = new THREE.Color("#1b1f24");
 s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
-const c = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 100); c.position.set(3, 2, 3);
+const c = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.05, 500);
 const oc = new OrbitControls(c, r.domElement);
-s.add(new THREE.GridHelper(4, 8, 0x555555, 0x333333));
-new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(`/assets/gen/${k}.glb`, (g) => {
-  s.add(g.scene);
-  const b = new THREE.Box3().setFromObject(g.scene), sz = b.getSize(new THREE.Vector3());
-  document.getElementById("i").textContent = `${k}  size ${sz.x.toFixed(2)} x ${sz.y.toFixed(2)} x ${sz.z.toFixed(2)}`;
-  oc.target.copy(b.getCenter(new THREE.Vector3()));
-}, undefined, (e) => (document.getElementById("i").textContent = "load error: " + e));
+const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 r.setAnimationLoop(() => { oc.update(); r.render(s, c); });
+
+const k = new URLSearchParams(location.search).get("k");
+if (k) {
+  s.add(new THREE.GridHelper(4, 8, 0x555555, 0x333333));
+  c.position.set(3, 2, 3);
+  loader.load(`/assets/gen/${k}.glb`, (g) => {
+    s.add(g.scene);
+    const sz = new THREE.Box3().setFromObject(g.scene).getSize(new THREE.Vector3());
+    info.textContent = `${k}  raw size ${sz.x.toFixed(2)} x ${sz.y.toFixed(2)} x ${sz.z.toFixed(2)}`;
+  }, undefined, (e) => (info.textContent = "load error: " + e));
+} else {
+  const manifest = await (await fetch("/assets/gen/manifest.json", { cache: "no-store" })).json();
+  const only = new URLSearchParams(location.search).get("only")?.split(",");
+  const vols = marketSquarePass.volumes.filter((v) => DRESS_ROLES.includes(v.role) && (!only || only.includes(v.id)));
+  let x = 0;
+  const lines = [];
+  for (const v of vols) {
+    const key = assetKey(buildPrompt(v, marketSquarePass.styleNotes), v.size, 0);
+    const slot = new THREE.Group();
+    slot.position.set(x + v.size[0] / 2, 0, 0);
+    x += v.size[0] + 2;
+    s.add(slot);
+    const box = new THREE.LineSegments(
+      new THREE.EdgesGeometry(new THREE.BoxGeometry(...v.size)),
+      new THREE.LineBasicMaterial({ color: 0x58a6ff }),
+    );
+    box.position.y = v.size[1] / 2;
+    slot.add(box);
+    if (!manifest[key]) { lines.push(`${v.id}: not prebaked`); continue; }
+    loader.load(manifest[key].url, (g) => {
+      const f = fitToVolume(g.scene, v.size);
+      slot.add(g.scene);
+      lines.push(`${v.id}: fill ${(f.fill * 100).toFixed(0)}%${f.rotated ? " (turned 90°)" : ""}`);
+      info.textContent = "blue = contract box (collider)\n" + lines.join("\n");
+    });
+  }
+  s.add(new THREE.GridHelper(Math.ceil(x) * 2, Math.ceil(x), 0x444444, 0x2a2a2a));
+  const far = Math.max(x, 6);
+  c.position.set(x / 2, far * 0.5, far * 0.9);
+  oc.target.set(x / 2, 3, 0);
+  info.textContent = "blue = contract box (collider)\n" + lines.join("\n");
+}
 </script></body></html>
