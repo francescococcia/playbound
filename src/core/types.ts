@@ -61,6 +61,29 @@ export interface Level {
   };
 }
 
+/**
+ * An AI suggestion the designer must Accept or Reject. Never applied automatically.
+ * UI: draw `add` volumes as ghost boxes, `move` targets as ghosts with an arrow,
+ * and show `why` next to Accept / Reject.
+ */
+export interface Proposal {
+  id: string;
+  source: "sketch" | "text" | "fix" | "style";
+  why: string;
+  /** New volumes to add (ids are unique; accepted as-is). */
+  add?: Volume[];
+  /** Existing volumes to change (by id). */
+  update?: { id: string; position?: [number, number, number]; rotationY?: number; size?: [number, number, number] }[];
+  /** Existing volume ids to remove. */
+  remove?: string[];
+  /** Replace the whole layout (sketch import). */
+  replaceAll?: boolean;
+  /** Style suggestion (from a style image). */
+  styleNotes?: string;
+  /** Prove result if this proposal were accepted (filled by the fix agent). */
+  previewProve?: ProveResult;
+}
+
 /** Roles that are solid for movement (FPS collision + Prove pathfinding). */
 export const SOLID_ROLES: Role[] = ["cover", "block", "landmark", "prop"];
 
