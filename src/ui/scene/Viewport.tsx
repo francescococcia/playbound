@@ -2,9 +2,11 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
 import { usePlaybound } from "../../core/store";
-import { ProposalCards } from "../panels/ProposalCards";
+import { StepActionBar } from "../panels/StepActionBar";
+import { ViewportChrome } from "../panels/ViewportChrome";
 import { useUiPrefs } from "../uiPrefs";
 import { groundUnderCamera, setViewGroundPicker } from "../viewPick";
+import { isGreybox } from "../workflow";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
 import { Heatmap } from "./Heatmap";
@@ -49,12 +51,15 @@ export function Viewport() {
   const select = usePlaybound((s) => s.select);
   const showHeatmap = useUiPrefs((s) => s.showHeatmap);
   const prove = level.prove;
+  const blueprint = isGreybox(level);
   const showLegend =
     showHeatmap &&
     viewMode === "orbit" &&
     prove &&
     prove.status !== "idle" &&
     !!prove.exposure?.length;
+
+  const bg = blueprint ? "#0E1320" : "#87a0b8";
 
   return (
     <main className="viewport">
@@ -63,13 +68,13 @@ export function Viewport() {
         camera={{ position: ORBIT_POS, fov: 45, near: 0.1, far: 250 }}
         onPointerMissed={() => select(null)}
       >
-        <color attach="background" args={["#87a0b8"]} />
-        <fog attach="fog" args={["#87a0b8", 55, 120]} />
-        <ambientLight intensity={0.35} />
+        <color attach="background" args={[bg]} />
+        <fog attach="fog" args={[bg, blueprint ? 70 : 55, blueprint ? 140 : 120]} />
+        <ambientLight intensity={blueprint ? 0.45 : 0.35} />
         <directionalLight
           castShadow
           position={[22, 40, 14]}
-          intensity={1.35}
+          intensity={blueprint ? 1.1 : 1.35}
           shadow-mapSize={[2048, 2048]}
           shadow-camera-far={90}
           shadow-camera-left={-35}
@@ -79,8 +84,8 @@ export function Viewport() {
         />
         <ViewPicker />
         <Suspense fallback={null}>
-          <Environment preset="city" environmentIntensity={0.55} />
-          <Ground bounds={level.bounds} />
+          {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
+          <Ground bounds={level.bounds} blueprint={blueprint} />
           <Heatmap />
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} />
@@ -93,7 +98,8 @@ export function Viewport() {
       </Canvas>
 
       <ProveBanner />
-      <ProposalCards />
+      <ViewportChrome />
+      <StepActionBar />
 
       {showLegend && (
         <div className="heatmap-legend" aria-hidden>

@@ -41,7 +41,9 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
       )}
       {preview && (
         <div className={`proposal-prove proposal-prove--${preview.status}`}>
-          <strong>{preview.status === "pass" ? "Would pass" : preview.status === "fail" ? "Would fail" : "Prove"}</strong>
+          <strong>
+            {preview.status === "pass" ? "Would pass" : preview.status === "fail" ? "Would fail" : "Prove"}
+          </strong>
           <span>
             {preview.message ?? preview.status}
             {pct ? ` · ${pct}` : ""}
@@ -66,12 +68,12 @@ function ProposalCard({ proposal }: { proposal: Proposal }) {
   );
 }
 
-/** Floating cards for pending AI proposals (Accept / Reject only — never auto-apply). */
-export function ProposalCards() {
+/** Pending AI proposals (Accept / Reject only — never auto-apply). */
+export function ProposalCards({ embedded = false }: { embedded?: boolean }) {
   const proposals = usePlaybound((s) => s.proposals);
   if (proposals.length === 0) return null;
   return (
-    <div className="proposal-cards">
+    <div className={embedded ? "proposal-cards proposal-cards--embedded" : "proposal-cards"}>
       {proposals.map((p) => (
         <ProposalCard key={p.id} proposal={p} />
       ))}
