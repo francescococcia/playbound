@@ -7,7 +7,7 @@
 //   [ tavern | bakery ]  corridor  [ chapel | guildhall ]   <- choke between z = 4..12
 //              (south gate = spawn)
 //
-// FAIL variant: the market cart (the only cover) is parked in the far NW corner,
+// FAIL variant: the market cart (the only cover) is parked on the west side of the plaza,
 //   so the last stretch from the corridor to the well is open ground -> NO_COVER.
 // PASS variant: the same cart dragged next to the route -> enough cover -> pass.
 import type { Level, Volume } from "../core/types";
@@ -33,7 +33,7 @@ const cartFar: Volume = {
   id: "cart",
   label: "flat open-top wooden handcart loaded with crates and sacks",
   role: "cover",
-  position: [-16, 0, -17],
+  position: [-14, 0, -6], // parked in plain view, too far from the route to count as cover
   rotationY: 0,
   size: [1.2, 1.2, 2.5],
 };

@@ -57,7 +57,11 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 | U6 | Cursor | TopBar: Style ref (file → data URL → `setStyleRef`) with thumbnail · Prove · Lock/Unlock · Dress (disabled, tooltip = `canDress(level).why`) · Export · Share (placeholders until M4). | done |
 | C3 | Claude Code | Rodin access via the **Hyper3D CLI** (OAuth login, account credits; no API key, because the API needs the Business plan). Build a local dev-only route `/api/rodin` (Vite middleware) that runs `hyper3d generate` / `poll` / `result`, downloads the GLB to `public/assets/<hash>.glb`, and caches by `(prompt, size, style)` hash. Test with one real generation (~0.5 credits). | done |
 
-**Francesco feedback M2:** _(write here)_
+**Francesco feedback M2:** M2 works. All 5 M1 fixes landed (readable ground/grid, overview camera, beacon on the well, stable top bar). Fail → red route + "Death corridor" banner; pass → green near the cart; Lock → Dress enabled → Dress pulls all 10 prebaked models ("Dress finished").
+1. **Long labels overlap the scene** (e.g. the cart's full prompt-style label). Show a short display name in the 3D label (first ~3 words / max ~22 chars). Keep the full label in the inspector.
+2. "Dress finished" shows but nothing changes visually yet. Expected: that's U7. Make U7 the top priority.
+3. Note: in the fail preset the cart is now parked in plain view on the west side of the plaza (Claude Code moved it), ready to be dragged next to the route.
+- Drag test (Francesco, by hand): Fail preset → drag the blue cart next to the red route, just past the corridor → Prove → green? Result: _(fill in)_
 
 ---
 

@@ -18,6 +18,7 @@ let liveCheck: Promise<boolean> | undefined;
 /** Test hook: forget the cached health check. */
 export function resetLiveCheck() {
   liveCheck = undefined;
+  manifestReq = undefined;
 }
 /** True when the local /api/rodin route exists (dev server with the Hyper3D CLI). */
 export function isLiveAvailable(): Promise<boolean> {
@@ -27,13 +28,13 @@ export function isLiveAvailable(): Promise<boolean> {
   return liveCheck;
 }
 
-async function loadManifest(): Promise<Record<string, ManifestEntry>> {
-  try {
-    const r = await fetch("/assets/gen/manifest.json", { cache: "no-store" });
-    return r.ok ? await r.json() : {};
-  } catch {
-    return {};
-  }
+// One fetch per Dress run / Regenerate, shared by all volumes in it.
+let manifestReq: Promise<Record<string, ManifestEntry>> | undefined;
+function loadManifest(): Promise<Record<string, ManifestEntry>> {
+  manifestReq ??= fetch("/assets/gen/manifest.json", { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : {}))
+    .catch(() => ({}));
+  return manifestReq;
 }
 
 /** Dress every cover/block/landmark/prop that isn't ready yet. Resolves when all have settled. */
@@ -45,6 +46,7 @@ export async function dressLevel(): Promise<void> {
   const todo = level.volumes.filter((v) => DRESS_ROLES.includes(v.role) && v.status !== "ready");
   const set = usePlaybound.getState().setVolumeAsset;
   for (const v of todo) set(v.id, { status: "queued", error: undefined, stage: undefined });
+  manifestReq = undefined;
 
   await pool(todo.map((v) => () => dressVolume(v.id)), DRESS_CONCURRENCY);
 }
@@ -57,6 +59,7 @@ export async function regenerate(id: string): Promise<void> {
   const variant = (v.variant ?? 0) + 1;
   // assetUrl is left as is, so the current model stays visible while the new one generates.
   setVolumeAsset(id, { variant, status: "queued", error: undefined, stage: undefined });
+  manifestReq = undefined;
   await dressVolume(id);
 }
 
