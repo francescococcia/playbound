@@ -49,7 +49,7 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 | U4 | Cursor | Prove overlay: draw `prove.path`; segments green where `covered[i]`, red where exposed (the "heatmap"); banner with `prove.message`; small honest-limit line: "Prove = path + cover heuristic, not a combat sim." | todo |
 | U5 | Cursor | Drag a box on the ground (XZ only) when unlocked → `updateVolume(id, { position })`. Disabled when locked. | todo |
 | U6 | Cursor | TopBar: Style ref (file → data URL → `setStyleRef`) with thumbnail · Prove · Lock/Unlock · Dress (disabled, tooltip = `canDress(level).why`) · Export · Share (placeholders until M4). | todo |
-| C3 | Claude Code | Check the Rodin API (bbox/size control, cost, timing), then write the `api/rodin` server route (key server-only) + disk/blob cache. | todo |
+| C3 | Claude Code | Rodin access via the **Hyper3D CLI** (OAuth login, account credits; no API key, because the API needs the Business plan). Build a local dev-only route `/api/rodin` (Vite middleware) that runs `hyper3d generate` / `poll` / `result`, downloads the GLB to `public/assets/<hash>.glb`, and caches by `(prompt, size, style)` hash. Test with one real generation (~0.5 credits). | todo |
 
 **Francesco feedback M2:** _(write here)_
 
@@ -60,7 +60,7 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| C4 | Claude Code | `src/core/dress/`: prompt builder (spec template), queue (concurrency 3), `dressLevel()` + `regenerate(id)` that call the API and update status via `setVolumeAsset`. | todo |
+| C4 | Claude Code | `src/core/dress/`: prompt builder (spec template), queue (concurrency 3), `dressLevel()` + `regenerate(id)` that call `/api/rodin` and update status via `setVolumeAsset`. When the route is missing (public deploy), fall back to the cached assets and set status `error` with "Live generation needs a Hyper3D connection". | todo |
 | C5 | Claude Code | `fitToVolume(object3D, volume)`: scale/centre any GLB to the box size. This is the "AI can't break the layout" guarantee. | todo |
 | U7 | Cursor | Render a GLB when `assetUrl` is set (`useGLTF` + `fitToVolume`), hide the grey box, "Show colliders" wireframe toggle, per-volume progress list. | todo |
 | U8 | Cursor | Environment: HDRI sky (drei `Environment`) + textured ground (HY-World is out of scope). | todo |
@@ -84,14 +84,18 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| C7 | Claude Code | Deploy to Vercel (public URL), env var, README (env, prebake, limits, demo script). | todo |
-| C8 | Claude Code | Prebake hero level: generate and cache ≥ 6 Rodin assets; load them from the preset. | todo |
+| C7 | Claude Code | Deploy to Vercel (static site + prebaked GLBs in `public/assets/`). README: how to log in to the CLI, prebake, limits, demo script. | todo |
+| C8 | Claude Code | Prebake hero level: generate ≥ 6 (target 9) Rodin assets via CLI/MCP, commit the GLBs, reference them from the preset. | todo |
 | U10 | Cursor | Polish pass: readable labels, loading states, phone-width check. | todo |
 | H1 | Francesco | Record the 2-minute demo video (script in the spec). | todo |
 
 ---
 
 ## Known facts (keep updated)
+- **Hyper3D access (3 Oct):** Rodin API = Business plan only, which we don't have. We use the **Hyper3D CLI** (`@hyper3d/cli`, `hyper3d auth login`) and the **Hyper3D MCP** (`https://api.hyper3d.com/api/mcp`, OAuth). Both spend account credits (~0.5 credits per Gen-2.5 model).
+  - The CLI has no bounding-box option, so the size guarantee comes from `fitToVolume` (C5): each GLB is scaled to its contract box.
+  - Live Regenerate works when the app runs locally (demo video). The public URL serves prebaked assets.
+  - Open question: ask Hyper3D on Discord for temporary hackathon API access. If granted, swap the CLI for the API (`bbox_condition`) in `/api/rodin`. The UI doesn't change.
 - Prove constants: `src/core/prove/constants.ts` (cell 0.5 m, cover radius 2.5 m, need 25% covered, agent radius 0.4 m).
 - Fail preset: 23 m route, 0% covered → `NO_COVER`. Pass preset (cart at x 1.6, z −2): 28% → pass.
 - To make the drag demo pass, place the cart within about 1–2 m of the route between the corridor and the well.

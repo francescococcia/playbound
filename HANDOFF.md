@@ -31,3 +31,8 @@ For Cursor:
 - For FPS collision, call `resolveCollision` each frame. Don't write your own, so the player and the Prove bot share the same walls.
 - Spawn and objective are not solid. Draw them as flat discs/markers.
 - `level.bounds` = 20 → the play area is x, z ∈ [−20, 20]. Draw a low wall on the edge.
+
+## 2026-10-03 — Claude Code — plan change (Hyper3D access)
+
+The Rodin API needs the Business plan, which we don't have. Generation goes through the Hyper3D CLI/MCP (OAuth, account credits) instead. Updated in PLAN.md: C3, C4, C7, C8, and "Known facts".
+For Cursor: nothing changes in the UI contract. Dress/Regenerate will call `regenerate(id)` / `dressLevel()` from `src/core/dress/` (coming in C4). On the public deploy, live regenerate shows an error badge and prebaked models are used.
