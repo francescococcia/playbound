@@ -72,8 +72,8 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 |---|---|---|---|
 | C4 | Claude Code | `src/core/dress/`: prompt builder (spec template), queue (concurrency 3), `dressLevel()` + `regenerate(id)` that call `/api/rodin` and update status via `setVolumeAsset`. When the route is missing (public deploy), fall back to the cached assets and set status `error` with "Live generation needs a Hyper3D connection". | done |
 | C5 | Claude Code | `fitToVolume(object3D, volume)`: scale/centre any GLB to the box size. This is the "AI can't break the layout" guarantee. | done |
-| U7 | Cursor | Render a GLB when `assetUrl` is set (`useGLTF` + `fitToVolume`), hide the grey box, "Show colliders" wireframe toggle, per-volume progress list. | todo |
-| U8 | Cursor | Environment: HDRI sky (drei `Environment`) + textured ground (HY-World is out of scope). | todo |
+| U7 | Cursor | Render a GLB when `assetUrl` is set (`useGLTF` + `fitToVolume`), hide the grey box, "Show colliders" wireframe toggle, per-volume progress list. | doing |
+| U8 | Cursor | Environment: HDRI sky (drei `Environment`) + textured ground (HY-World is out of scope). | doing |
 
 **Francesco feedback M3:** _(write here)_
 
@@ -102,6 +102,7 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 ---
 
 ## Known facts (keep updated)
+- **Live URL:** https://playbound-eta.vercel.app (Vercel project `playbound`, account francescococciaa-1965). First deploy: 3 Oct ~16:20. Deploys upload the working tree, so **deploy only when Cursor has stopped at a milestone** (no half-done UI). Command: `npx vercel deploy --prod --yes`. `/api/rodin` doesn't exist there (404), so Dress uses prebaked models and Regenerate shows the "needs Hyper3D connection" message.
 - **Rodin via CLI, measured 3 Oct:** ~2 min per model, 0.5 credits. Raw GLB is 28 MB / 375k verts; after our optimize step it's ~1.2 MB (meshopt + 1K webp). Models come back centred on their middle at arbitrary scale, so `fitToVolume` is required. Credits: 25 regular + 300 subscription.
 - **Prebake (3 Oct, 2 rounds, ~6 credits):** 10 assets, ~5.5 MB in total. Fill: tower 94%, chapel 95%, tavern 81%, guildhall 76%, cart 75%, fish stall 64%, bakery 60%, hay 42%, notice board 37%, barrels 100%. Each side of the corridor is now two 9 m buildings (tavern + bakery, chapel + guildhall). `fitToVolume` allows ≤25% sideways stretch.
 - **Dev tools:** `/dev-viewer.html` = gallery of every prebaked model inside its contract box (`?only=cart,hay` to focus). `/dev-viewer.html?k=<key>` previews one raw asset. `public/assets/gen/manifest.json` lists every generated asset.
