@@ -210,6 +210,45 @@ button.active {
   color: #c9d1d9;
   font-weight: 400;
 }
+.prove-banner--fps-fade {
+  animation: prove-fade-out 3s ease forwards;
+}
+@keyframes prove-fade-out {
+  0%, 55% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+.prompt-text {
+  font-size: 0.8rem;
+  line-height: 1.35;
+  color: #c9d1d9;
+  max-height: 7.5rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  padding: 0.4rem 0.5rem;
+}
+.regen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  width: 100%;
+  justify-content: center;
+}
+.regen-spin {
+  width: 0.85rem;
+  height: 0.85rem;
+  border: 2px solid #58a6ff55;
+  border-top-color: #58a6ff;
+  border-radius: 50%;
+  animation: regen-spin 0.7s linear infinite;
+}
+@keyframes regen-spin {
+  to { transform: rotate(360deg); }
+}
 
 .vol-label {
   display: inline-block;

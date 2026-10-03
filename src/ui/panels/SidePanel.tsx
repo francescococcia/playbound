@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+import { isLiveAvailable, regenerate } from "../../core/dress/dress";
 import { usePlaybound } from "../../core/store";
 import { DRESS_ROLES, ROLE_COLORS } from "../../core/types";
 import { shortLabel } from "../label";
@@ -21,6 +23,52 @@ export function SidePanel() {
   const selected = level.volumes.find((v) => v.id === selectedId) ?? null;
   const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
   const anyDressing = dressables.some((v) => v.status && v.status !== "empty");
+
+  const [liveOk, setLiveOk] = useState<boolean | null>(null);
+  const [regenBusy, setRegenBusy] = useState(false);
+  const [regenError, setRegenError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    isLiveAvailable().then((ok) => {
+      if (!cancelled) setLiveOk(ok);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const canRegen =
+    selected != null &&
+    DRESS_ROLES.includes(selected.role) &&
+    liveOk === true &&
+    !regenBusy &&
+    selected.status !== "queued" &&
+    selected.status !== "generating";
+
+  const regenTitle =
+    liveOk === false
+      ? "needs Hyper3D connection"
+      : liveOk === null
+        ? "Checking Hyper3D…"
+        : !selected || !DRESS_ROLES.includes(selected.role)
+          ? "Select a dressable volume"
+          : regenBusy || selected.status === "queued" || selected.status === "generating"
+            ? "Generating…"
+            : "Regenerate this volume (uses credits)";
+
+  const onRegenerate = async () => {
+    if (!selected || !canRegen) return;
+    setRegenBusy(true);
+    setRegenError(null);
+    try {
+      await regenerate(selected.id);
+    } catch (e) {
+      setRegenError(e instanceof Error ? e.message : String(e));
+    } finally {
+      setRegenBusy(false);
+    }
+  };
 
   return (
     <aside className="side-panel">
@@ -120,6 +168,38 @@ export function SidePanel() {
                   {selected.stage ? ` · ${selected.stage}` : ""}
                   {selected.error ? ` — ${selected.error}` : ""}
                 </div>
+              </div>
+            )}
+            {(selected.prompt || DRESS_ROLES.includes(selected.role)) && (
+              <div className="field">
+                <span className="field-label">Prompt</span>
+                <div className="field-value prompt-text">
+                  {selected.prompt ?? "— (set after Dress / Regenerate)"}
+                </div>
+              </div>
+            )}
+            {DRESS_ROLES.includes(selected.role) && (
+              <div className="field">
+                <button
+                  type="button"
+                  className="regen-btn"
+                  onClick={onRegenerate}
+                  disabled={!canRegen}
+                  title={regenTitle}
+                >
+                  {regenBusy || selected.status === "queued" || selected.status === "generating" ? (
+                    <span className="regen-spin" aria-hidden />
+                  ) : null}
+                  {regenBusy || selected.status === "queued" || selected.status === "generating"
+                    ? "Regenerating…"
+                    : "Regenerate"}
+                </button>
+                {liveOk === false && (
+                  <p className="muted" style={{ marginTop: "0.35rem" }}>
+                    needs Hyper3D connection
+                  </p>
+                )}
+                {regenError && <p className="dress-error">{regenError}</p>}
               </div>
             )}
             {selected.assetUrl && (

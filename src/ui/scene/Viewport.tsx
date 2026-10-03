@@ -61,7 +61,7 @@ export function Viewport() {
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} />
           ))}
-          <ProvePath prove={level.prove} />
+          {viewMode === "orbit" && <ProvePath prove={level.prove} />}
         </Suspense>
 
         {viewMode === "orbit" ? <OrbitRig /> : <FpsController level={level} />}

@@ -114,10 +114,10 @@ export function TopBar() {
         >
           {dressBusy ? "Dressing…" : "Dress"}
         </button>
-        <button type="button" disabled title="Export comes in M4">
+        <button type="button" disabled title="Export zip — waiting on C6 (Claude Code)">
           Export
         </button>
-        <button type="button" disabled title="Share comes in M4">
+        <button type="button" disabled title="Share comes in M5">
           Share
         </button>
       </div>

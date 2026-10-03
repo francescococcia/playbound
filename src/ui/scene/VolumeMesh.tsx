@@ -59,6 +59,7 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
   const select = usePlaybound((s) => s.select);
   const updateVolume = usePlaybound((s) => s.updateVolume);
   const locked = usePlaybound((s) => s.level.locked);
+  const viewMode = usePlaybound((s) => s.viewMode);
   const showColliders = useUiPrefs((s) => s.showColliders);
   const { controls, camera, gl } = useThree();
   const [hovered, setHovered] = useState(false);
@@ -66,7 +67,11 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
   const selected = selectedId === volume.id;
   const color = ROLE_COLORS[volume.role];
   const isMarker = volume.role === "spawn" || volume.role === "objective";
-  const showLabel = alwaysLabel(volume.role) || selected || hovered;
+  // FPS: only the objective label (clean corridor shot). Orbit: spawn/objective/cover + hover/select.
+  const showLabel =
+    viewMode === "fps"
+      ? volume.role === "objective"
+      : alwaysLabel(volume.role) || selected || hovered;
   const yBase = volume.position[1];
   const hasAsset = Boolean(volume.assetUrl);
 
