@@ -1,0 +1,26 @@
+<!doctype html>
+<html><head><meta charset="UTF-8" /><title>PLAYBOUND asset viewer (dev)</title>
+<style>body{margin:0;background:#1b1f24;color:#ccc;font:13px system-ui}#i{position:fixed;top:8px;left:8px}</style></head>
+<body><div id="i"></div>
+<script type="module">
+// Dev tool: /dev-viewer.html?k=<asset key>. Uses the app's three + meshopt decoder.
+import * as THREE from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+const k = new URLSearchParams(location.search).get("k") ?? "testcart01";
+const r = new THREE.WebGLRenderer({ antialias: true }); r.setSize(innerWidth, innerHeight); document.body.appendChild(r.domElement);
+const s = new THREE.Scene(); s.background = new THREE.Color("#1b1f24");
+s.environment = new THREE.PMREMGenerator(r).fromScene(new RoomEnvironment(), 0.04).texture;
+const c = new THREE.PerspectiveCamera(45, innerWidth / innerHeight, 0.01, 100); c.position.set(3, 2, 3);
+const oc = new OrbitControls(c, r.domElement);
+s.add(new THREE.GridHelper(4, 8, 0x555555, 0x333333));
+new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).load(`/assets/gen/${k}.glb`, (g) => {
+  s.add(g.scene);
+  const b = new THREE.Box3().setFromObject(g.scene), sz = b.getSize(new THREE.Vector3());
+  document.getElementById("i").textContent = `${k}  size ${sz.x.toFixed(2)} x ${sz.y.toFixed(2)} x ${sz.z.toFixed(2)}`;
+  oc.target.copy(b.getCenter(new THREE.Vector3()));
+}, undefined, (e) => (document.getElementById("i").textContent = "load error: " + e));
+r.setAnimationLoop(() => { oc.update(); r.render(s, c); });
+</script></body></html>

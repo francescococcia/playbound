@@ -1,0 +1,10 @@
+{
+  "testcart01": {
+    "key": "testcart01",
+    "volumeId": "cart",
+    "prompt": "wooden market cart",
+    "generationId": "8aaef152-12e9-4fa7-9d22-a593af2e7206",
+    "url": "/assets/gen/testcart01.glb",
+    "createdAt": "2026-10-03T13:56:34.115Z"
+  }
+}

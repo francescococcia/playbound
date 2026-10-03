@@ -26,7 +26,7 @@ const base: Volume[] = [
 
 const cartFar: Volume = {
   id: "cart",
-  label: "wooden market cart",
+  label: "low open wooden market cart, no canopy",
   role: "cover",
   position: [-16, 0, -17],
   rotationY: 0,
