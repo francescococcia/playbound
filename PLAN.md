@@ -72,10 +72,13 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 |---|---|---|---|
 | C4 | Claude Code | `src/core/dress/`: prompt builder (spec template), queue (concurrency 3), `dressLevel()` + `regenerate(id)` that call `/api/rodin` and update status via `setVolumeAsset`. When the route is missing (public deploy), fall back to the cached assets and set status `error` with "Live generation needs a Hyper3D connection". | done |
 | C5 | Claude Code | `fitToVolume(object3D, volume)`: scale/centre any GLB to the box size. This is the "AI can't break the layout" guarantee. | done |
-| U7 | Cursor | Render a GLB when `assetUrl` is set (`useGLTF` + `fitToVolume`), hide the grey box, "Show colliders" wireframe toggle, per-volume progress list. | doing |
-| U8 | Cursor | Environment: HDRI sky (drei `Environment`) + textured ground (HY-World is out of scope). | doing |
+| U7 | Cursor | Render a GLB when `assetUrl` is set (`useGLTF` + `fitToVolume`), hide the grey box, "Show colliders" wireframe toggle, per-volume progress list. | done |
+| U8 | Cursor | Environment: HDRI sky (drei `Environment`) + textured ground (HY-World is out of scope). | done |
 
-**Francesco feedback M3:** _(write here)_
+**Francesco feedback M3:** M3 works. Dress turns the square into Rodin models; Show colliders draws the contract boxes around them; the FPS view down the dressed corridor looks great (a strong video shot).
+- Bug found + fixed by Claude Code: all models stacked in the middle of the square. Cause: `fitToVolume` measured in world space; it now measures in parent space (regression test added). No change needed in `DressedModel`.
+1. **FPS view is cluttered for the video:** in FPS, hide the Prove banner (or fade it after ~3 s), the path line, and all labels except the objective.
+2. Next: M4 (U9 inspector: prompt + Regenerate; Export button wired once C6 lands).
 
 ---
 

@@ -1,4 +1,4 @@
-import { Box3, BoxGeometry, Mesh, Vector3 } from "three";
+import { Box3, BoxGeometry, Group, Mesh, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { fitToVolume, MAX_STRETCH } from "./fit";
 
@@ -33,6 +33,22 @@ describe("fitToVolume", () => {
     expect(s.x).toBeCloseTo(MAX_STRETCH, 5);
     expect(s.y).toBeCloseTo(1, 5);
     expect(s.z).toBeLessThanOrEqual(1.1 + 1e-6);
+  });
+
+  it("works when fitted AFTER being mounted under a placed, rotated parent (R3F case)", () => {
+    const parent = new Group();
+    parent.position.set(15.5, 0, 8);
+    parent.rotation.y = 0.3;
+    const m = new Mesh(new BoxGeometry(1.64, 1.9, 1.85));
+    parent.add(m);
+    fitToVolume(m, [9, 7, 8]);
+    // In parent space: grounded and centred on the parent origin (= volume bottom-centre).
+    expect(Math.hypot(m.position.x, m.position.z)).toBeLessThan(1e-6); // not dragged towards the world origin
+    parent.updateMatrixWorld(true);
+    const centreWorld = new Box3().setFromObject(m).getCenter(new Vector3());
+    expect(centreWorld.x).toBeCloseTo(15.5, 4);
+    expect(centreWorld.z).toBeCloseTo(8, 4);
+    expect(new Box3().setFromObject(m).min.y).toBeCloseTo(0, 4);
   });
 
   it("turns a long model 90° when the box's long side is the other axis", () => {

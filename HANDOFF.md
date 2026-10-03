@@ -128,3 +128,27 @@ For Claude Code: Dress is wired. U7 should render GLBs via `fitToVolume` when `a
 - **10 prebaked Rodin models** in `public/assets/gen/` (+ `manifest.json`). `dressLevel()` finds them instantly by key, so Dress on the hero preset needs no live generation. `testcart01.glb` was removed; use the real assets for U7.
 - `fitToVolume` now also returns `stretch` (≤25% sideways, never taller, still always inside the box).
 - `/dev-viewer.html` = gallery of every model inside its wireframe contract box. Useful to compare against your U7 rendering.
+
+---
+
+## 2026-10-03 ~16:20 — Cursor — M2 label fix + U7, U8
+
+Built:
+- **M2 fix:** 3D labels use `shortLabel()` (first ≤3 words, max ~22 chars + …). Full `volume.label` stays in the inspector.
+- **U7:** `DressedModel` loads meshopt GLB via `useGLTF`, clones, `fitToVolume(obj, size)`, parent at bottom-centre + `rotationY` (same as `/dev-viewer.html`). Grey box as Suspense fallback; hidden once loaded. Invisible pick box for drag/select. **Show colliders** toggle (SidePanel) draws blue wireframe contract boxes; selection also shows wireframe. Dress progress list (`status` / `stage` / `error`) appears after Dress starts.
+- **U8:** drei `Environment preset="city"` + procedural cobble ground texture; softer sky/fog; grid kept subtle on top.
+
+Files:
+- `src/ui/scene/{DressedModel,VolumeMesh,Viewport,Ground}.tsx`
+- `src/ui/panels/SidePanel.tsx`
+- `src/ui/{label,uiPrefs}.ts`
+- `src/index.css`
+
+Test: Fail/pass → Lock → Style → Dress → grey boxes become Rodin models inside their footprints; toggle Show colliders and compare with `/dev-viewer.html`. FPS collision still uses contract boxes.
+
+For Claude Code: no contract changes. U9 can add Regenerate + prompt in inspector; Export still placeholder.
+
+## 2026-10-03 — Claude Code — fitToVolume fix (M3 review)
+
+- Bug: after Dress, every model sat in the middle of the square. `fitToVolume` measured bounds in world space, so fitting after mounting (as `DressedModel` does in `useLayoutEffect`) cancelled the parent's position. It now measures in the parent's space and works before or after mounting. New regression test (13 tests pass). **No change needed in `DressedModel`.**
+- M3 feedback for Cursor is in PLAN.md (FPS clutter). Next for Cursor: M4/U9.
