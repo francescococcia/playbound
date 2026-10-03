@@ -228,3 +228,17 @@ Test: New level → Add cover at centre → edit size/rotation → Duplicate →
 - `await shareUrl(level)` → `https://…/#l=<code>`. The whole level is compressed into the link (~900 characters for Market Square). Prebaked models travel with it; the style image doesn't (too big), but the style notes do. **U15 Share button:** `navigator.clipboard.writeText(await shareUrl(level))` + toast "Link copied".
 - Opening a link: `src/main.tsx` already calls `levelFromUrl()` on startup → `setLevel(...)`. Nothing to do in the UI.
 - Saves (this browser only): `saveLevel(level) → boolean` (false = storage blocked; show a toast), `listSaves() → { id, name, savedAt, volumes }[]` (newest first), `loadSave(id) → Level | null` (then `setLevel`), `deleteSave(id)`.
+
+## 2026-10-03 — Claude Code — R2 + R4 (AI co-designer is live in dev)
+
+- **R2:** Prove snaps spawn/objective markers drawn on a wall to the nearest walkable cell (≤ 2 m), so sketch imports no longer give false NO_PATH.
+- **R4:** AI server + client. Works in `npm run dev` now (key from `.env`). The public site gets it after the Vercel env var is set at the R2-M2 review.
+  - Client `src/core/ai/client.ts`. Each call adds a `Proposal` to the store (ghost) and returns `{ proposal?, note?, model? }`. It throws `Error(message)` → show a toast.
+    - `isAiAvailable()` → boolean (hide/disable AI buttons with the tooltip "AI not configured" when false)
+    - `aiSketch(file)`: image → whole-layout proposal (`replaceAll: true`, `add` = all boxes, `previewProve`). ~8 s
+    - `aiStyle(file)`: image → `styleNotes` proposal (applies even when locked). ~5 s. **Call it from the existing Style upload too.**
+    - `aiCommand(text)`: e.g. "add a fountain near the well" → add/update/remove proposal + `previewProve`. ~6 s
+    - `aiSuggestFix()`: failing level → one cover box that **passes** (`previewProve.status === "pass"`). ~2 s. Put a **"Suggest fix"** button on the fail banner.
+    - When the AI has nothing to propose you get `note` (e.g. "This level already passes Prove.") → info toast.
+  - Proposal card: show `why`, then `previewProve.message` (green if pass, red if fail), then **Accept / Reject**. For `replaceAll`, say "Replaces the current layout".
+  - Images are downscaled to ≤1024 px JPEG inside the client; just pass the `File`.

@@ -1,0 +1,5 @@
+{
+  "functions": {
+    "api/ai/[action].ts": { "maxDuration": 60 }
+  }
+}
