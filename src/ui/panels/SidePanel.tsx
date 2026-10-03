@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 import { isLiveAvailable, regenerate } from "../../core/dress/dress";
 import { usePlaybound } from "../../core/store";
-import { DRESS_ROLES, ROLE_COLORS } from "../../core/types";
+import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { shortLabel } from "../label";
 import { useUiPrefs } from "../uiPrefs";
 import { PRESETS } from "../../presets/marketSquare";
+import { EditTools } from "./EditTools";
+
+const ROLES: Role[] = ["spawn", "objective", "cover", "block", "landmark", "prop"];
 
 function statusTone(status: string | undefined) {
   if (status === "ready") return "ok";
@@ -13,14 +16,21 @@ function statusTone(status: string | undefined) {
   return "";
 }
 
+function num(v: string, fallback: number) {
+  const n = Number(v);
+  return Number.isFinite(n) ? n : fallback;
+}
+
 export function SidePanel() {
   const level = usePlaybound((s) => s.level);
   const selectedId = usePlaybound((s) => s.selectedId);
   const loadPreset = usePlaybound((s) => s.loadPreset);
   const select = usePlaybound((s) => s.select);
+  const updateVolume = usePlaybound((s) => s.updateVolume);
   const showColliders = useUiPrefs((s) => s.showColliders);
   const setShowColliders = useUiPrefs((s) => s.setShowColliders);
   const selected = level.volumes.find((v) => v.id === selectedId) ?? null;
+  const locked = level.locked;
   const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
   const anyDressing = dressables.some((v) => v.status && v.status !== "empty");
 
@@ -74,7 +84,10 @@ export function SidePanel() {
     <aside className="side-panel">
       <label className="field">
         <span className="field-label">Preset</span>
-        <select value={level.id} onChange={(e) => loadPreset(e.target.value)}>
+        <select value={level.id} onChange={(e) => loadPreset(e.target.value)} disabled={locked} title={locked ? "Unlock to switch preset" : undefined}>
+          {!PRESETS.some((p) => p.id === level.id) && (
+            <option value={level.id}>{level.name}</option>
+          )}
           {PRESETS.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}
@@ -82,6 +95,8 @@ export function SidePanel() {
           ))}
         </select>
       </label>
+
+      <EditTools />
 
       <label className="toggle-row">
         <input
@@ -137,23 +152,64 @@ export function SidePanel() {
         <h2>Inspector</h2>
         {selected ? (
           <div className="inspector">
-            <div className="field">
+            <label className="field">
               <span className="field-label">Label</span>
-              <div className="field-value">{selected.label}</div>
-            </div>
-            <div className="field">
+              <input
+                type="text"
+                value={selected.label}
+                disabled={locked}
+                onChange={(e) => updateVolume(selected.id, { label: e.target.value })}
+              />
+            </label>
+            <label className="field">
               <span className="field-label">Role</span>
-              <div className="field-value inspector-role">
-                <span className="vol-swatch" style={{ background: ROLE_COLORS[selected.role] }} />
-                {selected.role}
-              </div>
-            </div>
+              <select
+                value={selected.role}
+                disabled={locked}
+                onChange={(e) => updateVolume(selected.id, { role: e.target.value as Role })}
+              >
+                {ROLES.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </label>
             <div className="field">
-              <span className="field-label">Size (W × H × D)</span>
-              <div className="field-value mono">
-                {selected.size[0].toFixed(1)} × {selected.size[1].toFixed(1)} × {selected.size[2].toFixed(1)} m
+              <span className="field-label">Size (W × H × D) m</span>
+              <div className="size-row">
+                {([0, 1, 2] as const).map((i) => (
+                  <input
+                    key={i}
+                    type="number"
+                    step="0.1"
+                    min="0.1"
+                    value={selected.size[i]}
+                    disabled={locked}
+                    aria-label={["Width", "Height", "Depth"][i]}
+                    onChange={(e) => {
+                      const next: [number, number, number] = [...selected.size];
+                      next[i] = Math.max(0.1, num(e.target.value, selected.size[i]));
+                      updateVolume(selected.id, { size: next });
+                    }}
+                  />
+                ))}
               </div>
             </div>
+            <label className="field">
+              <span className="field-label">Rotation (°)</span>
+              <input
+                type="number"
+                step="1"
+                value={Math.round((selected.rotationY * 180) / Math.PI)}
+                disabled={locked}
+                onChange={(e) =>
+                  updateVolume(selected.id, {
+                    rotationY: (num(e.target.value, 0) * Math.PI) / 180,
+                  })
+                }
+              />
+            </label>
             <div className="field">
               <span className="field-label">Position</span>
               <div className="field-value mono">

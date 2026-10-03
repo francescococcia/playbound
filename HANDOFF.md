@@ -206,3 +206,18 @@ For Claude Code / Francesco: UI Cursor tasks complete through U10. Ready for dem
   - `addVolume(role, position?, patch?) → id` (default size per role in `DEFAULT_SIZE`; a new spawn/objective replaces the old one; selects the new box), `removeVolume(id)`, `duplicateVolume(id) → id`, `newLevel(name?)`, `setLevel(level)`. All ignored while locked, and all reset Prove to idle.
   - **`Proposal`** (types.ts): `{ id, source: sketch|text|fix|style, why, add?, update?, remove?, replaceAll?, styleNotes?, previewProve? }`. Store: `proposals`, `addProposal`, `acceptProposal`, `rejectProposal`, `clearProposals`. While locked only style proposals apply.
 - Coming next from Claude Code: R3 `src/core/share.ts` (share link + saves), then R2/R4 (AI server with Gemini + client `src/core/ai/client.ts`).
+
+---
+
+## 2026-10-03 ~20:15 — Cursor — U11, U15 (R2-M1)
+
+Built:
+- **U11 Edit tools:** SidePanel Add menu (roles → `addVolume` at view-centre ground pick), Delete + Del/Backspace, Duplicate + Ctrl/Cmd+D, New level (confirm). Inspector edits label, role, W/H/D, rotation (° → rad) via `updateVolume`. All disabled while locked. Preset select disabled when locked; custom level name shown if not a preset.
+- **U15 Share/Save:** TopBar Share → `await shareUrl(level)` + clipboard toast; Save menu → `saveLevel` / `listSaves` / `loadSave` / `deleteSave` (R3 landed mid-task; wired to real API). Boot load from hash stays in Claude Code's `main.tsx` (`levelFromUrl`).
+
+Files (Cursor only):
+- `src/ui/panels/{EditTools,SidePanel,ShareSaveMenu,TopBar}.tsx`
+- `src/ui/scene/Viewport.tsx`, `src/ui/viewPick.ts`
+- `src/index.css`, `PLAN.md`, `HANDOFF.md`
+
+Test: New level → Add cover at centre → edit size/rotation → Duplicate → Delete. Lock → tools disabled. Save → reload page → Open. Share → paste URL in new tab.

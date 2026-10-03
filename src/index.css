@@ -7,7 +7,7 @@ body {
   -webkit-text-size-adjust: 100%;
 }
 
-button, select, input[type="text"] {
+button, select, input[type="text"], input[type="number"] {
   font: inherit;
   color: inherit;
   background: #21262d;
@@ -16,7 +16,8 @@ button, select, input[type="text"] {
   padding: 0.35rem 0.7rem;
   cursor: pointer;
 }
-input[type="text"] { cursor: text; }
+input[type="text"], input[type="number"] { cursor: text; }
+input[type="number"] { min-width: 0; }
 button:hover:not(:disabled), select:hover { background: #30363d; }
 button:disabled { opacity: 0.45; cursor: not-allowed; }
 button.active {
@@ -173,6 +174,74 @@ button.active {
   user-select: none;
 }
 .toggle-row input { accent-color: #58a6ff; }
+
+.edit-tools { display: flex; flex-direction: column; gap: 0.4rem; }
+.edit-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.edit-row > button, .new-level-btn { flex: 1 1 auto; font-size: 0.85rem; }
+.add-wrap { position: relative; flex: 1 1 auto; }
+.add-wrap > button { width: 100%; font-size: 0.85rem; }
+.add-menu {
+  position: absolute;
+  z-index: 15;
+  top: calc(100% + 0.25rem);
+  left: 0;
+  min-width: 100%;
+  margin: 0;
+  padding: 0.25rem;
+  list-style: none;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #00000088;
+}
+.add-menu button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  text-align: left;
+  background: transparent;
+  text-transform: capitalize;
+}
+.add-menu button:hover { background: #21262d; }
+.size-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.35rem; }
+.size-row input { padding: 0.3rem 0.4rem; font-size: 0.85rem; }
+
+.save-wrap { position: relative; }
+.save-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 0.3rem);
+  z-index: 35;
+  width: min(16rem, 80vw);
+  padding: 0.55rem;
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px #00000088;
+}
+.save-action { width: 100%; margin-bottom: 0.5rem; }
+.save-list-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #8b949e;
+  margin-bottom: 0.3rem;
+}
+.save-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; max-height: 12rem; overflow: auto; }
+.save-list li { display: grid; grid-template-columns: 1fr auto; gap: 0.25rem; align-items: center; }
+.save-load {
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.1rem;
+  background: transparent;
+  padding: 0.35rem 0.45rem;
+}
+.save-load:hover { background: #21262d; }
+.save-meta { font-size: 0.7rem; color: #8b949e; }
+.save-del { padding: 0.25rem 0.5rem; color: #ff7b72; }
 
 .dress-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 .dress-row-btn {

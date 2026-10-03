@@ -3,6 +3,7 @@ import { canDress, usePlaybound } from "../../core/store";
 import { dressLevel } from "../../core/dress/dress";
 import { downloadLevelZip } from "../../core/export/exportLevel";
 import { useUiPrefs } from "../uiPrefs";
+import { ShareSaveMenu } from "./ShareSaveMenu";
 
 export function TopBar() {
   const level = usePlaybound((s) => s.level);
@@ -166,9 +167,7 @@ export function TopBar() {
           {exportBusy && <span className="btn-spin" aria-hidden />}
           {exportBusy ? "Exporting…" : "Export"}
         </button>
-        <button type="button" disabled title="Share not in scope for the demo">
-          Share
-        </button>
+        <ShareSaveMenu onToast={setToast} />
       </div>
 
       {toast && (

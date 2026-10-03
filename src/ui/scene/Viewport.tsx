@@ -2,6 +2,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
 import { usePlaybound } from "../../core/store";
+import { groundUnderCamera, setViewGroundPicker } from "../viewPick";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
 import { ProveBanner } from "./ProveBanner";
@@ -11,6 +12,15 @@ import { VolumeMesh } from "./VolumeMesh";
 /** High 3/4 overview: whole square, gate → corridor → well. */
 const ORBIT_POS: [number, number, number] = [8, 48, 36];
 const ORBIT_TARGET: [number, number, number] = [0, 0, 0];
+
+function ViewPicker() {
+  const { camera } = useThree();
+  useEffect(() => {
+    setViewGroundPicker(() => groundUnderCamera(camera));
+    return () => setViewGroundPicker(() => [0, 0, 0]);
+  }, [camera]);
+  return null;
+}
 
 function OrbitRig() {
   const { camera } = useThree();
@@ -55,6 +65,7 @@ export function Viewport() {
           shadow-camera-top={35}
           shadow-camera-bottom={-35}
         />
+        <ViewPicker />
         <Suspense fallback={null}>
           <Environment preset="city" environmentIntensity={0.55} />
           <Ground bounds={level.bounds} />
