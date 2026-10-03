@@ -3,9 +3,10 @@ import { isLiveAvailable, regenerate } from "../../core/dress/dress";
 import { usePlaybound } from "../../core/store";
 import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { shortLabel } from "../label";
+import { EditTools } from "./EditTools";
+import { AiPanel } from "./AiPanel";
 import { useUiPrefs } from "../uiPrefs";
 import { PRESETS } from "../../presets/marketSquare";
-import { EditTools } from "./EditTools";
 
 const ROLES: Role[] = ["spawn", "objective", "cover", "block", "landmark", "prop"];
 
@@ -29,6 +30,9 @@ export function SidePanel() {
   const updateVolume = usePlaybound((s) => s.updateVolume);
   const showColliders = useUiPrefs((s) => s.showColliders);
   const setShowColliders = useUiPrefs((s) => s.setShowColliders);
+  const showHeatmap = useUiPrefs((s) => s.showHeatmap);
+  const setShowHeatmap = useUiPrefs((s) => s.setShowHeatmap);
+  const setToast = useUiPrefs((s) => s.setToast);
   const selected = level.volumes.find((v) => v.id === selectedId) ?? null;
   const locked = level.locked;
   const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
@@ -106,6 +110,17 @@ export function SidePanel() {
         />
         <span>Show colliders</span>
       </label>
+
+      <label className="toggle-row">
+        <input
+          type="checkbox"
+          checked={showHeatmap}
+          onChange={(e) => setShowHeatmap(e.target.checked)}
+        />
+        <span>Show heatmap</span>
+      </label>
+
+      <AiPanel onToast={setToast} />
 
       <div className="side-section">
         <h2>Volumes</h2>

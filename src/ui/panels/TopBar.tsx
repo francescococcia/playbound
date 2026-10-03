@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { aiStyle } from "../../core/ai/client";
 import { canDress, usePlaybound } from "../../core/store";
 import { dressLevel } from "../../core/dress/dress";
 import { downloadLevelZip } from "../../core/export/exportLevel";
@@ -16,10 +17,12 @@ export function TopBar() {
   const panelOpen = useUiPrefs((s) => s.panelOpen);
   const togglePanel = useUiPrefs((s) => s.togglePanel);
   const setPanelOpen = useUiPrefs((s) => s.setPanelOpen);
+  const toast = useUiPrefs((s) => s.toast);
+  const setToast = useUiPrefs((s) => s.setToast);
   const fileRef = useRef<HTMLInputElement>(null);
   const [dressBusy, setDressBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
-  const [toast, setToast] = useState<string | null>(null);
+  const [styleBusy, setStyleBusy] = useState(false);
   const [notesDraft, setNotesDraft] = useState(level.styleNotes ?? "");
 
   useEffect(() => {
@@ -45,6 +48,15 @@ export function TopBar() {
       if (typeof reader.result === "string") setStyleRef(reader.result, notesDraft || level.styleNotes);
     };
     reader.readAsDataURL(file);
+    // Also ask AI for style notes (proposal — designer must Accept).
+    setStyleBusy(true);
+    void aiStyle(file)
+      .then((out) => {
+        if (out.note) setToast(out.note);
+        else if (out.proposal) setToast("Style notes proposal ready — Accept or Reject.");
+      })
+      .catch((e) => setToast(e instanceof Error ? e.message : String(e)))
+      .finally(() => setStyleBusy(false));
   };
 
   const onDress = async () => {
@@ -112,10 +124,22 @@ export function TopBar() {
           type="file"
           accept="image/*"
           hidden
-          onChange={(e) => onStyleFile(e.target.files?.[0])}
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            e.target.value = "";
+            onStyleFile(f);
+          }}
         />
-        <button type="button" className="style-thumb-btn" onClick={() => fileRef.current?.click()} title="Style reference image">
-          {level.styleRefUrl ? (
+        <button
+          type="button"
+          className="style-thumb-btn"
+          onClick={() => fileRef.current?.click()}
+          title="Style reference image (+ AI style notes proposal)"
+          disabled={styleBusy}
+        >
+          {styleBusy ? (
+            <span className="btn-spin" aria-hidden />
+          ) : level.styleRefUrl ? (
             <img src={level.styleRefUrl} alt="Style ref" className="style-thumb" />
           ) : (
             <span className="style-thumb-empty">Style</span>
