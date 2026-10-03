@@ -1,0 +1,23 @@
+{
+  "entries": {
+    "cmd-1791033089462": {
+      "key": "cmd-1791033089462",
+      "value": "{\"command\":\"cd\",\"exitCode\":0,\"success\":true}",
+      "namespace": "commands",
+      "storedAt": "2026-10-03T13:11:29.462Z",
+      "lastAccessed": "2026-10-03T13:11:29.462Z",
+      "accessCount": 0,
+      "expiresAt": "2026-11-02T13:11:29.462Z"
+    },
+    "cmd-1791033424114": {
+      "key": "cmd-1791033424114",
+      "value": "{\"command\":\"cat\",\"exitCode\":0,\"success\":true}",
+      "namespace": "commands",
+      "storedAt": "2026-10-03T13:17:04.114Z",
+      "lastAccessed": "2026-10-03T13:17:04.114Z",
+      "accessCount": 0,
+      "expiresAt": "2026-11-02T13:17:04.114Z"
+    }
+  },
+  "version": "3.0.0"
+}
