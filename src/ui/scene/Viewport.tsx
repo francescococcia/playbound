@@ -2,11 +2,14 @@ import { Canvas, useThree } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
 import { Suspense, useEffect } from "react";
 import { usePlaybound } from "../../core/store";
+import { ProposalCards } from "../panels/ProposalCards";
 import { groundUnderCamera, setViewGroundPicker } from "../viewPick";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
+import { Heatmap } from "./Heatmap";
 import { ProveBanner } from "./ProveBanner";
 import { ProvePath } from "./ProvePath";
+import { ProposalGhosts } from "./ProposalGhosts";
 import { VolumeMesh } from "./VolumeMesh";
 
 /** High 3/4 overview: whole square, gate → corridor → well. */
@@ -69,9 +72,11 @@ export function Viewport() {
         <Suspense fallback={null}>
           <Environment preset="city" environmentIntensity={0.55} />
           <Ground bounds={level.bounds} />
+          <Heatmap />
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} />
           ))}
+          <ProposalGhosts />
           {viewMode === "orbit" && <ProvePath prove={level.prove} />}
         </Suspense>
 
@@ -79,6 +84,7 @@ export function Viewport() {
       </Canvas>
 
       <ProveBanner />
+      <ProposalCards />
 
       {viewMode === "fps" && (
         <div className="viewport-hint">Click to lock pointer · WASD move · Esc unlock</div>

@@ -299,9 +299,88 @@ button.active {
   border-radius: 8px;
   border: 1px solid;
   text-align: center;
-  pointer-events: none;
+  pointer-events: auto;
   box-shadow: 0 4px 20px #00000055;
 }
+.suggest-fix-btn {
+  margin-top: 0.45rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  pointer-events: auto;
+  background: #21262d;
+  border-color: #f85149;
+  color: #ff7b72;
+}
+
+.proposal-cards {
+  position: absolute;
+  right: 0.75rem;
+  top: 0.75rem;
+  z-index: 8;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: min(20rem, calc(100% - 1.5rem));
+  max-height: calc(100% - 1.5rem);
+  overflow: auto;
+  pointer-events: none;
+}
+.proposal-card {
+  pointer-events: auto;
+  background: #0d1117f2;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 0.65rem 0.75rem;
+  box-shadow: 0 6px 20px #00000066;
+}
+.proposal-card--pass { border-color: #3fb950; }
+.proposal-card--fail { border-color: #f85149; }
+.proposal-source {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #8b949e;
+  margin-bottom: 0.25rem;
+}
+.proposal-why { margin: 0 0 0.4rem; font-size: 0.9rem; line-height: 1.35; }
+.proposal-flag { margin: 0 0 0.4rem; font-size: 0.8rem; color: #f2cc60; }
+.proposal-notes {
+  margin: 0 0 0.4rem;
+  font-size: 0.75rem;
+  max-height: 4.5rem;
+  overflow: auto;
+  color: #c9d1d9;
+  white-space: pre-wrap;
+}
+.proposal-prove {
+  font-size: 0.8rem;
+  margin-bottom: 0.5rem;
+  padding: 0.3rem 0.4rem;
+  border-radius: 4px;
+  background: #161b22;
+}
+.proposal-prove--pass { color: #56d364; }
+.proposal-prove--fail { color: #ff7b72; }
+.proposal-actions { display: flex; gap: 0.35rem; }
+.proposal-accept { flex: 1; border-color: #3fb950; color: #56d364; }
+.proposal-reject { flex: 1; }
+
+.ai-panel .ai-btn { width: 100%; margin-bottom: 0.45rem; }
+.ai-busy {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #79c0ff;
+  margin: 0 0 0.5rem;
+}
+.ai-command {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.35rem;
+}
+.ai-command input { min-width: 0; font-size: 0.85rem; }
 .prove-banner--pass {
   background: #0d1117ee;
   border-color: #3fb950;

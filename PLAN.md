@@ -130,7 +130,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | U11 | Cursor | Edit tools: **Add** menu (role picker → `addVolume` at the view centre), **Delete** (button + Del key), **Duplicate** (button + Ctrl+D), inspector fields for label, role, W/H/D, rotation (°) → `updateVolume`; **New level** button. All disabled while locked. | done |
 | U15 | Cursor | **Share** button → copy `shareUrl(level)` + toast; **Save / Open** menu (list saves, load, delete). Uses R3 (wire when R3 lands; placeholder until then). | done |
 
-**Francesco feedback R2-M1:** _(write here)_
+**Francesco feedback R2-M1:** works
 
 ## R2-M2 — AI co-designer (Gemini)
 *Done when: sketch → ghost greybox → Accept; "Suggest fix" on a failing level proposes cover that passes; style image → style notes proposal; text command works.*
@@ -139,8 +139,8 @@ Then U10 polish. Stop after and tell Francesco what to test.
 |---|---|---|---|
 | R2 | Claude Code | Prove robustness: snap spawn/objective to the nearest walkable cell (sketch imports put the gate on the wall → false NO_PATH) | done |
 | R4 | Claude Code | AI server (`/api/ai/*`): one handler for the Vite dev server AND a Vercel function, key server-side, usage cap. `sketch` (image → replaceAll proposal), `style` (image → styleNotes proposal), `command` (text + level → add/update/remove proposal), `fix` (agent loop: model proposes cover spots → our Prove checks each → best passing one, with `previewProve`). Client: `src/core/ai/client.ts` → `aiSketch(file)`, `aiStyle(file)`, `aiCommand(text)`, `aiSuggestFix()`, `isAiAvailable()`. Each adds a proposal to the store. | done |
-| U12 | Cursor | Proposal UI: ghost boxes (translucent, dashed) for `add`, ghost + arrow for `update`, red tint for `remove`; proposal card(s) with `why`, Prove preview (pass/fail, %) and **Accept / Reject**. | todo |
-| U13 | Cursor | AI panel: **Sketch → level** (image upload), **Style from image** (the style upload also calls `aiStyle`), command box, **Suggest fix** button on the fail banner. Loading states (10–30 s), errors as toasts. | todo |
+| U12 | Cursor | Proposal UI: ghost boxes (translucent, dashed) for `add`, ghost + arrow for `update`, red tint for `remove`; proposal card(s) with `why`, Prove preview (pass/fail, %) and **Accept / Reject**. | done |
+| U13 | Cursor | AI panel: **Sketch → level** (image upload), **Style from image** (the style upload also calls `aiStyle`), command box, **Suggest fix** button on the fail banner. Loading states (10–30 s), errors as toasts. | done |
 
 **Francesco feedback R2-M2:** _(write here)_
 
