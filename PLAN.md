@@ -147,7 +147,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 ## R2-M3 — Prove v2 (line of sight + heatmap)
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| R5 | Claude Code | Line of sight from the objective through solid boxes; `prove.exposure` grid for the heatmap; cover counts only if it blocks the view. Presets re-tuned so fail/pass still hold (tests). | todo |
+| R5 | Claude Code | Line of sight from the objective through solid boxes; `prove.exposure` grid for the heatmap; a route point is protected if hidden from the objective OR near cover (kept the cover radius so the presets still behave). Presets re-tuned so fail/pass still hold (tests). | done |
 | U14 | Cursor | Heatmap overlay on the ground from `prove.exposure` (red = seen, blue = safe) + toggle. | todo |
 
 **Francesco feedback R2-M3:** _(write here)_

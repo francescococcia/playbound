@@ -2,10 +2,12 @@
 // 1. Rasterise the level into a GRID_CELL_M grid; a cell is blocked if a solid volume's
 //    footprint is closer than AGENT_RADIUS_M (so the bot has a body, like the player).
 // 2. A* (8-connected, no corner cutting) from spawn to objective -> NO_PATH if none.
-// 3. Mark each path point "covered" if any `cover` volume is within COVER_RADIUS_M.
-//    Covered length / total length < MIN_COVERED_PATH_FRACTION -> NO_COVER.
+// 3. Line of sight from the objective to every cell (visibility.ts) -> heatmap.
+// 4. A path point is protected if it is hidden from the objective OR a `cover` volume is
+//    within COVER_RADIUS_M. Protected length / total < MIN_COVERED_PATH_FRACTION -> NO_COVER.
 import { distanceToFootprint, isSolid } from "../geometry";
 import type { Level, ProveResult, Volume } from "../types";
+import { exposureFrom } from "./visibility";
 import {
   AGENT_RADIUS_M,
   COVER_RADIUS_M,
@@ -48,13 +50,15 @@ export function prove(level: Level): ProveResult {
   }
 
   const grid = buildNavGrid(level);
+  const seen = exposureFrom(level, grid, [goal.position[0], goal.position[2]]);
+  const heat = { exposure: Array.from(seen), exposureCols: grid.cols, exposureCell: grid.cell };
   // Markers drawn on a wall or touching a box (common in sketch imports) start from the
   // nearest walkable cell within SNAP_RADIUS_M instead of failing outright.
   const start = nearestWalkable(grid, toCell(spawn, grid));
   const end = nearestWalkable(grid, toCell(goal, grid));
   const cells = start && end ? astar(grid, start, end) : null;
   if (!cells) {
-    return { status: "fail", reason: "NO_PATH", path: [], message: "No walkable route from spawn to objective.", checkedAt };
+    return { status: "fail", reason: "NO_PATH", path: [], message: "No walkable route from spawn to objective.", checkedAt, ...heat };
   }
 
   const path = cells.map(([c, r]) => {
@@ -62,7 +66,8 @@ export function prove(level: Level): ProveResult {
     return [x, 0, z] as [number, number, number];
   });
   const covers = level.volumes.filter((v) => v.role === "cover");
-  const covered = path.map(([x, , z]) => covers.some((v) => distanceToFootprint(x, z, v) <= COVER_RADIUS_M));
+  const hidden = cells.map(([c, r]) => seen[r * grid.cols + c] !== 1);
+  const covered = path.map(([x, , z], i) => hidden[i] || covers.some((v) => distanceToFootprint(x, z, v) <= COVER_RADIUS_M));
 
   // Length-weighted: a segment counts as covered when both its ends are.
   let total = 0;
@@ -72,6 +77,7 @@ export function prove(level: Level): ProveResult {
     total += len;
     if (covered[i] && covered[i - 1]) cov += len;
   }
+  const exposedMeters = Math.round(total - cov);
   const coveredFraction = total > 0 ? cov / total : 0;
   const pct = Math.round(coveredFraction * 100);
   const need = Math.round(MIN_COVERED_PATH_FRACTION * 100);
@@ -83,8 +89,10 @@ export function prove(level: Level): ProveResult {
       path,
       covered,
       coveredFraction,
-      message: `Death corridor: only ${pct}% of the ${Math.round(total)} m route has cover (need ${need}%).`,
+      message: `Death corridor: only ${pct}% of the ${Math.round(total)} m route is protected (need ${need}%). ${exposedMeters} m in the open.`,
       checkedAt,
+      exposedMeters,
+      ...heat,
     };
   }
   return {
@@ -93,8 +101,10 @@ export function prove(level: Level): ProveResult {
     path,
     covered,
     coveredFraction,
-    message: `Playable: ${Math.round(total)} m route, ${pct}% covered.`,
+    message: `Playable: ${Math.round(total)} m route, ${pct}% protected.`,
     checkedAt,
+    exposedMeters,
+    ...heat,
   };
 }
 

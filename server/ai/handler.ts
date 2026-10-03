@@ -181,7 +181,7 @@ async function fix(key: string, req: FixRequest): Promise<AiResponse> {
 
   // Agent loop (max 2 rounds): the model proposes spots, our Prove verifies each, failures are fed back.
   for (let round = 0; round < 2 && !best; round++) {
-    const prompt = `Level fails Prove: "${now.message}" (passes when >= 25% of the route is within 2.5 m of chest-high cover).
+    const prompt = `Level fails Prove: "${now.message}" (passes when >= 25% of the route is protected: out of the objective's line of sight, or within 2.5 m of chest-high cover).
 Exposed route points (x,z): ${JSON.stringify(exposed)}. Solid boxes (do not overlap): ${JSON.stringify(solids)}.
 ${tried.length ? `Already tried, FAILED: ${JSON.stringify(tried)}. Pick different spots closer to the exposed points.` : ""}
 Propose 4 positions for a 1.2 x 2.5 m chest-high cover object, 1-2 m to the side of the exposed route (never on it). rotationY in degrees. Label = an object that fits this style: "${level.styleNotes ?? "medieval market town"}".

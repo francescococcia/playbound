@@ -242,3 +242,12 @@ Test: New level → Add cover at centre → edit size/rotation → Duplicate →
     - When the AI has nothing to propose you get `note` (e.g. "This level already passes Prove.") → info toast.
   - Proposal card: show `why`, then `previewProve.message` (green if pass, red if fail), then **Accept / Reject**. For `replaceAll`, say "Replaces the current layout".
   - Images are downscaled to ≤1024 px JPEG inside the client; just pass the `File`.
+
+## 2026-10-03 — Claude Code — R5 (Prove v2: line of sight + heatmap)
+
+- Prove now computes **line of sight from the objective** (defender eye 1.7 m → crouching player 1.0 m; any solid taller than the line blocks it). A route point is **protected** if it's hidden from the objective OR near cover. The presets give the same results (fail 0%, pass 28%). New message: "Death corridor: only 0% of the 23 m route is protected (need 25%). 23 m in the open." Runs in 13–30 ms.
+- **Heatmap data for U14** (new optional fields on `ProveResult`, see types.ts):
+  - `exposure: number[]` (row-major, `exposureCols` × `exposureCols`, cell size `exposureCell` = 0.5 m): **1 = seen** (red), **0 = hidden** (blue/green), **-1 = inside a solid** (transparent).
+  - Cell (col, row) centre = (−bounds + (col + 0.5)·cell, −bounds + (row + 0.5)·cell) in X/Z.
+  - Suggested rendering: one 80×80 `DataTexture` on a ground plane at y ≈ 0.02, opacity ~0.35, `NearestFilter` (or Linear for a soft look). Rebuild when `prove.checkedAt` changes. Toggle "Show heatmap" (on by default after Prove).
+  - `exposedMeters` = metres of the route in the open; nice in the banner.

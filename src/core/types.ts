@@ -36,10 +36,20 @@ export interface ProveResult {
   reason?: ProveReason;
   /** Path from spawn to objective, world coords at y = 0. Empty when NO_PATH. */
   path?: [number, number, number][];
-  /** Same length as `path`: true where a cover volume is within COVER_RADIUS_M. */
+  /** Same length as `path`: true where the point is protected (hidden from the objective OR cover within COVER_RADIUS_M). */
   covered?: boolean[];
-  /** Covered path length / total path length, 0..1. */
+  /** Protected path length / total path length, 0..1 (protected = out of sight OR near cover). */
   coveredFraction?: number;
+  /**
+   * Heatmap: line of sight from the objective, one value per grid cell, row-major
+   * (index = row * exposureCols + col). 1 = seen, 0 = hidden, -1 = inside a solid.
+   * Cell (col,row) centre in world = (-bounds + (col + 0.5) * exposureCell, -bounds + (row + 0.5) * exposureCell).
+   */
+  exposure?: number[];
+  exposureCols?: number;
+  exposureCell?: number;
+  /** Path length (m) seen from the objective with no cover nearby. */
+  exposedMeters?: number;
   /** Human-readable one-liner for the banner. */
   message?: string;
   checkedAt?: string;
