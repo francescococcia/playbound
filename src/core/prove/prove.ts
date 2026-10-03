@@ -11,6 +11,7 @@ import {
   COVER_RADIUS_M,
   GRID_CELL_M,
   MIN_COVERED_PATH_FRACTION,
+  SNAP_RADIUS_M,
 } from "./constants";
 
 export interface NavGrid {
@@ -47,7 +48,11 @@ export function prove(level: Level): ProveResult {
   }
 
   const grid = buildNavGrid(level);
-  const cells = astar(grid, toCell(spawn, grid), toCell(goal, grid));
+  // Markers drawn on a wall or touching a box (common in sketch imports) start from the
+  // nearest walkable cell within SNAP_RADIUS_M instead of failing outright.
+  const start = nearestWalkable(grid, toCell(spawn, grid));
+  const end = nearestWalkable(grid, toCell(goal, grid));
+  const cells = start && end ? astar(grid, start, end) : null;
   if (!cells) {
     return { status: "fail", reason: "NO_PATH", path: [], message: "No walkable route from spawn to objective.", checkedAt };
   }
@@ -103,6 +108,30 @@ function toCell(v: Volume, g: NavGrid): [number, number] {
   const c = Math.floor((v.position[0] + g.bounds) / g.cell);
   const r = Math.floor((v.position[2] + g.bounds) / g.cell);
   return [clampI(c, g.cols), clampI(r, g.rows)];
+}
+
+/** Breadth-first search for the closest unblocked cell, up to SNAP_RADIUS_M away. */
+function nearestWalkable(g: NavGrid, [c0, r0]: [number, number]): [number, number] | null {
+  const maxRing = Math.ceil(SNAP_RADIUS_M / g.cell);
+  for (let ring = 0; ring <= maxRing; ring++) {
+    let best: [number, number] | null = null;
+    let bestD = Infinity;
+    for (let dr = -ring; dr <= ring; dr++) {
+      for (let dc = -ring; dc <= ring; dc++) {
+        if (Math.max(Math.abs(dc), Math.abs(dr)) !== ring) continue;
+        const c = c0 + dc;
+        const r = r0 + dr;
+        if (c < 0 || r < 0 || c >= g.cols || r >= g.rows || g.blocked[r * g.cols + c]) continue;
+        const d = dc * dc + dr * dr;
+        if (d < bestD) {
+          bestD = d;
+          best = [c, r];
+        }
+      }
+    }
+    if (best) return best;
+  }
+  return null;
 }
 
 function clampI(n: number, max: number): number {

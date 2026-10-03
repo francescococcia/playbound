@@ -137,7 +137,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| R2 | Claude Code | Prove robustness: snap spawn/objective to the nearest walkable cell (sketch imports put the gate on the wall → false NO_PATH) | todo |
+| R2 | Claude Code | Prove robustness: snap spawn/objective to the nearest walkable cell (sketch imports put the gate on the wall → false NO_PATH) | done |
 | R4 | Claude Code | AI server (`/api/ai/*`): one handler for the Vite dev server AND a Vercel function, key server-side, usage cap. `sketch` (image → replaceAll proposal), `style` (image → styleNotes proposal), `command` (text + level → add/update/remove proposal), `fix` (agent loop: model proposes cover spots → our Prove checks each → best passing one, with `previewProve`). Client: `src/core/ai/client.ts` → `aiSketch(file)`, `aiStyle(file)`, `aiCommand(text)`, `aiSuggestFix()`, `isAiAvailable()`. Each adds a proposal to the store. | todo |
 | U12 | Cursor | Proposal UI: ghost boxes (translucent, dashed) for `add`, ghost + arrow for `update`, red tint for `remove`; proposal card(s) with `why`, Prove preview (pass/fail, %) and **Accept / Reject**. | todo |
 | U13 | Cursor | AI panel: **Sketch → level** (image upload), **Style from image** (the style upload also calls `aiStyle`), command box, **Suggest fix** button on the fail banner. Loading states (10–30 s), errors as toasts. | todo |

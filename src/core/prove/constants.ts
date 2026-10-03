@@ -6,3 +6,5 @@ export const COVER_RADIUS_M = 2.5;
 export const MIN_COVERED_PATH_FRACTION = 0.25;
 export const AGENT_RADIUS_M = 0.4;
 export const AGENT_HEIGHT_M = 1.8;
+/** Spawn/objective markers inside a wall or box snap to the nearest walkable cell within this distance. */
+export const SNAP_RADIUS_M = 2;

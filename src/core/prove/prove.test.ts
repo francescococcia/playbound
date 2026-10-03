@@ -31,6 +31,24 @@ describe("prove on Market Square", () => {
     expect(r.reason).toBe("NO_PATH");
   });
 
+  it("a spawn drawn on the outer wall still finds the route (snaps to the nearest walkable cell)", () => {
+    const onWall: Level = {
+      ...marketSquareFail,
+      volumes: marketSquareFail.volumes.map((v) => (v.role === "spawn" ? { ...v, position: [0, 0, 19.8] as [number, number, number] } : v)),
+    };
+    const r = prove(onWall);
+    expect(r.reason).not.toBe("NO_PATH");
+    expect(r.path!.length).toBeGreaterThan(10);
+  });
+
+  it("a spawn buried deep inside a building is still NO_PATH", () => {
+    const buried: Level = {
+      ...marketSquareFail,
+      volumes: marketSquareFail.volumes.map((v) => (v.role === "spawn" ? { ...v, position: [-15.5, 0, 8] as [number, number, number] } : v)),
+    };
+    expect(prove(buried).reason).toBe("NO_PATH");
+  });
+
   it("path starts at spawn and ends at the objective", () => {
     const r = prove(marketSquarePass);
     const first = r.path![0];
