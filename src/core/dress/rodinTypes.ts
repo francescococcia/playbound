@@ -6,6 +6,8 @@ export interface GenerateRequest {
   volumeId: string;
   /** Optional: adopt an existing Rodin generation instead of starting a new one. */
   generationId?: string;
+  /** Optional reference photo/sketch of the object (JPEG data URL) → Rodin image-to-3D. */
+  image?: string;
 }
 
 export type JobStatus = "queued" | "generating" | "processing" | "ready" | "error";
@@ -27,4 +29,6 @@ export interface ManifestEntry {
   generationId: string;
   url: string;
   createdAt: string;
+  /** True when generated from a reference image. */
+  fromImage?: boolean;
 }

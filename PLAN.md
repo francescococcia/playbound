@@ -148,7 +148,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | ID | Owner | Task | Status |
 |---|---|---|---|
 | R5 | Claude Code | Line of sight from the objective through solid boxes; `prove.exposure` grid for the heatmap; a route point is protected if hidden from the objective OR near cover (kept the cover radius so the presets still behave). Presets re-tuned so fail/pass still hold (tests). | done |
-| U14 | Cursor | Heatmap overlay on the ground from `prove.exposure` (red = seen, blue = safe) + toggle. | todo |
+| U14 | Cursor | Heatmap overlay on the ground from `prove.exposure` (red = seen, blue = safe) + toggle. | done |
 
 **Francesco feedback R2-M3:** _(write here)_
 
@@ -163,6 +163,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 ---
 
 ## Known facts (keep updated)
+- **Hyper3D CLI login expires after a few hours** ("Authentication expired"). Run `hyper3d auth login` again before any live generation, especially right before recording the demo.
 - **AI co-designer measured (3 Oct, Gemini 3.8 Flash):** sketch → level 8 s, style → notes 5 s, command 6 s, fix 1.4 s (fast mode; verified by Prove, with a search fallback if the AI fails). Sketch of the market square comes back as a "death corridor" (0%), which is the hero demo. Usage cap: 30 requests / 10 min per visitor, 400 / day per server.
 - **AI provider test (3 Oct):** sketch → greybox JSON works on every model tested (6 boxes, right roles, positions within ~1 m). Speed: **Gemini 3.8 Flash direct 12 s (free)**, Cursor SDK + Claude Sonnet 5.5 27 s, Cursor SDK + Gemini 3.8 Flash 94 s. Cursor SDK on Windows needs `JsonlLocalAgentStore` (default SQLite path exceeds MAX_PATH); its custom tools were blocked by `tools: []`. Decision: **Gemini direct** for the app (free, fastest, works on the public site); the "fix" agent loop runs in our code (model proposes → our Prove checks).
 - **Live URL:** https://playbound-eta.vercel.app (Vercel project `playbound`, account francescococciaa-1965). First deploy: 3 Oct ~16:20. Deploys upload the working tree, so **deploy only when Cursor has stopped at a milestone** (no half-done UI). Command: `npx vercel deploy --prod --yes`. `/api/rodin` doesn't exist there (404), so Dress uses prebaked models and Regenerate shows the "needs Hyper3D connection" message.

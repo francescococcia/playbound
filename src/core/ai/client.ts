@@ -1,6 +1,7 @@
 // Browser client for the AI co-designer. Each call asks /api/ai/<action>, and on success
 // puts the returned Proposal into the store as a ghost. The designer Accepts or Rejects it.
 // Calls take ~5-30 s (Gemini). They throw Error(message) for the UI to show as a toast.
+import { toJpegDataUrl as toDataUrl } from "../image";
 import { usePlaybound } from "../store";
 import type { Proposal } from "../types";
 import type { AiHealth, AiResponse } from "./types";
@@ -51,25 +52,4 @@ async function call(action: string, body: unknown): Promise<AiOutcome> {
   if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
   if (j.proposal) usePlaybound.getState().addProposal(j.proposal);
   return { proposal: j.proposal, note: j.note, model: j.model };
-}
-
-/** Downscale to ≤1024 px JPEG so uploads stay small (Vercel body limit, faster AI). */
-async function toDataUrl(image: File | string, max = 1024): Promise<string> {
-  const src = typeof image === "string" ? image : URL.createObjectURL(image);
-  try {
-    const img = new Image();
-    img.src = src;
-    await img.decode();
-    const k = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-    const c = document.createElement("canvas");
-    c.width = Math.round(img.naturalWidth * k);
-    c.height = Math.round(img.naturalHeight * k);
-    const g = c.getContext("2d")!;
-    g.fillStyle = "#fff"; // transparent PNG sketches → white paper, not black
-    g.fillRect(0, 0, c.width, c.height);
-    g.drawImage(img, 0, 0, c.width, c.height);
-    return c.toDataURL("image/jpeg", 0.85);
-  } finally {
-    if (typeof image !== "string") URL.revokeObjectURL(src);
-  }
 }

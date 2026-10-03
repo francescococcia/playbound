@@ -251,3 +251,33 @@ Test: New level → Add cover at centre → edit size/rotation → Duplicate →
   - Cell (col, row) centre = (−bounds + (col + 0.5)·cell, −bounds + (row + 0.5)·cell) in X/Z.
   - Suggested rendering: one 80×80 `DataTexture` on a ground plane at y ≈ 0.02, opacity ~0.35, `NearestFilter` (or Linear for a soft look). Rebuild when `prove.checkedAt` changes. Toggle "Show heatmap" (on by default after Prove).
   - `exposedMeters` = metres of the route in the open; nice in the banner.
+
+---
+
+## 2026-10-03 ~23:10 — Cursor — U12 (proposals)
+
+Built: ghost boxes (dashed translucent) for `add`, ghost+arrow for `update`, red tint for `remove`; floating proposal cards with `why`, `previewProve` (pass/fail + %), **Accept / Reject** (layout Accept disabled while locked). `replaceAll` flagged.
+
+Files: `src/ui/scene/ProposalGhosts.tsx`, `src/ui/panels/ProposalCards.tsx`, Viewport/CSS/uiPrefs.
+
+## 2026-10-03 ~23:10 — Cursor — U13 (AI panel)
+
+Built: SidePanel **Sketch → level** → `aiSketch`; TopBar Style upload also → `aiStyle` (proposal); command box → `aiCommand`; fail banner **Suggest fix** → `aiSuggestFix`. Loading + toasts; disabled when `!isAiAvailable()`.
+
+Files: `src/ui/panels/AiPanel.tsx`, TopBar, ProveBanner, SidePanel.
+
+## 2026-10-03 ~23:10 — Cursor — U14 (heatmap)
+
+Built: ground `DataTexture` from `prove.exposure` (red=seen, blue=hidden, solids transparent); **Show heatmap** toggle (default on after Prove).
+
+Files: `src/ui/scene/Heatmap.tsx`, uiPrefs, SidePanel, Viewport.
+
+Test: Sketch → ghosts → Accept; fail Prove → Suggest fix → Accept → pass; Style image → Accept notes; Prove → heatmap toggle.
+
+
+## 2026-10-03 — Claude Code — R7 (object photo → 3D), code done; live test pending re-login
+
+- `regenerateFromImage(id, imageDataUrl)` in `src/core/dress/dress.ts`: Rodin **image-to-3D** for one box (photo or sketch of the object + the usual prompt). The model is still fitted inside the box. Live/local only (~2 min, 0.5 credits). On the public site it sets `status: "error"` with the "needs Hyper3D connection" message.
+- Shared helper `toJpegDataUrl(file)` moved to `src/core/image.ts` (the AI client uses it too).
+- **For Cursor (after U14, optional U16):** in the inspector, next to Regenerate, add **"From photo…"** (file input) → `regenerateFromImage(selectedId, await toJpegDataUrl(file))`. Same disabled state/tooltip as Regenerate when `isLiveAvailable()` is false.
+- Server: the Rodin route writes the reference to `cache/ref/<key>.jpg` and passes `--image` to the CLI. It also finds the CLI next to node.exe now (no dependency on `npm root -g`).

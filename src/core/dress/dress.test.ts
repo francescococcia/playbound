@@ -2,8 +2,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { usePlaybound } from "../store";
 import { DRESS_ROLES } from "../types";
-import { dressLevel, regenerate, resetLiveCheck } from "./dress";
-import { assetKey, buildPrompt } from "./prompt";
+import { dressLevel, regenerate, regenerateFromImage, resetLiveCheck } from "./dress";
+import { assetKey, buildPrompt, hash } from "./prompt";
 
 type Route = (url: string, init?: RequestInit) => Response | undefined;
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status });
@@ -109,5 +109,35 @@ describe("dress", () => {
     expect(cart.variant).toBe(1);
     expect(cart.assetUrl).toBe("/assets/gen/new.glb");
     expect(seenKey).toBe(assetKey(cart.prompt!, cart.size, 1));
+  });
+
+  it("regenerateFromImage sends the reference image; the image is part of the cache key", async () => {
+    readyLevel();
+    const img = "data:image/jpeg;base64,/9j/AAAA";
+    let sent: any;
+    fakeFetch((url, init) => {
+      if (url.startsWith("/assets/gen/manifest.json")) return json({});
+      if (url === "/api/rodin/health") return json({ live: true });
+      if (url === "/api/rodin/generate") {
+        sent = JSON.parse(String(init?.body));
+        return json({ jobId: "j2", status: "ready", url: "/assets/gen/photo.glb" });
+      }
+    });
+    await regenerateFromImage("cart", img);
+    const cart = usePlaybound.getState().level.volumes.find((v) => v.id === "cart")!;
+    expect(sent.image).toBe(img);
+    expect(sent.prompt).toMatch(/reference image/);
+    expect(sent.key).toBe(assetKey(`${sent.prompt}|img:${hash(img)}`, cart.size, 1));
+    expect(cart.assetUrl).toBe("/assets/gen/photo.glb");
+    expect(cart.status).toBe("ready");
+  });
+
+  it("regenerateFromImage on the public site (no live route) reports the error", async () => {
+    readyLevel();
+    fakeFetch((url) => (url.startsWith("/assets/gen/manifest.json") ? json({}) : undefined));
+    await regenerateFromImage("cart", "data:image/jpeg;base64,/9j/AAAA");
+    const cart = usePlaybound.getState().level.volumes.find((v) => v.id === "cart")!;
+    expect(cart.status).toBe("error");
+    expect(cart.error).toMatch(/Hyper3D connection/);
   });
 });
