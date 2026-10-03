@@ -66,9 +66,14 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     if (running) return send(res, 200, view(running));
 
     // `generationId` adopts an existing Rodin generation (made via MCP or the website): no new credits.
-    const generationId =
-      body.generationId ??
-      (await cli(["generate", "--prompt", body.prompt, "--format", "glb", "--quality", RODIN_QUALITY])).generation_id;
+    let generationId = body.generationId;
+    if (!generationId) {
+      const out = await cli(["generate", "--prompt", body.prompt, "--format", "glb", "--quality", RODIN_QUALITY]);
+      generationId = out?.generation_id;
+      if (!generationId) {
+        return send(res, 502, { jobId: "", status: "error", error: `Hyper3D CLI gave no generation id: ${JSON.stringify(out).slice(0, 300)}` } satisfies JobResponse);
+      }
+    }
     const job: Job = { jobId: generationId, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued" };
     jobs.set(job.jobId, job);
     return send(res, 200, view(job));

@@ -1,6 +1,6 @@
 import { Box3, BoxGeometry, Mesh, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
-import { fitToVolume } from "./fit";
+import { fitToVolume, MAX_STRETCH } from "./fit";
 
 const worldBox = (m: Mesh) => {
   m.updateMatrixWorld(true);
@@ -22,6 +22,17 @@ describe("fitToVolume", () => {
     expect(b.getCenter(new Vector3()).z).toBeCloseTo(0, 6);
     expect(r.fill).toBeGreaterThan(0);
     expect(r.fill).toBeLessThanOrEqual(1);
+  });
+
+  it("stretches sideways at most MAX_STRETCH, never taller, never outside", () => {
+    const m = new Mesh(new BoxGeometry(1, 1, 1)); // cube into a wide, flat box
+    const r = fitToVolume(m, [3, 1, 1.1]);
+    const s = worldBox(m).getSize(new Vector3());
+    expect(r.stretch[0]).toBeCloseTo(MAX_STRETCH, 6); // capped: box would allow 3x
+    expect(r.stretch[1]).toBeCloseTo(1.1, 6); // box allows 1.1x
+    expect(s.x).toBeCloseTo(MAX_STRETCH, 5);
+    expect(s.y).toBeCloseTo(1, 5);
+    expect(s.z).toBeLessThanOrEqual(1.1 + 1e-6);
   });
 
   it("turns a long model 90° when the box's long side is the other axis", () => {

@@ -101,3 +101,30 @@ For Cursor (U6/U7/U9):
 - Progress list: each dressable volume shows `status` + `stage` (+ `error` in red).
 - Inspector: show `prompt`; Regenerate button → `regenerate(id)`. Disable it with the tooltip "needs Hyper3D connection" when `await isLiveAvailable()` is false.
 - Style ref: a text field for `styleNotes` next to the image (`setStyleRef(url, notes)`).
+
+---
+
+## 2026-10-03 ~15:30 — Cursor — M1 feedback + U4, U5, U6
+
+Built:
+- **M1 fixes:** Mid-grey ground + 1 m / 5 m grid; high orbit camera `[8,48,36]`; labels fixed screen size — always spawn/objective/cover, others on hover/select; Prove message moved out of TopBar into viewport banner (no button jump); objective well has gold beacon + point light.
+- **U4:** `ProvePath` draws path segments green/red from `covered[]`; `ProveBanner` with message + honest-limit line.
+- **U5:** Drag any volume on XZ when unlocked → `updateVolume`; OrbitControls disabled while dragging; no-op when locked.
+- **U6:** Style ref file → data URL thumbnail + style notes field; Prove / Lock|Unlock / Dress (`dressLevel()`, disabled + tooltip from `canDress`); Export/Share placeholders.
+
+Files:
+- `src/ui/scene/{Ground,Viewport,VolumeMesh,ProvePath,ProveBanner}.tsx`
+- `src/ui/panels/TopBar.tsx`
+- `src/index.css`
+- `PLAN.md` (statuses)
+
+Test: see chat — M2 checklist for Francesco.
+
+For Claude Code: Dress is wired. U7 should render GLBs via `fitToVolume` when `assetUrl` is set; progress list can read `status`/`stage`/`error`. No contract changes requested.
+
+## 2026-10-03 — Claude Code — C8 (prebake) + fit/preset changes
+
+- **Preset changed** (`src/presets/marketSquare.ts`): each side of the corridor is now two 9 m buildings. New volume ids `bakery` and `chapel` (with `tavern`, `guildhall`), so 12 volumes total. The cart label is now "flat open-top wooden handcart loaded with crates and sacks", and the notice board is 0.8 m deep. Prove results are unchanged (fail 0%, pass 28%).
+- **10 prebaked Rodin models** in `public/assets/gen/` (+ `manifest.json`). `dressLevel()` finds them instantly by key, so Dress on the hero preset needs no live generation. `testcart01.glb` was removed; use the real assets for U7.
+- `fitToVolume` now also returns `stretch` (≤25% sideways, never taller, still always inside the box).
+- `/dev-viewer.html` = gallery of every model inside its wireframe contract box. Useful to compare against your U7 rendering.

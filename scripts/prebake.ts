@@ -4,6 +4,7 @@
 //
 // Usage: start the dev server, then
 //   npx tsx scripts/prebake.ts [baseUrl=http://localhost:5173] [--dry]
+//   npx tsx scripts/prebake.ts --prune   (delete assets no preset uses; run after a successful prebake)
 // Already-generated keys return instantly (no credits).
 import { buildPrompt, assetKey } from "../src/core/dress/prompt";
 import type { JobResponse } from "../src/core/dress/rodinTypes";
@@ -21,6 +22,22 @@ for (const level of PRESETS) {
     const prompt = buildPrompt(v, level.styleNotes);
     jobs.set(assetKey(prompt, v.size, 0), { v, prompt });
   }
+}
+
+if (process.argv.includes("--prune")) {
+  // Remove generated assets no preset uses any more (old variants, renamed/resized volumes).
+  const { existsSync, readFileSync, rmSync, writeFileSync } = await import("node:fs");
+  const file = "public/assets/gen/manifest.json";
+  const manifest: Record<string, { url: string }> = JSON.parse(readFileSync(file, "utf8"));
+  for (const key of Object.keys(manifest)) {
+    if (jobs.has(key)) continue;
+    const glb = `public${manifest[key].url}`;
+    if (existsSync(glb)) rmSync(glb);
+    delete manifest[key];
+    console.log(`pruned ${key}`);
+  }
+  writeFileSync(file, JSON.stringify(manifest, null, 2));
+  process.exit(0);
 }
 
 console.log(`${jobs.size} assets to prebake via ${base}${dry ? " (dry run)" : ""}`);

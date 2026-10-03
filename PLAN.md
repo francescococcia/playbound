@@ -91,7 +91,7 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 | ID | Owner | Task | Status |
 |---|---|---|---|
 | C7 | Claude Code | Deploy to Vercel (static site + prebaked GLBs in `public/assets/`). README: how to log in to the CLI, prebake, limits, demo script. | todo |
-| C8 | Claude Code | Prebake hero level: generate ≥ 6 (target 9) Rodin assets via CLI/MCP, commit the GLBs, reference them from the preset. | todo |
+| C8 | Claude Code | Prebake hero level: generate ≥ 6 (target 9) Rodin assets via CLI/MCP, commit the GLBs, reference them from the preset. | done |
 | U10 | Cursor | Polish pass: readable labels, loading states, phone-width check. | todo |
 | H1 | Francesco | Record the 2-minute demo video (script in the spec). | todo |
 
@@ -99,7 +99,8 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 
 ## Known facts (keep updated)
 - **Rodin via CLI, measured 3 Oct:** ~2 min per model, 0.5 credits. Raw GLB is 28 MB / 375k verts; after our optimize step it's ~1.2 MB (meshopt + 1K webp). Models come back centred on their middle at arbitrary scale, so `fitToVolume` is required. Credits: 25 regular + 300 subscription.
-- **Dev tools:** `/dev-viewer.html?k=<key>` previews a generated asset. `public/assets/gen/manifest.json` lists every generated asset.
+- **Prebake (3 Oct, 2 rounds, ~6 credits):** 10 assets, ~5.5 MB in total. Fill: tower 94%, chapel 95%, tavern 81%, guildhall 76%, cart 75%, fish stall 64%, bakery 60%, hay 42%, notice board 37%, barrels 100%. Each side of the corridor is now two 9 m buildings (tavern + bakery, chapel + guildhall). `fitToVolume` allows ≤25% sideways stretch.
+- **Dev tools:** `/dev-viewer.html` = gallery of every prebaked model inside its contract box (`?only=cart,hay` to focus). `/dev-viewer.html?k=<key>` previews one raw asset. `public/assets/gen/manifest.json` lists every generated asset.
 - **Hyper3D access (3 Oct):** Rodin API = Business plan only, which we don't have. We use the **Hyper3D CLI** (`@hyper3d/cli`, `hyper3d auth login`) and the **Hyper3D MCP** (`https://api.hyper3d.com/api/mcp`, OAuth). Both spend account credits (~0.5 credits per Gen-2.5 model).
   - The CLI has no bounding-box option, so the size guarantee comes from `fitToVolume` (C5): each GLB is scaled to its contract box.
   - Live Regenerate works when the app runs locally (demo video). The public URL serves prebaked assets.
