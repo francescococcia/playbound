@@ -5,16 +5,16 @@
 // 3. Line of sight from the objective to every cell (visibility.ts) -> heatmap.
 // 4. A path point is protected if it is hidden from the objective OR a `cover` volume is
 //    within COVER_RADIUS_M. Protected length / total < MIN_COVERED_PATH_FRACTION -> NO_COVER.
-import { distanceToFootprint, isSolid } from "../geometry";
-import type { Level, ProveResult, Volume } from "../types";
-import { exposureFrom } from "./visibility";
+import { distanceToFootprint, isSolid } from "../geometry.js";
+import type { Level, ProveResult, Volume } from "../types.js";
+import { exposureFrom } from "./visibility.js";
 import {
   AGENT_RADIUS_M,
   COVER_RADIUS_M,
   GRID_CELL_M,
   MIN_COVERED_PATH_FRACTION,
   SNAP_RADIUS_M,
-} from "./constants";
+} from "./constants.js";
 
 export interface NavGrid {
   cols: number;

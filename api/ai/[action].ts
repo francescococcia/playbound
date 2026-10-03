@@ -1,7 +1,7 @@
 // Vercel function: /api/ai/<action> on the public site. GEMINI_API_KEY lives in the
 // Vercel project's environment variables (server-only).
 import type { IncomingMessage, ServerResponse } from "node:http";
-import { handleAi } from "../../server/ai/handler";
+import { handleAi } from "../../server/ai/handler.js";
 
 type Req = IncomingMessage & { body?: unknown; query?: Record<string, string | string[]> };
 

@@ -3,10 +3,10 @@
 // head clears every solid box taller than the line at that point. Buildings and landmarks
 // hide whole areas; a chest-high cover box hides the cells just behind it.
 // Fast path: a height map (tallest solid per cell) + ray marching on the grid.
-import { distanceToFootprint, isSolid } from "../geometry";
-import type { Level } from "../types";
-import { LOS_STEP_M, TARGET_HEIGHT_M, VIEWER_EYE_M } from "./constants";
-import type { NavGrid } from "./prove";
+import { distanceToFootprint, isSolid } from "../geometry.js";
+import type { Level } from "../types.js";
+import { LOS_STEP_M, TARGET_HEIGHT_M, VIEWER_EYE_M } from "./constants.js";
+import type { NavGrid } from "./prove.js";
 
 /** Per cell: 1 = seen from the objective, 0 = hidden, -1 = inside a solid (not walkable). */
 export type ExposureGrid = Int8Array;

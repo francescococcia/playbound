@@ -10,11 +10,11 @@
 // Rule: the AI only proposes. Every proposal is validated here (clamped to the level,
 // unique ids, one spawn/objective) and previewed with our real Prove before the designer
 // sees it. Nothing is applied until they click Accept.
-import { distanceToFootprint, isSolid } from "../../src/core/geometry";
-import { prove } from "../../src/core/prove/prove";
-import type { AiResponse, CommandRequest, FixRequest, SketchRequest, StyleRequest } from "../../src/core/ai/types";
-import type { Level, Proposal, ProveResult, Role, Volume } from "../../src/core/types";
-import { GEMINI_MODELS, geminiJson } from "./gemini";
+import { distanceToFootprint, isSolid } from "../../src/core/geometry.js";
+import { prove } from "../../src/core/prove/prove.js";
+import type { AiResponse, CommandRequest, FixRequest, SketchRequest, StyleRequest } from "../../src/core/ai/types.js";
+import type { Level, Proposal, ProveResult, Role, Volume } from "../../src/core/types.js";
+import { GEMINI_MODELS, geminiJson } from "./gemini.js";
 
 const ROLES: Role[] = ["spawn", "objective", "cover", "block", "landmark", "prop"];
 const MAX_PER_IP = 30; // per 10 minutes

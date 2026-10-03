@@ -1,6 +1,6 @@
 // Footprint math for contract volumes. Used by BOTH Prove and FPS collision,
 // so the bot and the player collide with exactly the same shapes.
-import { SOLID_ROLES, type Volume } from "./types";
+import { SOLID_ROLES, type Volume } from "./types.js";
 
 /** Distance on the ground plane (XZ) from a point to a volume's rotated footprint. 0 if inside. */
 export function distanceToFootprint(x: number, z: number, v: Volume): number {
