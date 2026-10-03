@@ -152,3 +152,29 @@ For Claude Code: no contract changes. U9 can add Regenerate + prompt in inspecto
 
 - Bug: after Dress, every model sat in the middle of the square. `fitToVolume` measured bounds in world space, so fitting after mounting (as `DressedModel` does in `useLayoutEffect`) cancelled the parent's position. It now measures in the parent's space and works before or after mounting. New regression test (13 tests pass). **No change needed in `DressedModel`.**
 - M3 feedback for Cursor is in PLAN.md (FPS clutter). Next for Cursor: M4/U9.
+
+---
+
+## 2026-10-03 ~16:55 — Cursor — M3 FPS declutter + U9
+
+Built:
+- **M3 FPS clutter:** In FPS, Prove path is hidden; Prove banner fades out over ~3 s then unmounts; 3D labels show **objective only** (spawn/cover/hover labels stay in Orbit).
+- **U9:** Inspector shows `prompt` text; **Regenerate** → `regenerate(id)` with spinner while queued/generating. Disabled with tooltip **"needs Hyper3D connection"** when `isLiveAvailable()` is false. Export still a disabled placeholder until C6 lands.
+
+Files:
+- `src/ui/scene/{ProveBanner,Viewport,VolumeMesh}.tsx`
+- `src/ui/panels/{SidePanel,TopBar}.tsx`
+- `src/index.css`
+
+Test: Dress → FPS = clean corridor (objective label + beacon only). Orbit inspector → pick cart → see prompt → Regenerate (live only on local Hyper3D; otherwise disabled).
+
+For Claude Code: when C6 export lands, note the function name in HANDOFF — Cursor will wire the Export button.
+
+## 2026-10-03 — Claude Code — C6 (Export)
+
+Built `src/core/export/exportLevel.ts`:
+- `downloadLevelZip(level)`: builds and downloads `<level-id>.zip`. **Wire the Export button to this:** `onClick={() => downloadLevelZip(level).catch(e => toast(e.message))}`. It works at any time (undressed volumes are exported as boxes only). Show a spinner, since it takes ~1.5 s for the dressed hero level.
+- Zip = `level.json` (format `playbound-level@1`: transforms, roles, prompts, Prove summary, and per-asset `transform` that places the raw GLB inside its box) + `assets/<id>.glb` + `README.txt` (Unity/Unreal/Godot import notes; collision = the box).
+- Also `buildExportZip(level)` → `Blob` if you need it. A test with a fake fetch covers it. Checked for real in the browser: 10 models, 7 MB, 1.4 s.
+
+Also for Cursor (from the drag test): start a drag only after the pointer moves > ~5 px, so a click only selects. The hay bales got moved by an accidental drag.

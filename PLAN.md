@@ -86,8 +86,8 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| C6 | Claude Code | Export: zip with `level.json` + GLBs (jszip). | todo |
-| U9 | Cursor | Inspector: prompt text, **Regenerate** button → `regenerate(id)`, spinner. Export button wired. | todo |
+| C6 | Claude Code | Export: zip with `level.json` + GLBs (jszip). | done |
+| U9 | Cursor | Inspector: prompt text, **Regenerate** button → `regenerate(id)`, spinner. Export button wired. | done |
 
 **Francesco feedback M4:** _(write here)_
 
