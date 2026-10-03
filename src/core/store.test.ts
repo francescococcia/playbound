@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { usePlaybound } from "./store";
+import { canEnterStep, currentStep, usePlaybound } from "./store";
 import type { Proposal } from "./types";
 
 const s = () => usePlaybound.getState();
@@ -92,5 +92,38 @@ describe("proposals", () => {
     s().addProposal({ id: "st", source: "style", why: "from image", styleNotes: "snowy alpine village" });
     s().acceptProposal("st");
     expect(s().level.styleNotes).toBe("snowy alpine village");
+  });
+});
+
+describe("guided flow", () => {
+  it("currentStep follows the pipeline", () => {
+    s().newLevel();
+    expect(currentStep(s().level)).toBe("blockout");
+    s().loadPreset("market-square-pass");
+    expect(currentStep(s().level)).toBe("prove");
+    s().runProve();
+    expect(currentStep(s().level)).toBe("lock");
+    s().lock();
+    expect(currentStep(s().level)).toBe("dress");
+    for (const v of s().level.volumes) s().setVolumeAsset(v.id, { status: "ready", assetUrl: "/x.glb" });
+    expect(currentStep(s().level)).toBe("play");
+  });
+
+  it("canEnterStep explains why a later step is closed", () => {
+    s().loadPreset("market-square-fail");
+    s().runProve();
+    expect(canEnterStep(s().level, "blockout").ok).toBe(true);
+    expect(canEnterStep(s().level, "lock")).toEqual({ ok: false, why: "Prove must pass first." });
+  });
+
+  it("acceptAll applies several proposals; highlight clears on reject", () => {
+    s().addProposal({ id: "a", source: "text", why: "a", add: [{ id: "c1", label: "crate", role: "prop", position: [5, 0, 5], rotationY: 0, size: [1, 1, 1] }] });
+    s().addProposal({ id: "b", source: "text", why: "b", add: [{ id: "c2", label: "crate", role: "prop", position: [6, 0, 5], rotationY: 0, size: [1, 1, 1] }] });
+    s().setHighlightedProposal("b");
+    s().acceptAll(["a"]);
+    s().rejectProposal("b");
+    expect(s().highlightedProposalId).toBeNull();
+    expect(s().level.volumes.some((v) => v.id === "c1")).toBe(true);
+    expect(s().level.volumes.some((v) => v.id === "c2")).toBe(false);
   });
 });

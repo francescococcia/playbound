@@ -295,3 +295,11 @@ Built:
 Files: SidePanel, ProposalCards, AiPanel, ProveBanner, ProposalGhosts, Viewport, TopBar, index.css, PLAN, HANDOFF.
 
 Test: hero flow with clearer cards/ghosts/legend; From photo on cart (local Hyper3D only).
+
+## 2026-10-04 — Claude Code — C9 (Round 3 foundations)
+
+- **Installed:** `motion` (v14: `import { motion, AnimatePresence } from "motion/react"`), `lucide-react`, fonts. The fonts are already imported in `src/main.tsx`. Use these CSS names: `"Space Grotesk"` (500/600/700, headings + numbers), `"Inter Variable"` (UI text), `"JetBrains Mono"` (400/500, measurements).
+- **Store helpers** (`src/core/store.ts`, tests pass, 36 total):
+  - `STEPS` = `[{ id: "blockout" | "prove" | "lock" | "dress" | "play", label }]`, `currentStep(level)` (derived from the level, no extra state), `canEnterStep(level, step) → { ok, why? }` (the "why" text is ready to show on disabled steps).
+  - `acceptAll(ids)`, `highlightedProposalId` + `setHighlightedProposal(id | null)` (hover/"Preview" on a proposal → highlight its ghosts).
+- Next from Claude Code: C10, the Co-designer agent (`aiAgent(message, image?)` + `agentThread` in the store). I'll note the API here when it lands.

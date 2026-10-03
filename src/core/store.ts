@@ -3,7 +3,7 @@
 import { create } from "zustand";
 import { PRESETS } from "../presets/marketSquare";
 import { prove } from "./prove/prove";
-import type { Level, Proposal, Role, Volume } from "./types";
+import { DRESS_ROLES, type Level, type Proposal, type Role, type Volume } from "./types";
 
 export type ViewMode = "orbit" | "fps";
 
@@ -13,6 +13,8 @@ interface PlayboundState {
   viewMode: ViewMode;
   /** Pending AI suggestions (ghosts). Accept/Reject only; never auto-applied. */
   proposals: Proposal[];
+  /** Proposal the user is previewing (hover/"Preview"): UI highlights its ghosts. */
+  highlightedProposalId: string | null;
 
   loadPreset: (id: string) => void;
   select: (id: string | null) => void;
@@ -45,6 +47,49 @@ interface PlayboundState {
   acceptProposal: (id: string) => void;
   rejectProposal: (id: string) => void;
   clearProposals: () => void;
+  /** Accept several proposals in order (skips ones that no longer apply). */
+  acceptAll: (ids: string[]) => void;
+  setHighlightedProposal: (id: string | null) => void;
+}
+
+// ---- Round 3: the guided flow ----
+
+export type Step = "blockout" | "prove" | "lock" | "dress" | "play";
+export const STEPS: { id: Step; label: string }[] = [
+  { id: "blockout", label: "Block out" },
+  { id: "prove", label: "Prove" },
+  { id: "lock", label: "Lock" },
+  { id: "dress", label: "Dress" },
+  { id: "play", label: "Play & share" },
+];
+
+/**
+ * Where the user is in the pipeline, derived from the level (no extra state to get out of sync):
+ * - blockout: no spawn/objective yet, or fewer than 3 boxes
+ * - prove:    layout exists but Prove is idle or failing
+ * - lock:     Prove passed, not locked
+ * - dress:    locked, not every dressable box is ready
+ * - play:     locked and fully dressed
+ */
+export function currentStep(level: Level): Step {
+  const hasMarkers = level.volumes.some((v) => v.role === "spawn") && level.volumes.some((v) => v.role === "objective");
+  if (!hasMarkers || level.volumes.length < 3) return "blockout";
+  if (level.prove?.status !== "pass") return "prove";
+  if (!level.locked) return "lock";
+  const dressable = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
+  if (dressable.some((v) => v.status !== "ready")) return "dress";
+  return "play";
+}
+
+/** Can the user open this step now? (Earlier steps are always reachable; later ones need their gate.) */
+export function canEnterStep(level: Level, step: Step): { ok: boolean; why?: string } {
+  const order = STEPS.map((s) => s.id);
+  const target = order.indexOf(step);
+  if (target <= order.indexOf(currentStep(level))) return { ok: true };
+  if (step === "prove") return { ok: false, why: "Add a spawn, an objective and some boxes first." };
+  if (step === "lock") return { ok: false, why: "Prove must pass first." };
+  if (step === "dress") return { ok: false, why: "Lock the layout first." };
+  return { ok: false, why: "Dress the level first." };
 }
 
 /** Default box size per role (meters): sensible first guess the designer then edits. */
@@ -83,6 +128,7 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
   selectedId: null,
   viewMode: "orbit",
   proposals: [],
+  highlightedProposalId: null,
 
   loadPreset: (id) => {
     const p = PRESETS.find((l) => l.id === id);
@@ -178,8 +224,16 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
   setLevel: (level) => set({ level: clone(level), selectedId: null, proposals: [] }),
 
   addProposal: (p) => set({ proposals: [...get().proposals.filter((x) => x.id !== p.id), p] }),
-  rejectProposal: (id) => set({ proposals: get().proposals.filter((p) => p.id !== id) }),
-  clearProposals: () => set({ proposals: [] }),
+  rejectProposal: (id) =>
+    set({
+      proposals: get().proposals.filter((p) => p.id !== id),
+      highlightedProposalId: get().highlightedProposalId === id ? null : get().highlightedProposalId,
+    }),
+  clearProposals: () => set({ proposals: [], highlightedProposalId: null }),
+  acceptAll: (ids) => {
+    for (const id of ids) get().acceptProposal(id);
+  },
+  setHighlightedProposal: (id) => set({ highlightedProposalId: id }),
 
   acceptProposal: (id) => {
     const { level, proposals } = get();
