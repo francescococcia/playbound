@@ -89,7 +89,11 @@ Run: `npm run dev` (app) · `npm test` (Prove tests) · `npm run build` (typeche
 | C6 | Claude Code | Export: zip with `level.json` + GLBs (jszip). | done |
 | U9 | Cursor | Inspector: prompt text, **Regenerate** button → `regenerate(id)`, spinner. Export button wired. | done |
 
-**Francesco feedback M4:** _(write here)_
+**Francesco feedback M4:** U9 + FPS declutter work. The inspector shows label/role/size/status and the full Rodin prompt. **Live Regenerate tested end to end** (cart → new Rodin variant in ~2.5 min, swapped in place, 0.5 credits). The variant was then pruned so Regenerate stays genuinely live for the video.
+Still missing (Cursor's M4 entry was written before C6 landed):
+1. **Export button:** wire it to `downloadLevelZip(level)` (see the C6 entry in HANDOFF.md), with a spinner.
+2. **Drag threshold:** start a drag only after the pointer moves > ~5 px, so a plain click only selects (accidental drag moved the hay bales).
+Then U10 polish. Stop after and tell Francesco what to test.
 
 ---
 
