@@ -24,7 +24,9 @@ export async function isAiAvailable(): Promise<boolean> {
 
 /** Sketch / map / screenshot → a whole greybox layout (replaces the level on Accept). */
 export async function aiSketch(image: File | string): Promise<AiOutcome> {
-  return call("sketch", { image: await toDataUrl(image) }, await toDataUrl(image, GROUND_PX), image);
+  const known = image instanceof File ? await hostedMap(image) : undefined;
+  const text = known?.widthMeters ? `This map is exactly ${known.widthMeters} m across.` : undefined;
+  return call("sketch", { image: await toDataUrl(image), text }, await toDataUrl(image, GROUND_PX), image);
 }
 
 /** Reference picture → style notes for every Rodin prompt (applies even when locked). */
@@ -71,12 +73,13 @@ async function withGround(p: Proposal, data: string, source?: File | string): Pr
     el.onerror = () => resolve({ w: 1, h: 1 });
     el.src = img;
   });
-  return { ...p, ground: { imageUrl: img, width: p.ground.width, depth: (p.ground.width * h) / w, credit: hosted?.credit } };
+  const width = hosted?.widthMeters ?? p.ground.width; // a hosted map's real width is known exactly
+  return { ...p, ground: { imageUrl: img, width, depth: (width * h) / w, credit: hosted?.credit } };
 }
 
-let mapsReq: Promise<{ url: string; sha256: string; credit?: string }[]> | undefined;
+let mapsReq: Promise<{ url: string; sha256: string; credit?: string; widthMeters?: number }[]> | undefined;
 /** The hosted copy of this exact file, if it is one of the demo maps (matched by SHA-256). */
-async function hostedMap(file: File): Promise<{ url: string; credit?: string } | undefined> {
+async function hostedMap(file: File): Promise<{ url: string; credit?: string; widthMeters?: number } | undefined> {
   try {
     mapsReq ??= fetch("/demo/maps.json").then((r) => (r.ok ? r.json() : []));
     const maps = await mapsReq;
@@ -108,6 +111,8 @@ export async function aiAgent(message: string, image?: File | string, opts: { in
     .slice(-6)
     .map((m) => ({ role: m.role, text: m.text }));
   const img = image ? await toDataUrl(image) : undefined;
+  const known = image instanceof File ? await hostedMap(image) : undefined;
+  const hint = known?.widthMeters ? ` (This map is exactly ${known.widthMeters} m across.)` : "";
   st.pushAgentMessage({ id: mid(), role: "user", text: message, imageThumb: img ? await toDataUrl(img, 160) : undefined });
   const replyId = mid();
   st.pushAgentMessage({ id: replyId, role: "agent", text: "", pending: true });
@@ -115,7 +120,7 @@ export async function aiAgent(message: string, image?: File | string, opts: { in
     const r = await fetch("/api/ai/agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, image: img, level: usePlaybound.getState().level, history, intent: opts.intent }),
+      body: JSON.stringify({ message: message + hint, image: img, level: usePlaybound.getState().level, history, intent: opts.intent }),
     });
     const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as Partial<AgentResponse> & { error?: string };
     if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);

@@ -1,12 +1,14 @@
 [
   {
     "url": "/demo/westhub-osm.png",
-    "sha256": "e15e6481e8194355c2a071c56a2cbdc1695e4510669e437721ed7da65101ed6f",
-    "credit": "© OpenStreetMap contributors"
+    "sha256": "9cde89562f2d2bacfda808bb19660862e01422c27634c0c66e095f255c525016",
+    "credit": "© OpenStreetMap contributors",
+    "widthMeters": 121
   },
   {
     "url": "/demo/cambridge-market-square-osm.png",
     "sha256": "f3aa857967dc231bfef83e332c26a3118f5e7a40c22f383cc2ce424371f900ef",
-    "credit": "© OpenStreetMap contributors"
+    "credit": "© OpenStreetMap contributors",
+    "widthMeters": 110
   }
 ]

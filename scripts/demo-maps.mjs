@@ -7,8 +7,9 @@ import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from
 
 // OSM only: Google imagery may be shown in a video with credit, but not hosted in the app.
 const MAPS = [
-  { file: "westhub-osm.png", credit: "© OpenStreetMap contributors" },
-  { file: "cambridge-market-square-osm.png", credit: "© OpenStreetMap contributors" },
+  // widthMeters: the real width the image covers (told to the AI, so the level keeps real scale).
+  { file: "westhub-osm.png", credit: "© OpenStreetMap contributors", widthMeters: 121 },
+  { file: "cambridge-market-square-osm.png", credit: "© OpenStreetMap contributors", widthMeters: 110 },
 ];
 
 mkdirSync("public/demo", { recursive: true });
@@ -18,7 +19,7 @@ for (const m of MAPS) {
   if (!existsSync(src)) continue;
   const bytes = readFileSync(src);
   copyFileSync(src, `public/demo/${m.file}`);
-  out.push({ url: `/demo/${m.file}`, sha256: createHash("sha256").update(bytes).digest("hex"), credit: m.credit });
+  out.push({ url: `/demo/${m.file}`, sha256: createHash("sha256").update(bytes).digest("hex"), credit: m.credit, widthMeters: m.widthMeters });
   console.log(`hosted ${m.file}`);
 }
 writeFileSync("public/demo/maps.json", JSON.stringify(out, null, 2));
