@@ -212,7 +212,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | ID | Owner | Task | Status |
 |---|---|---|---|
 | A | Claude Code | **Playtest bot replay:** after Prove, a bot runs the route; red + "Spotted!" when exposed, green in cover; end card "Spotted for X s of Y s". Replay button. | done |
-| D | Claude Code | **Undo / redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) for edits and accepted proposals; toolbar buttons. | todo |
+| D | Claude Code | **Undo / redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) for edits and accepted proposals; toolbar buttons. | done |
 | B | Cursor | **Play mode for shared links:** `#play&l=...` opens a game view (no editor): start at spawn, reach the objective, timer, "Objective reached in N s", Play again, "Open in editor". Share menu offers "Copy play link". | todo |
 | C | Claude Code | **Autopilot ("Build me a level"):** one request → the Co-designer proposes layout → Prove → fix → style, one approved step at a time. | todo |
 | H3D | Claude Code | **Hyper3D API** (Business key, local dev route): generation with `bbox_condition` = the box size; CLI kept as fallback. |done|

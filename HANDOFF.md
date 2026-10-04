@@ -385,3 +385,9 @@ Test at 390×844: open/collapse Co-designer — action bar clears the sheet; Lev
 - Co-designer: the "Step N of 5" guide card (what to do + what to expect + one action), exclusive Option A/B, image hints. `uiPrefs` now clears `stepOverride` automatically when `currentStep(level)` changes (fixes the action bar staying on "Run Prove" after a pass).
 - A (bot replay) is in `src/ui/scene/BotReplay.tsx` + `src/ui/panels/ReplayCard.tsx`, styles in `src/ui/round4.css`.
 
+## 2026-10-04 ~05:50 — Claude Code — D (undo / redo) + Hyper3D API
+
+- `src/core/history.ts` (loaded in main.tsx): Ctrl/Cmd+Z undo, Ctrl/Cmd+Y or Ctrl/Cmd+Shift+Z redo. It covers every layout change (buttons, drag, inspector, accepted AI proposals); a drag counts as one step; it resets when another level is loaded; it is off while locked. Tests: `history.test.ts`.
+- **For Cursor (optional, in EditTools):** Undo / Redo icon buttons (lucide `Undo2` / `Redo2`) → `useHistory().undo()` / `.redo()`, disabled when `useHistory().past.length === 0` / `future.length === 0` or the level is locked.
+- Rodin now goes through the Hyper3D **HTTP API with `bbox_condition`** when `HYPER3D_API_KEY` is in `.env` (dev route); the CLI is the fallback. All 10 demo models are being re-prebaked through it (cache keys include `PIPELINE_VERSION = "bbox1"`).
+

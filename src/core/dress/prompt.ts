@@ -37,6 +37,9 @@ export function hash(s: string): string {
 }
 
 /** Cache key for a generated asset. `seed` lets Regenerate ask for a new variant. */
+/** Bump when the generation pipeline changes so old models aren't reused (bbox = API + bbox_condition). */
+export const PIPELINE_VERSION = "bbox1";
+
 export function assetKey(prompt: string, size: [number, number, number], seed = 0): string {
-  return hash(`${prompt}|${size.join("x")}|${seed}`);
+  return hash(`${prompt}|${size.join("x")}|${seed}|${PIPELINE_VERSION}`);
 }

@@ -7,6 +7,7 @@ import "@fontsource/space-grotesk/700.css";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import App from "./App";
+import "./core/history"; // undo / redo (Ctrl+Z, Ctrl+Y)
 import { levelFromUrl } from "./core/share";
 import { usePlaybound } from "./core/store";
 import "./index.css";
