@@ -66,7 +66,9 @@ const mid = () => `m-${Date.now().toString(36)}${Math.random().toString(36).slic
  */
 export async function aiAgent(message: string, image?: File | string, opts: { intent?: AgentResponse["intent"] } = {}): Promise<AgentResponse["proposals"]> {
   const st = usePlaybound.getState();
+  const cut = st.agentThread.findIndex((m) => m.id === st.agentContextAfter);
   const history = st.agentThread
+    .slice(cut + 1) // only turns about the current layout
     .filter((m) => !m.pending && !m.error && m.text)
     .slice(-6)
     .map((m) => ({ role: m.role, text: m.text }));

@@ -129,7 +129,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 async function refresh(job: Job) {
   if (job.api) {
     const s = await apiStatus(apiKey!, job.api.subscriptionKey);
-    job.stage = s.detail;
+    job.stage = s.state === "generating" ? "Generating 3D" : undefined; // s.detail ("jobs 1/6") is API-internal
     if (s.state === "failed") [job.status, job.error] = ["error", "Rodin job failed"];
     else if (s.state === "done") startFinalize(job);
     else job.status = s.state === "waiting" ? "queued" : "generating";

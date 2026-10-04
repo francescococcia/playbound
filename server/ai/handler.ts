@@ -10,7 +10,8 @@
 // Rule: the AI only proposes. Every proposal is validated here (clamped to the level,
 // unique ids, one spawn/objective) and previewed with our real Prove before the designer
 // sees it. Nothing is applied until they click Accept.
-import { distanceToFootprint, isSolid } from "../../src/core/geometry.js";
+import { isSolid } from "../../src/core/geometry.js";
+import { boundsForWidth, isInside, overlaps, placeAll, placeClear } from "../../src/core/layout.js";
 import { prove } from "../../src/core/prove/prove.js";
 import type { AgentRequest, AgentResponse, AiResponse, CommandRequest, FixRequest, SketchRequest, StyleRequest } from "../../src/core/ai/types.js";
 import { agent } from "./agent.js";
@@ -57,10 +58,12 @@ const ok = (body: AiResponse): AiResult => ({ status: 200, body });
 
 // ---------- sketch: drawing -> greybox ----------
 
-export const VOLUME_RULES = `Coordinates: the play area is a square of 40 m x 40 m centred at (0,0). +X = east (right), +Z = south (down in a top-down image), Y up.
+/** Coordinate rules for a map of the given side in metres (40, 60 or 80), or "areaMeters" when the model picks it. */
+export const volumeRules = (side: number | "areaMeters" = 40) => `Coordinates: the play area is a square of ${side} m x ${side} m centred at (0,0)${typeof side === "number" ? ` (x and z from -${side / 2} to ${side / 2})` : ""}; every box must fit fully inside it and must not overlap another box. +X = east (right), +Z = south (down in a top-down image), Y up.
 position = centre of the box's BOTTOM face [x, 0, z] in meters; size = [width X, height Y, depth Z] in meters; rotationY in DEGREES (usually 0).
 Roles: "spawn" (player start, exactly one), "objective" (goal, exactly one), "block" (buildings, walls), "landmark" (tall, visible from far: towers, statues), "cover" (chest-high objects players hide behind: carts, low walls, crates), "prop" (other small set dressing).
 Estimate real-world heights (house 6-8 m, stall 2.5 m, cart 1.2 m). Labels are short real-world descriptions (e.g. "timber-framed tavern"), never generic ("box").`;
+export const VOLUME_RULES = volumeRules(40);
 
 export const VOLUME_SCHEMA = {
   type: "object",
@@ -78,25 +81,38 @@ export const VOLUME_SCHEMA = {
 export async function sketch(key: string, req: SketchRequest): Promise<AiResponse> {
   const text = req?.text?.trim().slice(0, 800);
   if (!req?.image && !text) throw new Error("No image or description");
+  const sizing = `First decide "areaMeters", the real width of the area: for a map or screenshot, estimate it from street widths and building sizes (a typical town square is 50-70 m); for a hand sketch with no scale use 40. Allowed: 40, 60 or 80. Then place every box at REAL scale in a square of areaMeters x areaMeters centred at (0,0).
+Also give the level a short "name" (2-4 words, e.g. "Cambridge Market Square").`;
   const prompt = req.image
     ? `You turn a top-down level sketch (or map, or screenshot) into a greybox level for a first-person game.
-The drawn outer border is the edge of the play area. ${VOLUME_RULES}
+The drawn outer border (or the image edge) is the edge of the play area. ${volumeRules("areaMeters")}
+${sizing}
 Include every drawn building and object. If the start or goal is not marked, choose sensible places.
-Return JSON: {"why": "one sentence describing the layout you read", "volumes": [...]}`
+Return JSON: {"name", "areaMeters", "why": "one sentence describing the layout you read", "volumes": [...]}`
     : `You design a greybox level for a first-person stealth game from the designer's description.
-${VOLUME_RULES}
+${volumeRules(40)}
+Use areaMeters 40 unless the designer asks for a bigger or larger map (then 60 or 80, with coordinates spread to fill it).
 Description: "${text}"
-Make 8-16 boxes: one spawn and one objective at least 20 m apart, buildings that shape streets and sightlines, a few landmarks, and some chest-high cover. Leave a walkable route (at least 2 m wide) from spawn to objective. It does not have to be perfect: the designer will Prove it and fix it.
-Return JSON: {"why": "one sentence describing the layout", "volumes": [...]}`;
-  const { data, model } = await geminiJson<{ why?: string; volumes?: unknown[] }>(key, prompt, {
+Make 8-16 boxes (up to 24 on a bigger map): one spawn and one objective at least 20 m apart, buildings that shape streets and sightlines, a few landmarks, and some chest-high cover. Leave a walkable route (at least 2 m wide) from spawn to objective. It does not have to be perfect: the designer will Prove it and fix it.
+Also give the level a short "name" (2-4 words).
+Return JSON: {"name", "areaMeters", "why": "one sentence describing the layout", "volumes": [...]}`;
+  const { data, model } = await geminiJson<{ name?: string; areaMeters?: number; why?: string; volumes?: unknown[] }>(key, prompt, {
     image: req.image,
-    schema: { type: "object", properties: { why: { type: "string" }, volumes: { type: "array", items: VOLUME_SCHEMA } }, required: ["volumes"] },
+    schema: {
+      type: "object",
+      properties: { name: { type: "string" }, areaMeters: { type: "number" }, why: { type: "string" }, volumes: { type: "array", items: VOLUME_SCHEMA } },
+      required: ["volumes"],
+    },
   });
-  const volumes = ensureMarkers(cleanVolumes(data.volumes ?? [], 20, new Set()), 20);
+  const bounds = boundsForWidth(Number(data.areaMeters) || 40);
+  const { placed, dropped } = placeAll(cleanVolumes(data.volumes ?? [], bounds, new Set()), [], bounds);
+  const volumes = ensureMarkers(placed, bounds);
   if (volumes.length < 2) throw new Error(req.image ? "Could not read a layout from that image" : "Could not build a layout from that description");
-  const level: Level = { id: "preview", name: "preview", bounds: 20, locked: false, volumes };
-  const why = data.why ?? (req.image ? `Greybox from your sketch: ${volumes.length} boxes.` : `Greybox from your description: ${volumes.length} boxes.`);
-  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, previewProve: prove(level) } };
+  const levelName = String(data.name ?? "").trim().slice(0, 40) || undefined;
+  const level: Level = { id: "preview", name: "preview", bounds, locked: false, volumes };
+  const base = data.why ?? (req.image ? `Greybox from your sketch: ${volumes.length} boxes.` : `Greybox from your description: ${volumes.length} boxes.`);
+  const why = `${base} Map ${bounds * 2} m.${dropped.length ? ` Left out ${dropped.length} overlapping box${dropped.length > 1 ? "es" : ""}.` : ""}`;
+  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, levelName, bounds, previewProve: prove(level) } };
 }
 
 // ---------- style: picture -> style notes ----------
@@ -168,6 +184,17 @@ export function buildEditProposal(level: Level, raw: Record<string, unknown>, so
       ...(typeof u.rotationY === "number" && { rotationY: deg(u.rotationY) }),
     }));
   const remove = ((raw.remove as unknown[]) ?? []).filter((id): id is string => typeof id === "string" && ids.has(id));
+  // Moved / resized boxes stay inside the map and clear of the others (else the change is skipped).
+  const kept = level.volumes.filter((v) => !remove.includes(v.id));
+  const moved = update.flatMap((u) => {
+    const v = kept.find((x) => x.id === u.id)!;
+    const next = placeClear({ ...v, ...u }, kept.filter((x) => x.id !== v.id), level.bounds);
+    return next ? [{ ...u, position: next.position, size: next.size }] : [];
+  });
+  update.splice(0, update.length, ...moved);
+  const after = kept.map((v) => ({ ...v, ...update.find((u) => u.id === v.id) }));
+  const fitted = placeAll(add, after, level.bounds).placed;
+  add.splice(0, add.length, ...fitted);
   if (!add.length && !update.length && !remove.length) return null;
   const said = typeof raw.why === "string" && raw.why.trim() ? raw.why.trim() : fallbackWhy;
   // Append what the proposal ACTUALLY does, so the text can't promise more than the change.
@@ -253,9 +280,9 @@ function coverProposal(c: Candidate, r: ProveResult, why: string): Proposal {
 
 /** Prove with one extra cover box; null if it overlaps a solid or leaves the play area. */
 function tryCover(level: Level, c: Candidate): ProveResult | null {
-  if (![c.x, c.z].every(Number.isFinite) || Math.abs(c.x) > level.bounds - 1 || Math.abs(c.z) > level.bounds - 1) return null;
+  if (![c.x, c.z].every(Number.isFinite)) return null;
   const box: Volume = { id: "ai-cover", label: "cover", role: "cover", position: [c.x, 0, c.z], rotationY: c.rotationY ?? 0, size: [1.2, 1.2, 2.5] };
-  if (level.volumes.some((v) => isSolid(v) && distanceToFootprint(c.x, c.z, v) < 1.3)) return null;
+  if (!isInside(box, level.bounds - 0.5) || level.volumes.some((v) => (isSolid(v) || v.role === "spawn" || v.role === "objective") && overlaps(box, v, 0.3))) return null;
   const r = prove({ ...level, volumes: [...level.volumes, box] });
   return r.reason === "NO_PATH" ? null : r;
 }

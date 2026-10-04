@@ -8,7 +8,8 @@ import { prove } from "../../src/core/prove/prove.js";
 import type { AgentRequest, AgentResponse } from "../../src/core/ai/types.js";
 import type { Level, Proposal, ProveResult } from "../../src/core/types.js";
 import { geminiJson } from "./gemini.js";
-import { VOLUME_RULES, buildEditProposal, fix, longestExposedStretch, sketch, style } from "./handler.js";
+import { MAP_SIZES } from "../../src/core/layout.js";
+import { buildEditProposal, fix, longestExposedStretch, sketch, style, volumeRules } from "./handler.js";
 
 type Intent = AgentResponse["intent"];
 const INTENTS: Intent[] = ["fix", "explain", "edit", "sketch", "build", "style", "chat"];
@@ -24,17 +25,18 @@ export async function agent(key: string, req: AgentRequest): Promise<AgentRespon
 
   const prompt = `You are the Co-designer inside PLAYBOUND, a level-design tool. The designer owns the layout; you only PROPOSE changes they accept or reject.
 How Prove works: a bot walks from spawn to objective; a route point is "protected" if it is out of the objective's line of sight (defenders stand at the objective) or within 2.5 m of chest-high cover. The level passes when >= 25% of the route is protected. Only a passing level can be locked; a locked level's boxes cannot change (only looks/style).
-${VOLUME_RULES}
+${volumeRules(level.bounds * 2)}
 
 FACTS about the current level (computed, trust these):
 ${facts}
-${history ? `\nConversation so far:\n${history}\n` : ""}
+${history ? `\nConversation so far (it may mention boxes that no longer exist: only FACTS describe the level now):\n${history}\n` : ""}
 Designer: "${message || "(sent an image)"}"${req.image ? "\nAn image is attached." : ""}
 
 Choose ONE intent:
 - "fix": make a failing level pass (our verified fixer will place cover; you just explain)
 - "explain": answer a question about the level, Prove, sightlines, why it fails, etc. (no edits)
 - "edit": change the layout as asked (add/move/remove boxes). Give 1-3 ALTERNATIVE proposals, each a complete small change.
+  To change the MAP SIZE (the designer asks for a bigger/smaller map, or 40/60/80 m), set "mapSize" to 40, 60 or 80 and give no edits.
   STRICT: every object your "why" mentions adding (cart, wall, crates...) MUST be a full entry in that proposal's "add" (label, role, position [x,0,z], size [w,h,d]). Every box you move/resize MUST be in "update" with its id. Don't describe changes you didn't include.
 - "sketch": the attached image is a layout drawing/map to turn into a greybox
 - "build": no image, the designer describes a WHOLE NEW level in words ("build me a smugglers' harbour"); our level builder drafts it, you just introduce it
@@ -42,9 +44,9 @@ Choose ONE intent:
 - "chat": anything else
 Rules: reply in 1-3 short sentences, plain words, refer to boxes by their labels, use numbers from FACTS. Nothing is applied until the designer clicks Accept: say "I propose" / "here are options", never "I've added / locked in / applied". Never claim a change passes unless it is a "fix". If the level is locked, don't propose layout edits; explain it must be unlocked.
 Also give 2-3 short follow-up suggestions the designer could click next (max 6 words each).
-Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id","position"?,"size"?,"rotationY"?}], "remove": [ids]}], "chips": [..]}`;
+Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id","position"?,"size"?,"rotationY"?}], "remove": [ids]}], "mapSize"?: 40|60|80, "chips": [..]}`;
 
-  const { data, model } = await geminiJson<{ intent?: string; reply?: string; edits?: unknown[]; chips?: unknown[] }>(key, prompt, {
+  const { data, model } = await geminiJson<{ intent?: string; reply?: string; edits?: unknown[]; mapSize?: number; chips?: unknown[] }>(key, prompt, {
     // No responseSchema here on purpose: with the deeply nested schema Gemini drops the
     // "add" arrays. Free JSON is complete, and every edit is validated server-side anyway.
     image: req.image,
@@ -59,8 +61,11 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
 
   if (intent === "fix") {
     const r = await fix(key, { level });
-    if (r.proposal) proposals.push(r.proposal);
-    else if (r.note) reply = r.note;
+    if (r.proposal) {
+      proposals.push(r.proposal);
+      // Say what the VERIFIED fix does (the draft reply may describe something else).
+      reply = r.proposal.why; // already ends with the Prove result
+    } else if (r.note) reply = r.note;
   } else if (intent === "sketch" && req.image) {
     const r = await sketch(key, { image: req.image });
     if (r.proposal) proposals.push(r.proposal);
@@ -75,8 +80,20 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
     const r = await style(key, req.image ? { image: req.image } : { text: `${message}${level.styleNotes ? "" : ` (level: ${levelSummary(level)})`}` });
     if (r.proposal) proposals.push(r.proposal);
   } else if (intent === "edit") {
+    const size = MAP_SIZES.find((m) => m.bounds * 2 === Number(data.mapSize));
     if (level.locked) {
       reply = "The layout is locked, so boxes can't change. Unlock it in the Lock step, then ask again.";
+    } else if (size && size.bounds === level.bounds) {
+      reply = `The map is already ${size.bounds * 2} m × ${size.bounds * 2} m. Sizes: 40, 60 or 80 m.`;
+    } else if (size) {
+      const bigger = size.bounds > level.bounds;
+      proposals.push({
+        id: `map-${Date.now().toString(36)}`,
+        source: "text",
+        why: `Map ${level.bounds * 2} m → ${size.bounds * 2} m.${bigger ? " Your boxes stay where they are; there's more room around them." : " Boxes near the edge move inward."}`,
+        bounds: size.bounds,
+      });
+      reply = `I propose ${bigger ? "growing" : "shrinking"} the map to ${size.bounds * 2} m × ${size.bounds * 2} m. Accept to apply it, then run Prove again.`;
     } else {
       for (const e of (data.edits ?? []).slice(0, 3)) {
         const p = buildEditProposal(level, e as Record<string, unknown>, "text");

@@ -3,6 +3,7 @@
 import { create } from "zustand";
 import { PRESETS } from "../presets/marketSquare";
 import { prove } from "./prove/prove";
+import { keepInside } from "./layout";
 import { DRESS_ROLES, type Level, type Proposal, type Role, type Volume } from "./types";
 
 export type ViewMode = "orbit" | "fps";
@@ -33,6 +34,8 @@ interface PlayboundState {
   highlightedProposalId: string | null;
   /** Co-designer conversation, oldest first. */
   agentThread: AgentMessage[];
+  /** Id of the last message before the layout was replaced: older turns are about another level, so they aren't sent as context. */
+  agentContextAfter: string | null;
 
   loadPreset: (id: string) => void;
   select: (id: string | null) => void;
@@ -68,6 +71,8 @@ interface PlayboundState {
   /** Accept several proposals in order (skips ones that no longer apply). */
   acceptAll: (ids: string[]) => void;
   setHighlightedProposal: (id: string | null) => void;
+  /** Change the map size (half-extent 20 / 30 / 40). Not while locked; boxes are kept inside. */
+  setMapBounds: (bounds: number) => { ok: boolean; why?: string };
   pushAgentMessage: (m: AgentMessage) => void;
   updateAgentMessage: (id: string, patch: Partial<AgentMessage>) => void;
   clearAgentThread: () => void;
@@ -151,10 +156,11 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
   proposals: [],
   highlightedProposalId: null,
   agentThread: [],
+  agentContextAfter: null,
 
   loadPreset: (id) => {
     const p = PRESETS.find((l) => l.id === id);
-    if (p) set({ level: clone(p), selectedId: null, proposals: [] });
+    if (p) set({ level: clone(p), selectedId: null, proposals: [], agentContextAfter: get().agentThread.at(-1)?.id ?? null });
   },
   select: (id) => set({ selectedId: id }),
   setViewMode: (viewMode) => set({ viewMode }),
@@ -227,6 +233,7 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
 
   newLevel: (name = "Untitled level") => {
     set({
+      agentContextAfter: get().agentThread.at(-1)?.id ?? null,
       level: {
         id: `level-${Date.now().toString(36)}`,
         name,
@@ -243,7 +250,7 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
     });
   },
 
-  setLevel: (level) => set({ level: clone(level), selectedId: null, proposals: [] }),
+  setLevel: (level) => set({ level: clone(level), selectedId: null, proposals: [], agentContextAfter: get().agentThread.at(-1)?.id ?? null }),
 
   addProposal: (p) => set({ proposals: [...get().proposals.filter((x) => x.id !== p.id), p] }),
   rejectProposal: (id) =>
@@ -258,7 +265,7 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
   setHighlightedProposal: (id) => set({ highlightedProposalId: id }),
   pushAgentMessage: (m) => set({ agentThread: [...get().agentThread, m].slice(-40) }),
   updateAgentMessage: (id, patch) => set({ agentThread: get().agentThread.map((m) => (m.id === id ? { ...m, ...patch } : m)) }),
-  clearAgentThread: () => set({ agentThread: [] }),
+  clearAgentThread: () => set({ agentThread: [], agentContextAfter: null }),
 
   acceptProposal: (id) => {
     const { level, proposals } = get();
@@ -279,15 +286,29 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
       if (a.role === "spawn" || a.role === "objective") volumes = volumes.filter((v) => v.role !== a.role);
       volumes.push({ ...a, id: nid });
     }
+    const bounds = p.bounds ?? level.bounds;
+    if (p.bounds) volumes = volumes.map((v) => keepInside(v, bounds));
+    const thread = get().agentThread;
     set({
       level: {
         ...level,
         volumes,
+        bounds,
+        name: p.replaceAll && p.levelName ? p.levelName : level.name,
         styleNotes: p.styleNotes ?? level.styleNotes,
-        prove: changesLayout ? idle : level.prove,
+        prove: changesLayout || p.bounds ? idle : level.prove,
       },
       proposals: rest,
+      ...(p.replaceAll && { agentContextAfter: thread[thread.length - 1]?.id ?? null }),
     });
+  },
+  setMapBounds: (bounds) => {
+    const { level } = get();
+    if (level.locked) return { ok: false, why: "Unlock the layout to change the map size." };
+    if (bounds === level.bounds) return { ok: true };
+    const volumes = level.volumes.map((v) => keepInside(v, bounds));
+    set({ level: { ...level, bounds, volumes, prove: idle } });
+    return { ok: true };
   },
 }));
 

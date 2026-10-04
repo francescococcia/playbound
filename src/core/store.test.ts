@@ -139,3 +139,40 @@ describe("guided flow", () => {
     expect(s().level.volumes.some((v) => v.id === "c2")).toBe(false);
   });
 });
+
+describe("round 5: replaced layouts, map size", () => {
+  it("a replaceAll Accept sets the level name and map size, and starts a fresh chat context", () => {
+    s().loadPreset("market-square-fail");
+    s().clearAgentThread();
+    s().pushAgentMessage({ id: "old", role: "user", text: "fix the south gate" });
+    const p: Proposal = {
+      id: "map",
+      source: "sketch",
+      why: "",
+      replaceAll: true,
+      levelName: "Cambridge Market Square",
+      bounds: 30,
+      add: [
+        { id: "spawn", label: "west entrance", role: "spawn", position: [-25, 0, 0], rotationY: 0, size: [2, 0.1, 2] },
+        { id: "goal", label: "guildhall door", role: "objective", position: [20, 0, 0], rotationY: 0, size: [2, 1.1, 2] },
+      ],
+    };
+    s().addProposal(p);
+    s().acceptProposal("map");
+    expect(s().level.name).toBe("Cambridge Market Square");
+    expect(s().level.bounds).toBe(30);
+    expect(s().agentContextAfter).toBe("old");
+  });
+
+  it("setMapBounds keeps every box inside a smaller map; refused while locked", () => {
+    s().loadPreset("market-square-pass");
+    expect(s().setMapBounds(15).ok).toBe(true);
+    for (const v of s().level.volumes) {
+      expect(Math.abs(v.position[0]) + v.size[0] / 2).toBeLessThanOrEqual(15.01);
+    }
+    s().loadPreset("market-square-pass");
+    s().runProve();
+    s().lock();
+    expect(s().setMapBounds(30).ok).toBe(false);
+  });
+});

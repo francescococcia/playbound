@@ -90,6 +90,10 @@ export interface Proposal {
   replaceAll?: boolean;
   /** Style suggestion (from a style image). */
   styleNotes?: string;
+  /** Name for the level (sketch / map / description), applied with replaceAll. */
+  levelName?: string;
+  /** New map half-extent in metres (20 = 40 m square, 30 = 60 m, 40 = 80 m). */
+  bounds?: number;
   /** Prove result if this proposal were accepted (filled by the fix agent). */
   previewProve?: ProveResult;
 }
