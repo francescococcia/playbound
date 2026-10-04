@@ -1,0 +1,197 @@
+/* Play mode — Arcade game view (tokens from index.css) */
+
+.play-mode {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  background: var(--ink);
+  overflow: hidden;
+}
+
+.play-mode canvas {
+  display: block;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: grid;
+  place-items: center;
+  padding: var(--space-4);
+  background: linear-gradient(180deg, #0e1320f2 0%, #0e1320cc 40%, #0e1320e8 100%);
+  pointer-events: auto;
+}
+
+.play-card {
+  width: min(26rem, 100%);
+  padding: 1.5rem 1.35rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-panel);
+  background: var(--panel);
+  text-align: center;
+}
+
+.play-brand {
+  margin: 0 0 0.75rem;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.play-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-size: 1.55rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.play-lead {
+  margin: 0 0 1rem;
+  font-size: var(--text-md);
+  color: var(--amber);
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+.play-controls {
+  margin: 0 0 1.25rem;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+.play-controls kbd {
+  display: inline-block;
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text);
+}
+
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 2.75rem;
+  min-width: 10rem;
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--amber);
+  background: #f2c14e22;
+  color: var(--amber);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-md);
+  letter-spacing: 0.03em;
+  cursor: pointer;
+}
+
+.play-btn:hover {
+  background: #f2c14e33;
+}
+
+.play-btn:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 1px var(--amber), 0 0 0 2px #f2c14e33;
+}
+
+.play-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-top: 1.1rem;
+}
+
+.play-actions .play-btn--ghost {
+  border-color: var(--border-strong);
+  background: var(--panel-2);
+  color: var(--text);
+  font-weight: 600;
+  min-width: 0;
+}
+
+.play-actions .play-btn--ghost:hover {
+  border-color: var(--border-strong);
+  background: #222b42;
+}
+
+.play-time {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--proof);
+  font-variant-numeric: tabular-nums;
+}
+
+.play-hud {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+}
+
+.play-hud-brand {
+  position: absolute;
+  top: 0.75rem;
+  left: 0.85rem;
+  font-family: var(--font-display);
+  font-size: var(--text-xs);
+  letter-spacing: 0.12em;
+  color: var(--text-muted);
+}
+
+.play-hud-stats {
+  position: absolute;
+  top: 0.65rem;
+  right: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.2rem;
+  padding: 0.45rem 0.65rem;
+  background: #0b101cee;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text);
+}
+
+.play-hud-timer {
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--amber);
+  font-variant-numeric: tabular-nums;
+}
+
+.play-hud-dist {
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+}
+
+.play-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 1rem;
+  transform: translateX(-50%);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  background: #0b101cee;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-control);
+  padding: 0.35rem 0.75rem;
+}

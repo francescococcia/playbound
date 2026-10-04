@@ -1,8 +1,8 @@
 import {
   Download,
   Footprints,
+  Gamepad2,
   ImagePlus,
-  Link2,
   Lock,
   Play,
   Plus,
@@ -14,7 +14,7 @@ import { dressLevel } from "../../core/dress/dress";
 import { downloadLevelZip } from "../../core/export/exportLevel";
 import { canDress, usePlaybound } from "../../core/store";
 import { ROLE_COLORS, type Role } from "../../core/types";
-import { shareUrl } from "../../core/share";
+import { playUrl } from "../../core/share";
 import { PRESETS } from "../../presets/marketSquare";
 import { useUiPrefs } from "../uiPrefs";
 import { viewGroundCenter } from "../viewPick";
@@ -121,11 +121,11 @@ export function StepActionBar() {
     }
   };
 
-  const onShare = async () => {
+  const onCopyPlayLink = async () => {
     try {
-      const url = await shareUrl(level);
+      const url = await playUrl(level);
       await navigator.clipboard.writeText(url);
-      setToast("Share link copied.");
+      setToast("Play link copied — opens as a game.");
     } catch (e) {
       setToast(e instanceof Error ? e.message : String(e));
     }
@@ -352,9 +352,14 @@ export function StepActionBar() {
             <Footprints {...ICON} aria-hidden />
             Walk (FPS)
           </button>
-          <button type="button" className="icon-inline" onClick={onShare} title="Copy a share link to this level">
-            <Link2 {...ICON} aria-hidden />
-            Share link
+          <button
+            type="button"
+            className="btn-primary icon-inline"
+            onClick={onCopyPlayLink}
+            title="Copy play link (#play&l=…) — opens as a game, no editor"
+          >
+            <Gamepad2 {...ICON} aria-hidden />
+            Copy play link
           </button>
           <button
             type="button"
@@ -366,7 +371,7 @@ export function StepActionBar() {
             {exportBusy ? <span className="btn-spin" aria-hidden /> : <Download {...ICON} aria-hidden />}
             {exportBusy ? "Exporting…" : "Export zip"}
           </button>
-          <ShareSaveMenu onToast={setToast} />
+          <ShareSaveMenu onToast={setToast} showPlayLink={false} />
         </>
       )}
     </div>

@@ -1,8 +1,10 @@
 // Layout shell. Zones are owned by Cursor (src/ui/*). Keep this file thin.
 import { useEffect } from "react";
+import { isPlayLink } from "./core/share";
 import { CoDesignerPanel } from "./ui/panels/CoDesignerPanel";
 import { LevelPanel } from "./ui/panels/LevelPanel";
 import { Stepper } from "./ui/panels/Stepper";
+import { PlayMode } from "./ui/play/PlayMode";
 import { Viewport } from "./ui/scene/Viewport";
 import { useUiPrefs } from "./ui/uiPrefs";
 
@@ -22,6 +24,10 @@ export default function App() {
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
   }, [setPanelOpen]);
+
+  if (isPlayLink()) {
+    return <PlayMode />;
+  }
 
   return (
     <div

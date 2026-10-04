@@ -1,20 +1,31 @@
-import { FolderOpen, Link2, Trash2 } from "lucide-react";
+import { FolderOpen, Gamepad2, Link2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { deleteSave, listSaves, loadSave, saveLevel, shareUrl, type SaveEntry } from "../../core/share";
+import {
+  deleteSave,
+  listSaves,
+  loadSave,
+  playUrl,
+  saveLevel,
+  shareUrl,
+  type SaveEntry,
+} from "../../core/share";
 import { usePlaybound } from "../../core/store";
 
 const ICON = { size: 16, strokeWidth: 1.75 } as const;
 
 export function ShareSaveMenu({
   onToast,
+  showPlayLink = true,
 }: {
   onToast: (msg: string) => void;
+  /** When false, only editor Copy link + Save (parent already shows Copy play link). */
+  showPlayLink?: boolean;
 }) {
   const level = usePlaybound((s) => s.level);
   const setLevel = usePlaybound((s) => s.setLevel);
   const [open, setOpen] = useState(false);
   const [saves, setSaves] = useState<SaveEntry[]>([]);
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<"share" | "play" | null>(null);
 
   const refreshSaves = () => setSaves(listSaves());
 
@@ -23,15 +34,28 @@ export function ShareSaveMenu({
   }, [open]);
 
   const onShare = async () => {
-    setBusy(true);
+    setBusy("share");
     try {
       const url = await shareUrl(level);
       await navigator.clipboard.writeText(url);
-      onToast("Share link copied.");
+      onToast("Editor link copied.");
     } catch (e) {
       onToast(e instanceof Error ? e.message : String(e));
     } finally {
-      setBusy(false);
+      setBusy(null);
+    }
+  };
+
+  const onPlayLink = async () => {
+    setBusy("play");
+    try {
+      const url = await playUrl(level);
+      await navigator.clipboard.writeText(url);
+      onToast("Play link copied — opens as a game.");
+    } catch (e) {
+      onToast(e instanceof Error ? e.message : String(e));
+    } finally {
+      setBusy(null);
     }
   };
 
@@ -63,15 +87,27 @@ export function ShareSaveMenu({
 
   return (
     <>
+      {showPlayLink && (
+        <button
+          type="button"
+          className="icon-inline"
+          onClick={onPlayLink}
+          disabled={busy != null}
+          title="Copy play link (#play&l=…) — opens as a game, no editor"
+        >
+          <Gamepad2 {...ICON} aria-hidden />
+          {busy === "play" ? "Copying…" : "Copy play link"}
+        </button>
+      )}
       <button
         type="button"
         className="icon-inline"
         onClick={onShare}
-        disabled={busy}
-        title="Copy share link (#l=… in the URL)"
+        disabled={busy != null}
+        title="Copy editor share link (#l=…)"
       >
         <Link2 {...ICON} aria-hidden />
-        {busy ? "Sharing…" : "Share"}
+        {busy === "share" ? "Copying…" : "Copy link"}
       </button>
       <div className="save-wrap">
         <button
