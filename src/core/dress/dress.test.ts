@@ -54,7 +54,7 @@ describe("dress", () => {
     }
   });
 
-  it("marks volumes as error (box stays) when not prebaked and no live route", async () => {
+  it("marks volumes as error (box stays) when not prebaked, no live route and nothing to stand in", async () => {
     readyLevel();
     fakeFetch((url) => (url.startsWith("/assets/gen/manifest.json") ? json({}) : undefined));
     await dressLevel();
@@ -63,6 +63,53 @@ describe("dress", () => {
       expect(v.error).toMatch(/Hyper3D connection/);
       expect(v.assetUrl).toBeUndefined();
     }
+  });
+
+  it("public site: a box that isn't prebaked gets the closest prebaked model of its role as a stand-in", async () => {
+    readyLevel();
+    const { level } = usePlaybound.getState();
+    const cart = level.volumes.find((v) => v.id === "cart")!;
+    const entry = (url: string, role: string, size: string, extra = {}) => ({
+      key: url, volumeId: url, url, generationId: "g", createdAt: "", ...extra,
+      prompt: `Gameplay role: ${role} (x).\nExact real-world size: ${size}.\n`,
+    });
+    const manifest: Record<string, unknown> = {
+      far: entry("/assets/gen/far.glb", "cover", "9m wide x 9m tall x 9m deep"),
+      near: entry("/assets/gen/near.glb", "cover", `${cart.size[0]}m wide x ${cart.size[1]}m tall x ${cart.size[2]}m deep`),
+      photo: entry("/assets/gen/photo.glb", "cover", `${cart.size[0]}m wide x ${cart.size[1]}m tall x ${cart.size[2]}m deep`, { fromImage: true }),
+      other: entry("/assets/gen/other.glb", "block", `${cart.size[0]}m wide x ${cart.size[1]}m tall x ${cart.size[2]}m deep`),
+    };
+    fakeFetch((url) => (url.startsWith("/assets/gen/manifest.json") ? json(manifest) : undefined));
+    await dressLevel();
+    const after = usePlaybound.getState().level.volumes.find((v) => v.id === "cart")!;
+    expect(after.status).toBe("ready");
+    expect(after.assetUrl).toBe("/assets/gen/near.glb");
+    expect(after.standIn).toBe(true);
+    expect(after.size).toEqual(cart.size);
+  });
+
+  it("a failed live generation (e.g. expired Hyper3D login) also falls back to a stand-in", async () => {
+    readyLevel();
+    const manifest = { a: { key: "a", url: "/assets/gen/a.glb", prompt: "Gameplay role: cover (x).\nExact real-world size: 1m wide x 1m tall x 1m deep.\n" } };
+    fakeFetch((url) => {
+      if (url.startsWith("/assets/gen/manifest.json")) return json(manifest);
+      if (url === "/api/rodin/health") return json({ live: true });
+      if (url === "/api/rodin/generate") return new Response("no", { status: 500 });
+    });
+    await dressLevel();
+    const cart = usePlaybound.getState().level.volumes.find((v) => v.id === "cart")!;
+    expect(cart.status).toBe("ready");
+    expect(cart.assetUrl).toBe("/assets/gen/a.glb");
+    expect(cart.standIn).toBe(true);
+  });
+
+  it("Regenerate never uses a stand-in", async () => {
+    readyLevel();
+    fakeFetch((url) => (url.startsWith("/assets/gen/manifest.json") ? json({ a: { key: "a", url: "/assets/gen/a.glb", prompt: "Gameplay role: cover (x).\nExact real-world size: 1m wide x 1m tall x 1m deep.\n" } }) : undefined));
+    await regenerate("cart");
+    const cart = usePlaybound.getState().level.volumes.find((v) => v.id === "cart")!;
+    expect(cart.status).toBe("error");
+    expect(cart.standIn).toBeUndefined();
   });
 
   it("generates live, polls to ready, and never moves the box", async () => {

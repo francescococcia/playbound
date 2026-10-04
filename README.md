@@ -27,6 +27,7 @@ PLAYBOUND keeps the designer's layout as a **contract**, and puts AI at every st
 
 - **Prove is a heuristic, not a combat simulation:** a route exists, and ≥25% of it is *protected* (out of the objective's line of sight, or within 2.5 m of cover). Line of sight runs from one defender position (the objective) at eye height 1.7 m to a crouching player at 1.0 m. The constants are in `src/core/prove/constants.ts`.
 - **The AI only proposes.** Answers are cleaned on the server (kept inside the play area, unique ids, one spawn and one objective) and previewed with Prove, but a sketch can still be misread, so check the ghosts before you Accept. On the public site the AI runs on Gemini's free tier with a usage cap.
+- **Only the presets are prebaked.** A model is looked up by a hash of the box's label, role, size and the style text, so any box you rename, resize or add (including the cover box Suggest fix proposes) misses the manifest. On the public site those boxes get the closest prebaked model of the same role as a **stand-in** (labelled in the Level panel), fitted inside the box like any other; locally they are generated live. For a fully prebaked run, use **Market Square (pass)** with the default style text. To bake more, log in (`hyper3d auth login`), run `npm run dev` and `npx tsx scripts/prebake.ts http://localhost:5173`, then commit `public/assets/gen/`.
 - **Live 3D generation runs locally.** The Rodin HTTP API needs the Hyper3D Business plan, so generation goes through the Hyper3D CLI (OAuth login, which expires after a few hours) on the designer's machine. The public site uses prebaked models, and Regenerate / From photo show "needs a Hyper3D connection".
 - **Image-to-3D quality depends on the photo:** one clear object on a plain background works; small or cluttered images give poor models.
 - **Share links** carry the layout, style notes and prebaked models, not the style image (too big for a URL). Saves live in this browser only.
@@ -106,3 +107,7 @@ This was built by one person with two AI coding agents working in parallel: Clau
 | 0:55 | **Style** image → AI style notes → **Dress** → Rodin models fill the boxes (each ~2 min live; prebaked here) |
 | 1:25 | FPS walk; **Show colliders**: collision still matches the greybox; regenerate one prop live |
 | 1:45 | **Share** link + **Export** zip. "AI that cannot break your level design." |
+
+## Record the demo video
+
+With the dev server running: `npm i --no-save playwright && npx playwright install chromium`, then `node scripts/record-demo.mjs` (add `--pass` to skip Suggest fix and use the fully prebaked pass preset). It drives a visible browser and writes a `.webm` to `recordings/raw/`.

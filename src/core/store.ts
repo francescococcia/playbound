@@ -50,7 +50,7 @@ interface PlayboundState {
   /** Dress-side updates (asset url, prompt, status). Allowed while locked: visuals only. */
   setVolumeAsset: (
     id: string,
-    patch: Partial<Pick<Volume, "assetUrl" | "prompt" | "status" | "error" | "stage" | "variant">>,
+    patch: Partial<Pick<Volume, "assetUrl" | "prompt" | "status" | "error" | "stage" | "variant" | "standIn">>,
   ) => void;
 
   // ---- Round 2: editing (all ignored while locked; all reset Prove to idle) ----

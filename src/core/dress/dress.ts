@@ -4,7 +4,9 @@
 // Where a model comes from, in order:
 //   1. Prebaked: public/assets/gen/manifest.json has the cache key -> instant, works on the public URL.
 //   2. Live: the local dev route /api/rodin (Hyper3D CLI) -> ~2 min, 0.5 credits.
-//   3. Neither -> status "error" with a clear message; the grey box stays (scene never breaks).
+//   3. Public site, box not prebaked (e.g. an AI-added cover box): the closest prebaked model of the
+//      same role stands in (volume.standIn), fitted inside the box like any other.
+//   4. Nothing usable -> status "error" with a clear message; the grey box stays (scene never breaks).
 import { canDress, usePlaybound } from "../store";
 import { DRESS_ROLES, type Volume } from "../types";
 import { assetKey, buildPrompt, hash } from "./prompt";
@@ -48,7 +50,7 @@ export async function dressLevel(): Promise<void> {
   for (const v of todo) set(v.id, { status: "queued", error: undefined, stage: undefined });
   manifestReq = undefined;
 
-  await pool(todo.map((v) => () => dressVolume(v.id)), DRESS_CONCURRENCY);
+  await pool(todo.map((v) => () => dressVolume(v.id, undefined, true)), DRESS_CONCURRENCY);
 }
 
 /** New variant for one volume (live only, unless that variant was prebaked). */
@@ -83,7 +85,7 @@ export async function regenerateFromImage(id: string, image: string | string[]):
   await dressVolume(id, images);
 }
 
-async function dressVolume(id: string, images?: string[]): Promise<void> {
+async function dressVolume(id: string, images?: string[], allowStandIn = false): Promise<void> {
   const image = images?.[0];
   const { level, setVolumeAsset } = usePlaybound.getState();
   const v = level.volumes.find((x) => x.id === id) as Volume;
@@ -96,10 +98,18 @@ Match the object in the reference ${images!.length > 1 ? `photos (${images!.leng
 
   const manifest = await loadManifest();
   if (manifest[key]) {
-    setVolumeAsset(id, { status: "ready", assetUrl: manifest[key].url, stage: undefined });
+    setVolumeAsset(id, { status: "ready", assetUrl: manifest[key].url, stage: undefined, standIn: false });
     return;
   }
+  // Closest prebaked model, when this box may use one (Dress level, text-to-3D only).
+  const standIn = (why?: string) => {
+    const stand = allowStandIn && !image ? closestPrebaked(manifest, v) : undefined;
+    if (!stand) return false;
+    setVolumeAsset(id, { status: "ready", assetUrl: stand.url, stage: undefined, error: why, standIn: true });
+    return true;
+  };
   if (!(await isLiveAvailable())) {
+    if (standIn()) return;
     setVolumeAsset(id, { status: "error", error: NO_LIVE_MSG, stage: undefined });
     return;
   }
@@ -113,13 +123,42 @@ Match the object in the reference ${images!.length > 1 ? `photos (${images!.leng
       job = await getJson<JobResponse>(`/api/rodin/status?id=${encodeURIComponent(job.jobId)}`);
     }
     if (job.status === "error") {
+      if (standIn(job.error)) return;
       setVolumeAsset(id, { status: "error", error: job.error ?? "Generation failed", stage: undefined });
     } else {
-      setVolumeAsset(id, { status: "ready", assetUrl: job.url, stage: undefined, error: undefined });
+      setVolumeAsset(id, { status: "ready", assetUrl: job.url, stage: undefined, error: undefined, standIn: false });
     }
   } catch (e) {
+    if (standIn(String(e))) return;
     setVolumeAsset(id, { status: "error", error: String(e), stage: undefined });
   }
+}
+
+// ---------- stand-ins ----------
+
+const SIZE_RE = /size: ([\d.]+)m wide x ([\d.]+)m tall x ([\d.]+)m deep/;
+const ROLE_RE = /Gameplay role: (\w+)/;
+
+/**
+ * The prebaked model whose role matches and whose size is closest to the box (sum of |log ratio| per
+ * axis). Only text-to-3D entries count: a photo-based model would show somebody else's object.
+ * Rodin ignores size anyway and fitToVolume rescales, so a close proportion is what matters.
+ */
+export function closestPrebaked(manifest: Record<string, ManifestEntry>, v: Volume): ManifestEntry | undefined {
+  let best: ManifestEntry | undefined;
+  let bestScore = Infinity;
+  for (const e of Object.values(manifest)) {
+    if (e.fromImage || !e.url) continue;
+    const role = ROLE_RE.exec(e.prompt ?? "")?.[1];
+    const dims = SIZE_RE.exec(e.prompt ?? "");
+    if (role !== v.role || !dims) continue;
+    const score = [0, 1, 2].reduce((a, i) => a + Math.abs(Math.log(Math.max(0.05, +dims[i + 1]) / Math.max(0.05, v.size[i]))), 0);
+    if (score < bestScore) {
+      bestScore = score;
+      best = e;
+    }
+  }
+  return best;
 }
 
 // ---------- helpers ----------

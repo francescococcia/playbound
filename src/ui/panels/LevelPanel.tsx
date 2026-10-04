@@ -371,8 +371,9 @@ export function LevelPanel() {
                     <span className="dress-status">
                       {v.status ?? "empty"}
                       {v.stage ? ` · ${v.stage}` : ""}
+                      {v.standIn ? " · stand-in model" : ""}
                     </span>
-                    {v.error && <span className="dress-error">{v.error}</span>}
+                    {v.error && !v.standIn && <span className="dress-error">{v.error}</span>}
                   </button>
                 </li>
               ))}
@@ -456,7 +457,7 @@ export function LevelPanel() {
                 <div className={`field-value dress-row--${statusTone(selected.status)}`}>
                   {selected.status}
                   {selected.stage ? ` · ${selected.stage}` : ""}
-                  {selected.error ? ` — ${selected.error}` : ""}
+                  {selected.standIn ? " — stand-in model (closest prebaked; Regenerate needs Hyper3D)" : selected.error ? ` — ${selected.error}` : ""}
                 </div>
               </div>
             )}

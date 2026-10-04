@@ -2,7 +2,10 @@
 //
 //   npm run dev                                   (in one terminal)
 //   npm i --no-save playwright && npx playwright install chromium
-//   node scripts/record-demo.mjs [url]            (in another; default http://localhost:5173)
+//   node scripts/record-demo.mjs [url] [--pass]   (in another; default http://localhost:5173)
+//
+// --pass starts from the "Market Square (pass)" preset and skips Suggest fix, so every box is prebaked
+// and nothing depends on what Gemini proposes. Without it the cover box the AI adds gets a stand-in model.
 //
 // Output: recordings/raw/*.webm (convert: ffmpeg -i x.webm -c:v libx264 -pix_fmt yuv420p demo.mp4).
 // Needs the Gemini key in .env for the Suggest fix and style-notes steps. Dress uses the prebaked models.
@@ -10,7 +13,9 @@ import { chromium } from "playwright";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const URL = process.argv[2] ?? "http://localhost:5173";
+const args = process.argv.slice(2);
+const PASS = args.includes("--pass");
+const URL = args.find((a) => !a.startsWith("--")) ?? "http://localhost:5173";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const styleImage = path.join(root, "demo", "guildhall-photo.jpg");
 
@@ -44,16 +49,25 @@ await wait(4500);
 await cap("1 · Contract: a greybox level, every box has a role and an exact size");
 await wait(3500);
 await cap("2 · Prove: a bot walks spawn → objective, line of sight checks the cover");
+if (PASS) {
+  await p.locator("select").first().selectOption({ label: "Market Square (pass)" });
+  await wait(1500);
+}
 await click("Run Prove");
 await wait(6500);
-await cap("FAIL: death corridor, 0% of the route is protected");
-await wait(3500);
-await cap('AI "Suggest fix" proposes cover, re-checked by Prove before you see it');
-await click(/Suggest fix/);
-await wait(16000);
-await cap("Accept the proposal → Prove re-runs → PASS");
-await click("Accept");
-await wait(7000);
+if (PASS) {
+  await cap("PASS: the route is protected by cover, so the layout can be locked");
+  await wait(3500);
+} else {
+  await cap("FAIL: death corridor, 0% of the route is protected");
+  await wait(3500);
+  await cap('AI "Suggest fix" proposes cover, re-checked by Prove before you see it');
+  await click(/Suggest fix/);
+  await wait(16000);
+  await cap("Accept the proposal → Prove re-runs → PASS");
+  await click("Accept");
+  await wait(7000);
+}
 await cap("3 · Lock: only a passing layout can be locked");
 await click(/Lock layout/);
 await wait(3500);

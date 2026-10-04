@@ -23,6 +23,8 @@ export interface Volume {
   prompt?: string;
   status?: VolumeStatus;
   error?: string;
+  /** True when assetUrl is the closest prebaked model, used because this exact box isn't prebaked and live generation isn't available. */
+  standIn?: boolean;
   /** Dress progress detail for the UI, e.g. "texture 3/5" or "optimizing". */
   stage?: string;
   /** Regenerate counter: 0 = first generation, +1 per Regenerate (part of the cache key). */
