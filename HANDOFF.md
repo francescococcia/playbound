@@ -330,3 +330,29 @@ Test: Market Square opens on Prove → Run Prove → fail card with stats → Su
   - `STEPS` = `[{ id: "blockout" | "prove" | "lock" | "dress" | "play", label }]`, `currentStep(level)` (derived from the level, no extra state), `canEnterStep(level, step) → { ok, why? }` (the "why" text is ready to show on disabled steps).
   - `acceptAll(ids)`, `highlightedProposalId` + `setHighlightedProposal(id | null)` (hover/"Preview" on a proposal → highlight its ghosts).
 - Next from Claude Code: C10, the Co-designer agent (`aiAgent(message, image?)` + `agentThread` in the store). I'll note the API here when it lands.
+
+## 2026-10-04 — Claude Code — C10 (the Co-designer agent) — ready for U19
+
+**One call does everything:** `aiAgent(message, image?)` from `src/core/ai/client.ts`. It never throws.
+1. It pushes the user bubble + a pending agent bubble into `usePlaybound().agentThread`.
+2. It calls `/api/ai/agent` with the level, the last 6 turns and the optional image.
+3. It fills the agent bubble: `text` (1–3 sentences), `proposalIds` (look them up in `proposals`; each one is already a ghost), `chips` (2–3 follow-ups), `intent`, `model`. On failure it sets `error` on the bubble instead.
+
+`AgentMessage` (store.ts): `{ id, role: "user" | "agent", text, imageThumb?, proposalIds?, chips?, intent?, model?, pending?, error? }`. Also `clearAgentThread()`.
+
+**What the agent does (tested against Gemini, 6 of 6 cases):**
+| You say | intent | Result |
+|---|---|---|
+| "Why does it fail?" | explain | Grounded answer from Prove data (sightline from the well, metres exposed), no proposals. ~2.5 s |
+| "Fix the death corridor" | fix | 1 verified cover proposal (`previewProve.status === "pass"`). ~4 s |
+| "add a flanking route on the east side" | edit | 1–3 ALTERNATIVE proposals, each validated + Prove-previewed. `why` ends with "(Changes: adds X, moves Y.)". ~8–10 s |
+| image + "build this" | sketch | 1 `replaceAll` proposal. ~17 s (show a progress hint) |
+| image + "use this look" | style | 1 `styleNotes` proposal. ~7 s |
+| anything on a locked level | explain | Tells the user to unlock first |
+
+**UI notes for U19:**
+- Empty thread: show context chips from the brief (failing level: "Fix the death corridor", "Why does it fail?"…). After each answer, use that bubble's `chips`.
+- Proposal rows inside the agent bubble: `why` + Prove badge (✓ Playable 28% / ✗ 0%) + **Preview** (`setHighlightedProposal(id)` on hover/click) + **Accept** / **Dismiss**; "Accept all" if > 1 (`acceptAll(ids)`). When several *alternatives* are offered (intent `edit`), label them "Option A / B / C" and suggest accepting one.
+- A proposal that's gone from `proposals` (already accepted/dismissed) → show it as "Accepted ✓" / "Dismissed", greyed out.
+- Pending bubble: thinking shimmer. Long ones (images) → "Reading your sketch… (~15 s)".
+- The old `aiSketch / aiStyle / aiCommand / aiSuggestFix` still work. The **"Suggest fix" button on the Prove card** can now simply call `aiAgent("Fix the death corridor")` so the answer appears in the panel.

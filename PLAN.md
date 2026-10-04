@@ -186,7 +186,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| C10 | Claude Code | Agent endpoint `/api/ai/agent` + client `aiAgent(message, image?)`: reads the level, the step and the Prove result; answers with a short **reply** + **0–3 proposals** (each validated + Prove-previewed; claims of "fixes it" re-checked, one feedback round) + **next-step chips**. Routes "fix" to the verified fix loop and "why" to an explanation built from Prove data (exposed stretch, metres in the open, what the objective sees). Conversation kept in the store (`agentThread`). | todo |
+| C10 | Claude Code | Agent endpoint `/api/ai/agent` + client `aiAgent(message, image?)`: reads the level, the step and the Prove result; answers with a short **reply** + **0–3 proposals** (each validated + Prove-previewed; claims of "fixes it" re-checked, one feedback round) + **next-step chips**. Routes "fix" to the verified fix loop and "why" to an explanation built from Prove data (exposed stretch, metres in the open, what the objective sees). Conversation kept in the store (`agentThread`). | done |
 | U19 | Cursor | Co-designer panel UI (brief §4): status, context chips, conversation cards, proposal rows with Preview / Accept / Dismiss / Accept all, image drop (sketch or style), text box. Violet = AI. | todo |
 
 **Francesco feedback R3-M2:** _(write here)_

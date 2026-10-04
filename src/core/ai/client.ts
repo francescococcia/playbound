@@ -4,7 +4,7 @@
 import { toJpegDataUrl as toDataUrl } from "../image";
 import { usePlaybound } from "../store";
 import type { Proposal } from "../types";
-import type { AiHealth, AiResponse } from "./types";
+import type { AgentResponse, AiHealth, AiResponse } from "./types";
 
 export interface AiOutcome {
   proposal?: Proposal;
@@ -52,4 +52,46 @@ async function call(action: string, body: unknown): Promise<AiOutcome> {
   if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
   if (j.proposal) usePlaybound.getState().addProposal(j.proposal);
   return { proposal: j.proposal, note: j.note, model: j.model };
+}
+
+// ---- Round 3: the Co-designer agent ----
+
+const mid = () => `m-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 5)}`;
+
+/**
+ * Talk to the Co-designer. Adds the user bubble and a pending agent bubble to
+ * `agentThread`, then fills the agent bubble with the reply, its proposals (as ghosts in
+ * `proposals`) and follow-up chips. Errors land in the bubble's `error` (no throw).
+ * `image`: a sketch (→ layout) or a picture (→ style); the agent decides which.
+ */
+export async function aiAgent(message: string, image?: File | string): Promise<void> {
+  const st = usePlaybound.getState();
+  const history = st.agentThread
+    .filter((m) => !m.pending && !m.error && m.text)
+    .slice(-6)
+    .map((m) => ({ role: m.role, text: m.text }));
+  const img = image ? await toDataUrl(image) : undefined;
+  st.pushAgentMessage({ id: mid(), role: "user", text: message, imageThumb: img ? await toDataUrl(img, 160) : undefined });
+  const replyId = mid();
+  st.pushAgentMessage({ id: replyId, role: "agent", text: "", pending: true });
+  try {
+    const r = await fetch("/api/ai/agent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, image: img, level: usePlaybound.getState().level, history }),
+    });
+    const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as Partial<AgentResponse> & { error?: string };
+    if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
+    for (const p of j.proposals ?? []) usePlaybound.getState().addProposal(p);
+    usePlaybound.getState().updateAgentMessage(replyId, {
+      pending: false,
+      text: j.reply ?? "",
+      proposalIds: (j.proposals ?? []).map((p) => p.id),
+      chips: j.chips ?? [],
+      intent: j.intent,
+      model: j.model,
+    });
+  } catch (e) {
+    usePlaybound.getState().updateAgentMessage(replyId, { pending: false, error: e instanceof Error ? e.message : String(e) });
+  }
 }

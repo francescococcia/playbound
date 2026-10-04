@@ -12,7 +12,8 @@
 // sees it. Nothing is applied until they click Accept.
 import { distanceToFootprint, isSolid } from "../../src/core/geometry.js";
 import { prove } from "../../src/core/prove/prove.js";
-import type { AiResponse, CommandRequest, FixRequest, SketchRequest, StyleRequest } from "../../src/core/ai/types.js";
+import type { AgentRequest, AgentResponse, AiResponse, CommandRequest, FixRequest, SketchRequest, StyleRequest } from "../../src/core/ai/types.js";
+import { agent } from "./agent.js";
 import type { Level, Proposal, ProveResult, Role, Volume } from "../../src/core/types.js";
 import { GEMINI_MODELS, geminiJson } from "./gemini.js";
 
@@ -22,7 +23,7 @@ const MAX_PER_DAY = 400; // per server instance (protects the free quota during 
 
 export interface AiResult {
   status: number;
-  body: AiResponse | { ai: boolean; model?: string };
+  body: AiResponse | AgentResponse | { ai: boolean; model?: string };
 }
 
 export async function handleAi(action: string, method: string, body: unknown, apiKey: string | undefined, ip = "local"): Promise<AiResult> {
@@ -42,6 +43,8 @@ export async function handleAi(action: string, method: string, body: unknown, ap
         return ok(await command(apiKey, body as CommandRequest));
       case "fix":
         return ok(await fix(apiKey, body as FixRequest));
+      case "agent":
+        return { status: 200, body: await agent(apiKey, body as AgentRequest) };
       default:
         return { status: 404, body: { error: `Unknown AI action "${action}"` } };
     }
@@ -54,12 +57,12 @@ const ok = (body: AiResponse): AiResult => ({ status: 200, body });
 
 // ---------- sketch: drawing -> greybox ----------
 
-const VOLUME_RULES = `Coordinates: the play area is a square of 40 m x 40 m centred at (0,0). +X = east (right), +Z = south (down in a top-down image), Y up.
+export const VOLUME_RULES = `Coordinates: the play area is a square of 40 m x 40 m centred at (0,0). +X = east (right), +Z = south (down in a top-down image), Y up.
 position = centre of the box's BOTTOM face [x, 0, z] in meters; size = [width X, height Y, depth Z] in meters; rotationY in DEGREES (usually 0).
 Roles: "spawn" (player start, exactly one), "objective" (goal, exactly one), "block" (buildings, walls), "landmark" (tall, visible from far: towers, statues), "cover" (chest-high objects players hide behind: carts, low walls, crates), "prop" (other small set dressing).
 Estimate real-world heights (house 6-8 m, stall 2.5 m, cart 1.2 m). Labels are short real-world descriptions (e.g. "timber-framed tavern"), never generic ("box").`;
 
-const VOLUME_SCHEMA = {
+export const VOLUME_SCHEMA = {
   type: "object",
   properties: {
     id: { type: "string" },
@@ -72,7 +75,7 @@ const VOLUME_SCHEMA = {
   required: ["label", "role", "position", "size"],
 };
 
-async function sketch(key: string, req: SketchRequest): Promise<AiResponse> {
+export async function sketch(key: string, req: SketchRequest): Promise<AiResponse> {
   if (!req?.image) throw new Error("No image");
   const prompt = `You turn a top-down level sketch (or map, or screenshot) into a greybox level for a first-person game.
 The drawn outer border is the edge of the play area. ${VOLUME_RULES}
@@ -93,7 +96,7 @@ Return JSON: {"why": "one sentence describing the layout you read", "volumes": [
 
 // ---------- style: picture -> style notes ----------
 
-async function style(key: string, req: StyleRequest): Promise<AiResponse> {
+export async function style(key: string, req: StyleRequest): Promise<AiResponse> {
   if (!req?.image) throw new Error("No image");
   const prompt = `You are an art director. Describe the visual style of this reference image as notes that will be prepended to text-to-3D prompts for game props.
 Cover: setting/era, materials, colour palette, level of stylisation (e.g. hand-painted, realistic, low-poly), mood. Max 30 words, comma-separated, no full sentences, no mention of "image".
@@ -138,9 +141,18 @@ Return JSON: {"why": "one sentence for the designer", "add": [new boxes], "updat
       required: ["why"],
     },
   });
+  const p = buildEditProposal(level, data, "text", text);
+  return p ? { model, proposal: p } : { model, note: data.why ?? "No change needed." };
+}
+
+/**
+ * Validate a model-drafted edit against the level (existing ids only, clamped positions and
+ * sizes, unique new ids) and preview it with Prove. Returns null if nothing valid remains.
+ */
+export function buildEditProposal(level: Level, raw: Record<string, unknown>, source: Proposal["source"], fallbackWhy = "Suggested change"): Proposal | null {
   const ids = new Set(level.volumes.map((v) => v.id));
-  const add = cleanVolumes(data.add ?? [], level.bounds, new Set(ids));
-  const update = (data.update ?? [])
+  const add = cleanVolumes((raw.add as unknown[]) ?? [], level.bounds, new Set(ids));
+  const update = ((raw.update as unknown[]) ?? [])
     .map((u) => u as { id?: string; position?: unknown; size?: unknown; rotationY?: unknown })
     .filter((u) => u.id && ids.has(u.id))
     .map((u) => ({
@@ -149,10 +161,19 @@ Return JSON: {"why": "one sentence for the designer", "add": [new boxes], "updat
       ...(vec3(u.size) && { size: clampSize(vec3(u.size)!) }),
       ...(typeof u.rotationY === "number" && { rotationY: deg(u.rotationY) }),
     }));
-  const remove = (data.remove ?? []).filter((id): id is string => typeof id === "string" && ids.has(id));
-  if (!add.length && !update.length && !remove.length) return { model, note: data.why ?? "No change needed." };
-  const p: Proposal = { id: pid("cmd"), source: "text", why: data.why ?? text, add, update, remove };
-  return { model, proposal: { ...p, previewProve: prove(applyPreview(level, p)) } };
+  const remove = ((raw.remove as unknown[]) ?? []).filter((id): id is string => typeof id === "string" && ids.has(id));
+  if (!add.length && !update.length && !remove.length) return null;
+  const said = typeof raw.why === "string" && raw.why.trim() ? raw.why.trim() : fallbackWhy;
+  // Append what the proposal ACTUALLY does, so the text can't promise more than the change.
+  const label = (id: string) => level.volumes.find((v) => v.id === id)?.label ?? id;
+  const did = [
+    ...add.map((v) => `adds ${v.label}`),
+    ...update.map((u) => `${u.position ? "moves" : "resizes"} ${label(u.id)}`),
+    ...remove.map((id) => `removes ${label(id)}`),
+  ];
+  const why = `${said} (Changes: ${did.join(", ")}.)`;
+  const p: Proposal = { id: pid(source === "text" ? "cmd" : source), source, why, add, update, remove };
+  return { ...p, previewProve: prove(applyPreview(level, p)) };
 }
 
 // ---------- fix: agent loop until Prove passes ----------
@@ -164,7 +185,7 @@ interface Candidate {
   label?: string;
 }
 
-async function fix(key: string, req: FixRequest): Promise<AiResponse> {
+export async function fix(key: string, req: FixRequest): Promise<AiResponse> {
   const level = req?.level;
   if (!level) throw new Error("Need a level");
   if (level.locked) return { note: "The layout is locked. Unlock it to add cover." };
@@ -253,7 +274,7 @@ function searchCover(level: Level, now: ProveResult): { c: Candidate; r: ProveRe
   return best;
 }
 
-function longestExposedStretch(r: ProveResult): number[][] {
+export function longestExposedStretch(r: ProveResult): number[][] {
   const path = r.path ?? [];
   let bestS = 0;
   let bestE = -1;

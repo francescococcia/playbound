@@ -7,6 +7,22 @@ import { DRESS_ROLES, type Level, type Proposal, type Role, type Volume } from "
 
 export type ViewMode = "orbit" | "fps";
 
+/** One bubble in the Co-designer panel. */
+export interface AgentMessage {
+  id: string;
+  role: "user" | "agent";
+  text: string;
+  /** User attached an image (shown as a thumbnail; the data stays out of the thread). */
+  imageThumb?: string;
+  /** Proposals this answer created (look them up in `proposals`; gone once accepted/dismissed). */
+  proposalIds?: string[];
+  chips?: string[];
+  intent?: string;
+  model?: string;
+  pending?: boolean;
+  error?: string;
+}
+
 interface PlayboundState {
   level: Level;
   selectedId: string | null;
@@ -15,6 +31,8 @@ interface PlayboundState {
   proposals: Proposal[];
   /** Proposal the user is previewing (hover/"Preview"): UI highlights its ghosts. */
   highlightedProposalId: string | null;
+  /** Co-designer conversation, oldest first. */
+  agentThread: AgentMessage[];
 
   loadPreset: (id: string) => void;
   select: (id: string | null) => void;
@@ -50,6 +68,9 @@ interface PlayboundState {
   /** Accept several proposals in order (skips ones that no longer apply). */
   acceptAll: (ids: string[]) => void;
   setHighlightedProposal: (id: string | null) => void;
+  pushAgentMessage: (m: AgentMessage) => void;
+  updateAgentMessage: (id: string, patch: Partial<AgentMessage>) => void;
+  clearAgentThread: () => void;
 }
 
 // ---- Round 3: the guided flow ----
@@ -129,6 +150,7 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
   viewMode: "orbit",
   proposals: [],
   highlightedProposalId: null,
+  agentThread: [],
 
   loadPreset: (id) => {
     const p = PRESETS.find((l) => l.id === id);
@@ -234,6 +256,9 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
     for (const id of ids) get().acceptProposal(id);
   },
   setHighlightedProposal: (id) => set({ highlightedProposalId: id }),
+  pushAgentMessage: (m) => set({ agentThread: [...get().agentThread, m].slice(-40) }),
+  updateAgentMessage: (id, patch) => set({ agentThread: get().agentThread.map((m) => (m.id === id ? { ...m, ...patch } : m)) }),
+  clearAgentThread: () => set({ agentThread: [] }),
 
   acceptProposal: (id) => {
     const { level, proposals } = get();
