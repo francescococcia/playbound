@@ -139,7 +139,7 @@ export function StepActionBar() {
   };
 
   return (
-    <div className="step-action-bar" data-step={step}>
+    <div key={step} className="step-action-bar" data-step={step}>
       <input
         ref={sketchRef}
         type="file"
@@ -300,7 +300,7 @@ export function StepActionBar() {
           </button>
           <button
             type="button"
-            className="btn-primary icon-inline"
+            className="icon-inline"
             onClick={onCopyPlayLink}
             title="Copy play link (#play&l=…) — opens as a game, no editor"
           >

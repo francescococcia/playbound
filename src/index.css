@@ -212,12 +212,29 @@ button.active {
   z-index: 30;
 }
 .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-display);
   font-weight: 700;
   letter-spacing: 0.08em;
   font-size: var(--text-sm);
   flex-shrink: 0;
   color: var(--text);
+  padding-right: var(--space-4);
+  border-right: 1px solid var(--border);
+}
+/* A greybox on a blueprint grid: the product in one glyph. */
+.brand-mark {
+  width: 1.1rem;
+  height: 1.1rem;
+  border-radius: 3px;
+  border: 1px solid #5ee7ff66;
+  background:
+    linear-gradient(var(--proof), var(--proof)) 55% 60% / 45% 45% no-repeat,
+    repeating-linear-gradient(0deg, #5ee7ff22 0 1px, transparent 1px 4px),
+    repeating-linear-gradient(90deg, #5ee7ff22 0 1px, transparent 1px 4px),
+    var(--ink);
 }
 .stepper-track {
   position: relative;
@@ -245,11 +262,12 @@ button.active {
   left: 1.1rem;
   top: 50%;
   height: 2px;
-  max-width: calc(100% - 2.2rem);
+  width: calc(100% - 2.2rem);
   background: var(--proof);
-  transform: translateY(-50%);
+  transform: translateY(-50%) scaleX(0);
+  transform-origin: left center;
   z-index: 1;
-  transition: width 200ms ease-out;
+  transition: transform 480ms var(--ease-out);
 }
 .stepper-step {
   position: relative;
@@ -260,11 +278,14 @@ button.active {
   gap: 0.2rem;
   background: transparent;
   border: none;
-  padding: 0.35rem 0.4rem;
+  padding: 0.35rem 0.6rem;
   min-width: 4.5rem;
   color: var(--text-muted);
+  border-radius: var(--radius-control);
 }
 .stepper-step:hover:not(:disabled) { color: var(--text); background: transparent; }
+.stepper-step:hover:not(:disabled) .stepper-num { border-color: var(--text-muted); }
+.stepper-step:active:not(:disabled) { transform: none; }
 .stepper-num {
   width: 1.55rem;
   height: 1.55rem;
@@ -276,18 +297,22 @@ button.active {
   font-family: var(--font-display);
   font-size: var(--text-xs);
   font-weight: 600;
+  transition: background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
 }
 .stepper-label {
-  font-size: var(--text-xs);
+  font-size: 0.78rem;
+  font-weight: 500;
   font-family: var(--font-display);
   letter-spacing: 0.02em;
   white-space: nowrap;
 }
 .stepper-step--current { color: var(--amber); }
+.stepper-step--current .stepper-label { font-weight: 600; }
 .stepper-step--current .stepper-num {
   border-color: var(--amber);
-  color: var(--amber);
-  box-shadow: inset 0 0 0 1px #f2c14e44;
+  background: var(--amber);
+  color: var(--amber-ink);
+  box-shadow: 0 0 0 4px #f2c14e26;
 }
 .stepper-step--done { color: var(--proof); }
 .stepper-step--done .stepper-num {
@@ -295,7 +320,11 @@ button.active {
   background: #143528;
   color: var(--proof);
 }
-.stepper-step--blocked { opacity: 0.4; }
+.stepper-step--done .stepper-num svg { animation: step-check 320ms var(--ease-out); }
+@keyframes step-check { from { opacity: 0; transform: scale(0.6); } }
+/* Visited but not current: green label, amber dot keeps "you are here" */
+.stepper-step--done.stepper-step--current { color: var(--amber); }
+.stepper-step--blocked { opacity: 0.5; }
 .stepper-compact { display: none; }
 
 /* ── Level panel ── */
@@ -732,15 +761,29 @@ button.active {
   align-items: center;
   justify-content: center;
   gap: 0.4rem;
-  max-width: calc(100% - 12rem);
-  padding: 0.45rem 0.55rem;
+  width: max-content;
+  /* Leave room for the view chrome (bottom-left) on both sides; wrap instead of overlapping it. */
+  max-width: max(22rem, calc(100% - 29rem));
+  padding: 0.4rem;
   background: #0b101cf2;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-panel);
-  box-shadow: 0 8px 28px #00000055;
+  border: 1px solid var(--border-strong);
+  border-radius: 14px;
+  box-shadow: 0 1px 0 #ffffff0d inset, 0 14px 36px -10px #000000aa;
+  animation: action-bar-in var(--dur) var(--ease-out);
 }
-.step-action-bar .action-primary-wrap { flex: 0 1 auto; min-width: 7rem; }
-.step-action-bar .btn-primary { min-width: 8rem; }
+@keyframes action-bar-in { from { opacity: 0; transform: translate(-50%, 8px); } }
+.step-action-bar button { min-height: 2.35rem; padding: 0.45rem 0.75rem; border-radius: 10px; font-size: var(--text-sm); }
+.step-action-bar > button:not(.btn-primary),
+.step-action-bar .add-wrap > button:not(.btn-primary) { background: transparent; border-color: transparent; color: var(--text); }
+.step-action-bar > button:not(.btn-primary):hover:not(:disabled),
+.step-action-bar .add-wrap > button:not(.btn-primary):hover:not(:disabled) { background: var(--panel-2); border-color: var(--border); }
+.step-action-bar .add-menu button { min-height: 2rem; border-radius: var(--radius-control); }
+.step-action-bar .add-menu { top: auto; bottom: calc(100% + 0.4rem); animation: menu-in var(--dur-fast) var(--ease-out); }
+@keyframes menu-in { from { opacity: 0; transform: translateY(4px); } }
+.step-action-bar .add-wrap { flex: 0 0 auto; }
+.step-action-bar .action-primary-wrap { flex: 0 0 auto; min-width: 7rem; }
+.step-action-bar .btn-primary { min-width: 9rem; padding-inline: 1.1rem; }
+.btn-primary .btn-spin { border-color: #1b150555; border-top-color: var(--amber-ink); }
 .style-notes-inline {
   width: 10rem;
   max-width: 28vw;
@@ -1140,6 +1183,10 @@ button.active {
 
 @media (prefers-reduced-motion: reduce) {
   .stepper-progress,
+  .stepper-num,
+  .stepper-step--done .stepper-num svg,
+  .step-action-bar,
+  .step-action-bar .add-menu,
   .btn-spin,
   .regen-spin,
   .prove-banner--fps-fade,
@@ -1505,9 +1552,9 @@ button.active {
 .action-why {
   flex: 1 1 100%;
   margin: 0;
-  padding: 0.15rem 0.35rem 0;
+  padding: 0.1rem 0.5rem 0.15rem;
   font-size: var(--text-xs);
-  color: var(--amber);
+  color: #f5d488;
   text-align: center;
   line-height: 1.35;
 }

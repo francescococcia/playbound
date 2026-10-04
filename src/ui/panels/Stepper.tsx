@@ -27,13 +27,16 @@ export function Stepper() {
 
   return (
     <header className="stepper">
-      <strong className="brand">PLAYBOUND</strong>
+      <strong className="brand">
+        <span className="brand-mark" aria-hidden />
+        PLAYBOUND
+      </strong>
 
       <nav className="stepper-track" aria-label="Level pipeline">
         <div
           className="stepper-progress"
           style={{
-            width: `${(Math.max(suggestedIdx, 0) / (WORKFLOW_STEPS.length - 1)) * 100}%`,
+            transform: `translateY(-50%) scaleX(${Math.max(suggestedIdx, 0) / (WORKFLOW_STEPS.length - 1)})`,
           }}
           aria-hidden
         />
