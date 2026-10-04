@@ -14,7 +14,7 @@ export const ROLE_HINTS: Record<Role, string> = {
 const m = (n: number) => `${Math.round(n * 10) / 10}m`;
 
 export function buildPrompt(v: Volume, styleNotes?: string): string {
-  const styleBlock = styleNotes?.trim() ? `Style: ${styleNotes.trim()}.` : "Style: stylised medieval market town.";
+  const styleBlock = styleNotes?.trim() ? `Style: ${styleNotes.trim()}.` : "Style: clean, readable stylised game art.";
   return [
     styleBlock,
     "Game-ready prop for a first-person level.",

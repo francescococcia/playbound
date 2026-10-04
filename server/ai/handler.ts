@@ -242,7 +242,7 @@ export async function fix(key: string, req: FixRequest): Promise<AiResponse> {
     const prompt = `Level fails Prove: "${now.message}" (passes when >= 25% of the route is protected: out of the objective's line of sight, or within 2.5 m of chest-high cover).
 Exposed route points (x,z): ${JSON.stringify(exposed)}. Solid boxes (do not overlap): ${JSON.stringify(solids)}.
 ${tried.length ? `Already tried, FAILED: ${JSON.stringify(tried)}. Pick different spots closer to the exposed points.` : ""}
-Propose 4 positions for a 1.2 x 2.5 m chest-high cover object, 1-2 m to the side of the exposed route (never on it). rotationY in degrees. Label = an object that fits this style: "${level.styleNotes ?? "medieval market town"}".
+Propose 4 positions for a 1.2 x 2.5 m chest-high cover object, 1-2 m to the side of the exposed route (never on it). rotationY in degrees. Label = a real object that fits this place: ${level.styleNotes ? `"${level.styleNotes}"` : `a level with ${level.volumes.slice(0, 8).map((v) => v.label).join(", ")}`}.
 Return JSON: {"candidates": [{"x", "z", "rotationY", "label"}], "why": "one sentence for the designer"}`;
     let res;
     try {
