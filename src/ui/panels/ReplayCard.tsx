@@ -32,11 +32,14 @@ export function ReplayCard() {
             initial={reduce ? false : { opacity: 0, y: -8 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             role="status"
           >
             <div className="replay-card-head">
-              <span className="replay-card-title">Playtest</span>
+              <span className="replay-card-title">
+                <span className="replay-card-dot" aria-hidden />
+                Playtest · {result.pass ? "made it" : "spotted too long"}
+              </span>
               <button type="button" className="icon-btn" title="Close" onClick={() => setHidden(result)}>
                 <X size={13} strokeWidth={1.75} />
               </button>

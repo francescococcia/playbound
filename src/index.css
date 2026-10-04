@@ -821,6 +821,7 @@ button.active {
   0%, 55% { opacity: 1; }
   100% { opacity: 0; }
 }
+/* Suggest fix asks the AI, so it is violet (violet = AI). */
 .suggest-fix-btn {
   margin-top: 0.55rem;
   display: inline-flex;
@@ -828,38 +829,67 @@ button.active {
   justify-content: center;
   gap: 0.4rem;
   width: 100%;
-  border-color: var(--danger);
-  color: var(--danger);
+  min-height: 2.25rem;
+  background: var(--ai);
+  border-color: var(--ai);
+  color: var(--ai-ink);
+  font-family: var(--font-display);
   font-weight: 600;
 }
+.suggest-fix-btn:hover:not(:disabled) { background: #b9a2ff; border-color: #b9a2ff; color: var(--ai-ink); }
+.suggest-fix-btn .btn-spin { border-color: #1a103355; border-top-color: var(--ai-ink); }
 
 .prove-result-card {
+  --tone: var(--text-muted);
   position: absolute;
   left: 50%;
   top: 0.75rem;
   transform: translateX(-50%);
   z-index: 7;
-  width: min(22rem, calc(100% - 2rem));
-  padding: 0.85rem 1rem;
-  border-radius: var(--radius-panel);
-  border: 1px solid var(--border);
-  background: #0b101cf5;
-  box-shadow: 0 8px 28px #00000066;
+  width: min(23rem, calc(100% - 2rem));
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, var(--border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 10%, transparent), transparent 55%),
+    #0b101cf5;
+  box-shadow: 0 1px 0 #ffffff0d inset, 0 18px 40px -12px #000000b3;
 }
-.prove-result-card--pass { border-color: var(--proof); }
-.prove-result-card--fail { border-color: var(--danger); }
+.prove-result-card--pass { --tone: var(--proof); }
+.prove-result-card--fail { --tone: var(--danger); }
 .prove-result-head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: var(--space-2);
-  margin-bottom: 0.45rem;
+  margin-bottom: 0.6rem;
 }
+.prove-result-head { align-items: center; }
 .prove-result-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   font-family: var(--font-display);
   font-weight: 700;
-  font-size: var(--text-lg);
-  letter-spacing: 0.02em;
+  font-size: 1.25rem;
+  letter-spacing: 0.01em;
+}
+.prove-result-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  background: var(--tone);
+  color: var(--ink);
+}
+.prove-result-kicker {
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  padding: 0.1rem 0.45rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
 }
 .prove-result-card--pass .prove-result-status { color: var(--proof); }
 .prove-result-card--fail .prove-result-status { color: var(--danger); }
@@ -873,13 +903,51 @@ button.active {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-control);
-  padding: 0.45rem 0.55rem;
+  padding: 0.5rem 0.65rem;
 }
 .prove-stat-value {
-  font-family: var(--font-display);
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: 1.35rem;
+  font-weight: 500;
   line-height: 1.1;
+  color: var(--text);
+}
+.prove-stat:first-child .prove-stat-value { color: var(--tone); }
+/* % of the route protected, with the pass line marked. */
+.prove-meter {
+  position: relative;
+  height: 6px;
+  margin: 0.2rem 0 1.35rem;
+  border-radius: 999px;
+  background: var(--panel-2);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+.prove-meter-fill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--tone);
+  transform-origin: left center;
+  animation: meter-fill 700ms var(--ease-out) 120ms both;
+}
+@keyframes meter-fill { from { transform: scaleX(0); } }
+.prove-meter-goal {
+  position: absolute;
+  top: -3px;
+  bottom: -3px;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--text);
+}
+.prove-meter-goal span {
+  position: absolute;
+  top: calc(100% + 0.2rem);
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--text-muted);
+  white-space: nowrap;
 }
 .prove-stat-label {
   font-size: var(--text-xs);
@@ -889,8 +957,9 @@ button.active {
 .prove-result-msg {
   margin: 0;
   font-size: var(--text-sm);
-  color: var(--text-muted);
-  line-height: 1.4;
+  color: #b4bccb;
+  line-height: 1.45;
+  text-wrap: pretty;
 }
 
 /* ── Proposals (violet = AI) ── */
@@ -1191,6 +1260,7 @@ button.active {
   .regen-spin,
   .prove-banner--fps-fade,
   .co-prop--done,
+  .prove-meter-fill,
   .app-toast {
     animation: none !important;
     transition: none !important;
@@ -1518,9 +1588,11 @@ button.active {
 @media (prefers-reduced-motion: reduce) {
   .co-dots i, .status-dot--thinking { animation: none; opacity: 0.8; }
 }
-.prove-result-actions { display: flex; gap: 0.4rem; }
+.prove-result-actions { display: flex; gap: 0.4rem; margin-top: 0.75rem; }
+.prove-result-actions .suggest-fix-btn { margin-top: 0; }
 .prove-result-actions .suggest-fix-btn { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem; }
-.why-btn { display: inline-flex; align-items: center; gap: 0.3rem; font-size: var(--text-xs); color: var(--text-muted); }
+.why-btn { display: inline-flex; align-items: center; gap: 0.3rem; min-height: 2.25rem; font-size: var(--text-sm); color: var(--text-muted); background: transparent; }
+.why-btn:hover:not(:disabled) { color: var(--text); }
 
 /* ── U21: empty states, action hints, icon buttons ── */
 .empty-state {

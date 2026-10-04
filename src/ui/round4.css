@@ -34,18 +34,31 @@
 }
 @keyframes replay-blink { 50% { opacity: 0.3; } }
 .replay-card {
-  padding: 0.75rem 0.85rem;
-  border-radius: var(--radius-panel);
-  background: #151b2bf0;
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--danger);
+  --tone: var(--danger);
+  padding: 0.8rem 0.9rem;
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 9%, transparent), transparent 60%),
+    #151b2bf2;
+  border: 1px solid color-mix(in srgb, var(--tone) 45%, var(--border));
+  box-shadow: 0 14px 34px -12px #000000b3;
   backdrop-filter: blur(8px);
   display: grid;
-  gap: 0.4rem;
+  gap: 0.45rem;
 }
-.replay-card--pass { border-left-color: var(--proof); }
+.replay-card--pass { --tone: var(--proof); }
+.replay-card-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--tone);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 25%, transparent);
+}
 .replay-card-head { display: flex; align-items: center; justify-content: space-between; }
 .replay-card-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
   font-family: var(--font-display);
   font-weight: 600;
   font-size: var(--text-xs);
@@ -54,6 +67,7 @@
   color: var(--text-muted);
 }
 .replay-card-line { margin: 0; font-size: var(--text-sm); }
+.replay-card-line strong { font-size: 1.05rem; font-weight: 600; }
 .replay-card--fail .replay-card-line strong { color: var(--danger); }
 .replay-card--pass .replay-card-line strong { color: var(--proof); }
 .replay-pct { color: var(--text-muted); font-size: var(--text-xs); }
@@ -64,7 +78,9 @@
   align-items: center;
   gap: 0.35rem;
   font-size: var(--text-xs);
-  padding: 0.32rem 0.65rem;
+  font-weight: 600;
+  min-height: 2rem;
+  padding: 0.32rem 0.75rem;
 }
 .replay-spotted {
   font-family: var(--font-display);
@@ -260,3 +276,8 @@
 }
 .dress-replace:hover:not(:disabled) { border: 0; background: transparent; color: #c8b8ff; }
 .step-action-bar[data-step="dress"] { padding: 0.35rem; }
+
+/* Narrower desktops: the centred Prove card would collide with the replay card top-left. */
+@media (min-width: 961px) and (max-width: 1400px) {
+  .replay-slot { top: auto; bottom: 9.25rem; width: min(280px, calc(100% - 2rem)); }
+}

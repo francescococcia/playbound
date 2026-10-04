@@ -1,7 +1,8 @@
-import { HelpCircle, Sparkles } from "lucide-react";
+import { Check, HelpCircle, Sparkles, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
 import { aiAgent, isAiAvailable } from "../../core/ai/client";
+import { MIN_COVERED_PATH_FRACTION } from "../../core/prove/constants";
 import { usePlaybound } from "../../core/store";
 import { useUiPrefs } from "../uiPrefs";
 import { currentStep } from "../workflow";
@@ -40,6 +41,7 @@ export function ProveResultCard() {
   const exposed =
     prove.exposedMeters != null ? `${prove.exposedMeters.toFixed(0)} m` : "—";
   const showFix = prove.status === "fail" && !locked;
+  const fraction = Math.min(1, Math.max(0, prove.coveredFraction ?? 0));
 
   // Both answers land in the Co-designer conversation (the AI's one home).
   const ask = (q: string) => {
@@ -61,11 +63,16 @@ export function ProveResultCard() {
             ? { opacity: 1, y: 0, x: [0, -7, 6, -4, 2, 0] }
             : { opacity: 1, y: 0, boxShadow: ["0 0 0 0 #3ddc9700", "0 0 0 8px #3ddc9733", "0 0 0 0 #3ddc9700"] }
       }
-      transition={{ duration: 0.55, ease: "easeOut", x: { delay: 0.2, duration: 0.45 } }}
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1], x: { delay: 0.2, duration: 0.45 } }}
     >
       <div className="prove-result-head">
-        <span className="prove-result-status">{prove.status === "pass" ? "Pass" : "Fail"}</span>
-        <span className="muted mono">Prove</span>
+        <span className="prove-result-status">
+          <span className="prove-result-icon" aria-hidden>
+            {prove.status === "pass" ? <Check size={14} strokeWidth={2.5} /> : <X size={14} strokeWidth={2.5} />}
+          </span>
+          {prove.status === "pass" ? "Pass" : "Fail"}
+        </span>
+        <span className="prove-result-kicker">Prove</span>
       </div>
 
       <div className="prove-result-stats">
@@ -78,6 +85,15 @@ export function ProveResultCard() {
           <div className="prove-stat-label">exposed</div>
         </div>
       </div>
+
+      {prove.coveredFraction != null && (
+        <div className="prove-meter" aria-hidden>
+          <div className="prove-meter-fill" style={{ transform: `scaleX(${fraction})` }} />
+          <div className="prove-meter-goal" style={{ left: `${MIN_COVERED_PATH_FRACTION * 100}%` }}>
+            <span>{Math.round(MIN_COVERED_PATH_FRACTION * 100)}% needed</span>
+          </div>
+        </div>
+      )}
 
       <p className="prove-result-msg">
         {prove.message ?? (prove.status === "pass" ? "Route is playable." : "Route needs more cover.")}
