@@ -291,10 +291,12 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
   },
 }));
 
-/** Dress is allowed only when Prove passed AND the layout is locked AND a style ref exists. */
+/** Dress is allowed once gameplay is locked and there is a written or visual style direction. */
 export function canDress(level: Level): { ok: boolean; why?: string } {
   if (level.prove?.status !== "pass") return { ok: false, why: "Prove must pass first." };
   if (!level.locked) return { ok: false, why: "Lock the layout first." };
-  if (!level.styleRefUrl) return { ok: false, why: "Add a style reference image." };
+  if (!level.styleNotes?.trim() && !level.styleRefUrl) {
+    return { ok: false, why: "Describe a style or add a reference image." };
+  }
   return { ok: true };
 }

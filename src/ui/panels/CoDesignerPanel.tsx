@@ -3,7 +3,7 @@
 import { ArrowUp, Check, ChevronDown, Eye, ImagePlus, Lock, Paintbrush, Play, RotateCcw, Share2, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
-import { aiAgent, isAiAvailable } from "../../core/ai/client";
+import { aiAgent, aiStyle, isAiAvailable } from "../../core/ai/client";
 import { dressLevel } from "../../core/dress/dress";
 import { shareUrl } from "../../core/share";
 import { STEPS, canDress, currentStep, usePlaybound, type AgentMessage, type Step } from "../../core/store";
@@ -156,20 +156,123 @@ function NextStepGuide({ aiOk }: { aiOk: boolean }) {
         <div className="co-guide-body">
           <p className="co-guide-do">{g.doThis}</p>
           <p className="co-guide-expect">{g.expect}</p>
-          <div className="co-guide-actions">
-            <button type="button" className="co-guide-primary" disabled={busy || (g.needsAi && !aiOk)} onClick={act}>
-              {g.icon}
-              {busy ? "Working…" : g.action}
-            </button>
-            {g.second && (
-              <button type="button" className="co-guide-secondary" disabled={g.needsAi && !aiOk} onClick={secondary}>
-                {g.second}
+          {step === "dress" ? (
+            <DressStyleSetup aiOk={aiOk} />
+          ) : (
+            <div className="co-guide-actions">
+              <button type="button" className="co-guide-primary" disabled={busy || (g.needsAi && !aiOk)} onClick={act}>
+                {g.icon}
+                {busy ? "Working…" : g.action}
               </button>
-            )}
-          </div>
+              {g.second && (
+                <button type="button" className="co-guide-secondary" disabled={g.needsAi && !aiOk} onClick={secondary}>
+                  {g.second}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </section>
+  );
+}
+
+function DressStyleSetup({ aiOk }: { aiOk: boolean }) {
+  const level = usePlaybound((s) => s.level);
+  const setStyleRef = usePlaybound((s) => s.setStyleRef);
+  const setToast = useUiPrefs((s) => s.setToast);
+  const [notes, setNotes] = useState(level.styleNotes ?? "");
+  const [reading, setReading] = useState(false);
+  const input = useRef<HTMLInputElement>(null);
+
+  useEffect(() => setNotes(level.styleNotes ?? ""), [level.id, level.styleNotes]);
+
+  const saveNotes = (value = notes) => {
+    const clean = value.trim();
+    setStyleRef(level.styleRefUrl, clean || undefined);
+  };
+
+  const onImage = (file?: File) => {
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") setStyleRef(reader.result, notes.trim() || undefined);
+    };
+    reader.readAsDataURL(file);
+
+    if (!aiOk) {
+      setToast("Reference saved. AI style reading is unavailable, so keep or edit the written direction.");
+      return;
+    }
+    setReading(true);
+    setToast("Reading the reference image…");
+    void aiStyle(file)
+      .then((out) => setToast(out.proposal ? "Style notes are ready below — Accept them to use them." : out.note ?? "Reference saved."))
+      .catch((error) => setToast(error instanceof Error ? error.message : String(error)))
+      .finally(() => setReading(false));
+  };
+
+  return (
+    <div className="dress-setup">
+      <label className="dress-field">
+        <span className="dress-field-head">
+          <span>1 · Art direction</span>
+          <span className="dress-required">Required</span>
+        </span>
+        <textarea
+          value={notes}
+          rows={3}
+          placeholder="e.g. stylised medieval European market town, warm hand-painted textures, readable game art"
+          onChange={(e) => setNotes(e.target.value)}
+          onBlur={() => saveNotes()}
+        />
+        <span className="dress-help">This text is added to every 3D model prompt. Describe era, materials, palette and rendering style.</span>
+      </label>
+
+      <div className="dress-field">
+        <div className="dress-field-head">
+          <span>2 · Visual reference</span>
+          <span className="dress-optional">Optional</span>
+        </div>
+        <input
+          ref={input}
+          type="file"
+          accept="image/png,image/jpeg,image/webp"
+          hidden
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            e.target.value = "";
+            onImage(file);
+          }}
+        />
+        {level.styleRefUrl ? (
+          <div className="dress-reference">
+            <img src={level.styleRefUrl} alt="Current style reference" />
+            <div>
+              <strong>Reference added</strong>
+              <span>Used to extract visual cues into the art direction.</span>
+            </div>
+            <button type="button" className="icon-btn" title="Remove reference" onClick={() => setStyleRef(undefined, notes.trim() || undefined)}>
+              <X size={14} strokeWidth={1.75} />
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="dress-upload" disabled={reading} onClick={() => input.current?.click()}>
+            <ImagePlus size={17} strokeWidth={1.6} />
+            <span>
+              <strong>{reading ? "Reading image…" : "Add reference image"}</strong>
+              <small>Choose one clear street or environment image</small>
+            </span>
+          </button>
+        )}
+        {level.styleRefUrl && (
+          <button type="button" className="dress-replace" disabled={reading} onClick={() => input.current?.click()}>
+            {reading ? "Reading image…" : "Replace image"}
+          </button>
+        )}
+        <p className="dress-image-tip">Best: concept art or a game screenshot showing buildings, stalls, stone, wood and lighting together. Avoid collages, UI and character close-ups.</p>
+      </div>
+    </div>
   );
 }
 
@@ -214,8 +317,8 @@ function guideFor(step: Step, failing: boolean, exposed?: number) {
       };
     case "dress":
       return {
-        doThis: "Optional: drop a picture below to set the art style. Then dress the level.",
-        expect: "Every box becomes a 3D model (Hyper3D Rodin) that fits inside it. Prebaked ones are instant; new ones take ~2 min each when running locally.",
+        doThis: "Choose the shared visual language for every object, then use Dress level below the scene.",
+        expect: "Your text drives generation. A reference image is optional: the AI reads it and proposes more specific style notes.",
         action: "Dress level",
         second: null,
         icon: icon(Paintbrush),

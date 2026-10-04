@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it } from "vitest";
-import { canEnterStep, currentStep, usePlaybound } from "./store";
+import { canDress, canEnterStep, currentStep, usePlaybound } from "./store";
 import type { Proposal } from "./types";
 
 const s = () => usePlaybound.getState();
@@ -96,6 +96,18 @@ describe("proposals", () => {
 });
 
 describe("guided flow", () => {
+  it("allows Dress with written art direction; an image is optional", () => {
+    s().loadPreset("market-square-pass");
+    s().runProve();
+    s().lock();
+    expect(canDress(s().level).ok).toBe(true);
+
+    s().setStyleRef(undefined, "");
+    expect(canDress(s().level)).toEqual({ ok: false, why: "Describe a style or add a reference image." });
+    s().setStyleRef("/reference.jpg", "");
+    expect(canDress(s().level).ok).toBe(true);
+  });
+
   it("currentStep follows the pipeline", () => {
     s().newLevel();
     expect(currentStep(s().level)).toBe("blockout");

@@ -9,7 +9,7 @@ import {
   Unlock,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { aiSketch, aiStyle, isAiAvailable } from "../../core/ai/client";
+import { aiSketch, isAiAvailable } from "../../core/ai/client";
 import { dressLevel } from "../../core/dress/dress";
 import { downloadLevelZip } from "../../core/export/exportLevel";
 import { canDress, usePlaybound } from "../../core/store";
@@ -31,7 +31,6 @@ export function StepActionBar() {
   const lock = usePlaybound((s) => s.lock);
   const unlock = usePlaybound((s) => s.unlock);
   const setViewMode = usePlaybound((s) => s.setViewMode);
-  const setStyleRef = usePlaybound((s) => s.setStyleRef);
   const addVolume = usePlaybound((s) => s.addVolume);
   const newLevel = usePlaybound((s) => s.newLevel);
   const loadPreset = usePlaybound((s) => s.loadPreset);
@@ -45,16 +44,9 @@ export function StepActionBar() {
   const [presetOpen, setPresetOpen] = useState(false);
   const [dressBusy, setDressBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
-  const [styleBusy, setStyleBusy] = useState(false);
   const [sketchBusy, setSketchBusy] = useState(false);
   const [aiOk, setAiOk] = useState<boolean | null>(null);
-  const [notesDraft, setNotesDraft] = useState(level.styleNotes ?? "");
-  const styleRef = useRef<HTMLInputElement>(null);
   const sketchRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    setNotesDraft(level.styleNotes ?? "");
-  }, [level.id, level.styleNotes]);
 
   useEffect(() => {
     let cancelled = false;
@@ -144,37 +136,8 @@ export function StepActionBar() {
     }
   };
 
-  const onStyleFile = (file: File | undefined) => {
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") setStyleRef(reader.result, notesDraft || level.styleNotes);
-    };
-    reader.readAsDataURL(file);
-    setStyleBusy(true);
-    setToast("Reading style… ~5–10 s");
-    void aiStyle(file)
-      .then((out) => {
-        if (out.note) setToast(out.note);
-        else if (out.proposal) setToast("Style notes proposal ready — Accept or Reject.");
-      })
-      .catch((e) => setToast(e instanceof Error ? e.message : String(e)))
-      .finally(() => setStyleBusy(false));
-  };
-
   return (
     <div className="step-action-bar" data-step={step}>
-      <input
-        ref={styleRef}
-        type="file"
-        accept="image/*"
-        hidden
-        onChange={(e) => {
-          const f = e.target.files?.[0];
-          e.target.value = "";
-          onStyleFile(f);
-        }}
-      />
       <input
         ref={sketchRef}
         type="file"
@@ -308,25 +271,6 @@ export function StepActionBar() {
 
       {step === "dress" && (
         <>
-          <button
-            type="button"
-            className="icon-inline"
-            title={styleBusy ? "Reading style…" : "Style reference image (+ AI notes proposal)"}
-            disabled={styleBusy}
-            onClick={() => styleRef.current?.click()}
-          >
-            <ImagePlus {...ICON} aria-hidden />
-            {styleBusy ? "Reading…" : level.styleRefUrl ? "Style image ✓" : "Style image"}
-          </button>
-          <input
-            className="style-notes-inline"
-            type="text"
-            value={notesDraft}
-            placeholder="Style notes…"
-            title="Style notes used in Dress prompts"
-            onChange={(e) => setNotesDraft(e.target.value)}
-            onBlur={() => setStyleRef(level.styleRefUrl, notesDraft)}
-          />
           <button
             type="button"
             className="btn-primary btn-with-spin icon-inline"
