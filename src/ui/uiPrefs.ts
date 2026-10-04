@@ -1,6 +1,14 @@
 import { create } from "zustand";
 import type { Step } from "../core/store";
 
+export interface ToastNotice {
+  id: number;
+  message: string;
+  tone: "info" | "error";
+}
+
+let toastId = 0;
+
 /** UI-only prefs (not part of the level contract). */
 export const useUiPrefs = create<{
   showColliders: boolean;
@@ -18,8 +26,8 @@ export const useUiPrefs = create<{
   /** Manual stepper pick; null follows `currentStep(level)`. */
   stepOverride: Step | null;
   setStepOverride: (s: Step | null) => void;
-  toast: string | null;
-  setToast: (msg: string | null) => void;
+  toast: ToastNotice | null;
+  setToast: (msg: string | null, tone?: ToastNotice["tone"]) => void;
   /** What the designer did with each AI proposal (for "Accepted ✓" / "Dismissed" rows). */
   proposalOutcome: Record<string, "accepted" | "dismissed">;
   setProposalOutcome: (id: string, o: "accepted" | "dismissed") => void;
@@ -37,7 +45,8 @@ export const useUiPrefs = create<{
   stepOverride: null,
   setStepOverride: (stepOverride) => set({ stepOverride }),
   toast: null,
-  setToast: (toast) => set({ toast }),
+  setToast: (message, tone = "info") =>
+    set({ toast: message ? { id: ++toastId, message, tone } : null }),
   proposalOutcome: {},
   setProposalOutcome: (id, o) => set((s) => ({ proposalOutcome: { ...s.proposalOutcome, [id]: o } })),
 }));

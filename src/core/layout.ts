@@ -1,7 +1,7 @@
 // Layout hygiene for boxes the AI proposes (Round 5): every box sits fully inside the map,
 // and new solid boxes never overlap existing ones (nudged a little, else left out).
 // Shared by the AI server (sketch / map / edit / fix) and the store (map resize).
-import { SOLID_ROLES, type Volume } from "./types";
+import { SOLID_ROLES, type Volume } from "./types.js";
 
 /** Map sizes the designer can pick: label → half-extent (`Level.bounds`, metres). */
 export const MAP_SIZES = [

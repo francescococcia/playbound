@@ -1,5 +1,6 @@
 // Layout shell. Zones are owned by Cursor (src/ui/*). Keep this file thin.
-import { useEffect } from "react";
+import { AlertTriangle, CheckCircle2, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { isPlayLink } from "./core/share";
 import { CoDesignerPanel } from "./ui/panels/CoDesignerPanel";
 import { LevelPanel } from "./ui/panels/LevelPanel";
@@ -15,6 +16,22 @@ export default function App() {
   const coDesignerOpen = useUiPrefs((s) => s.coDesignerOpen);
   const toast = useUiPrefs((s) => s.toast);
   const setToast = useUiPrefs((s) => s.setToast);
+  const [toastVisible, setToastVisible] = useState(false);
+
+  useEffect(() => {
+    if (!toast) {
+      setToastVisible(false);
+      return;
+    }
+    const duration = toast.tone === "error" ? 8000 : 4000;
+    setToastVisible(true);
+    const exit = window.setTimeout(() => setToastVisible(false), duration - 180);
+    const dismiss = window.setTimeout(() => setToast(null), duration);
+    return () => {
+      window.clearTimeout(exit);
+      window.clearTimeout(dismiss);
+    };
+  }, [toast, setToast]);
 
   useEffect(() => {
     const mq = window.matchMedia("(min-width: 961px)");
@@ -66,9 +83,22 @@ export default function App() {
       </div>
 
       {toast && (
-        <button type="button" className="app-toast" onClick={() => setToast(null)} title="Dismiss">
-          {toast}
-        </button>
+        <div
+          className={`app-toast app-toast--${toast.tone}${toastVisible ? " app-toast--visible" : ""}`}
+          role="status"
+          aria-live={toast.tone === "error" ? "assertive" : "polite"}
+        >
+          {toast.tone === "error" ? (
+            <AlertTriangle size={16} strokeWidth={1.8} aria-hidden />
+          ) : (
+            <CheckCircle2 size={16} strokeWidth={1.8} aria-hidden />
+          )}
+          <span>{toast.message}</span>
+          <button type="button" className="app-toast-close" onClick={() => setToast(null)} title="Dismiss notification">
+            <X size={14} strokeWidth={1.8} aria-hidden />
+            <span className="sr-only">Dismiss notification</span>
+          </button>
+        </div>
       )}
     </div>
   );

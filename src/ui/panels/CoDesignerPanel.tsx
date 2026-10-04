@@ -119,12 +119,12 @@ function NextStepGuide({ aiOk }: { aiOk: boolean }) {
     if (step === "lock") return lock();
     if (step === "dress") {
       const gate = canDress(level);
-      if (!gate.ok) return setToast(gate.why ?? "Not ready to dress yet");
+      if (!gate.ok) return setToast(gate.why ?? "Not ready to dress yet", "error");
       setBusy(true);
       try {
         await dressLevel();
       } catch (e) {
-        setToast(e instanceof Error ? e.message : String(e));
+        setToast(e instanceof Error ? e.message : String(e), "error");
       } finally {
         setBusy(false);
       }
@@ -139,7 +139,7 @@ function NextStepGuide({ aiOk }: { aiOk: boolean }) {
         await navigator.clipboard.writeText(await shareUrl(level));
         setToast("Share link copied");
       } catch {
-        setToast("Could not copy the link");
+        setToast("Could not copy the link", "error");
       }
     }
   };
@@ -208,7 +208,7 @@ function DressStyleSetup({ aiOk }: { aiOk: boolean }) {
     setToast("Reading the reference image…");
     void aiStyle(file)
       .then((out) => setToast(out.proposal ? "Style notes are ready below — Accept them to use them." : out.note ?? "Reference saved."))
-      .catch((error) => setToast(error instanceof Error ? error.message : String(error)))
+      .catch((error) => setToast(error instanceof Error ? error.message : String(error), "error"))
       .finally(() => setReading(false));
   };
 

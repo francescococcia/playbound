@@ -30,19 +30,20 @@ function ViewPicker() {
   return null;
 }
 
-function OrbitRig() {
+function OrbitRig({ bounds }: { bounds: number }) {
   const { camera } = useThree();
+  const scale = bounds / 20;
   useEffect(() => {
-    camera.position.set(...ORBIT_POS);
+    camera.position.set(ORBIT_POS[0] * scale, ORBIT_POS[1] * scale, ORBIT_POS[2] * scale);
     camera.lookAt(...ORBIT_TARGET);
-  }, [camera]);
+  }, [bounds, camera, scale]);
   return (
     <OrbitControls
       makeDefault
       target={ORBIT_TARGET}
       maxPolarAngle={Math.PI / 2.05}
       minDistance={12}
-      maxDistance={90}
+      maxDistance={90 * scale}
     />
   );
 }
@@ -55,6 +56,8 @@ export function Viewport() {
   const showHeatmap = useUiPrefs((s) => s.showHeatmap);
   const prove = level.prove;
   const blueprint = isGreybox(level);
+  const mapScale = level.bounds / 20;
+  const shadowExtent = Math.max(35, level.bounds + 5);
   const showLegend =
     showHeatmap &&
     viewMode === "orbit" &&
@@ -73,18 +76,25 @@ export function Viewport() {
         onPointerMissed={() => select(null)}
       >
         <color attach="background" args={[bg]} />
-        <fog attach="fog" args={[bg, blueprint ? 70 : 55, blueprint ? 140 : 120]} />
+        <fog
+          attach="fog"
+          args={[
+            bg,
+            (blueprint ? 70 : 55) * mapScale,
+            (blueprint ? 140 : 120) * mapScale,
+          ]}
+        />
         <ambientLight intensity={blueprint ? 0.45 : 0.35} />
         <directionalLight
           castShadow
-          position={[22, 40, 14]}
+          position={[22 * mapScale, 40 * mapScale, 14 * mapScale]}
           intensity={blueprint ? 1.1 : 1.35}
           shadow-mapSize={[1024, 1024]}
-          shadow-camera-far={90}
-          shadow-camera-left={-35}
-          shadow-camera-right={35}
-          shadow-camera-top={35}
-          shadow-camera-bottom={-35}
+          shadow-camera-far={90 * mapScale}
+          shadow-camera-left={-shadowExtent}
+          shadow-camera-right={shadowExtent}
+          shadow-camera-top={shadowExtent}
+          shadow-camera-bottom={-shadowExtent}
         />
         <ViewPicker />
         <Suspense fallback={null}>
@@ -99,7 +109,7 @@ export function Viewport() {
           {viewMode === "orbit" && <BotReplay />}
         </Suspense>
 
-        {viewMode === "orbit" ? <OrbitRig /> : <FpsController level={level} />}
+        {viewMode === "orbit" ? <OrbitRig bounds={level.bounds} /> : <FpsController level={level} />}
       </Canvas>
 
       <ProveResultCard />

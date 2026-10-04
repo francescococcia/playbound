@@ -2,9 +2,11 @@ import { Camera, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { isLiveAvailable, regenerate, regenerateFromImage } from "../../core/dress/dress";
 import { toJpegDataUrl } from "../../core/image";
+import { MAP_SIZES } from "../../core/layout";
 import { usePlaybound } from "../../core/store";
 import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { shortLabel } from "../label";
+import { useUiPrefs } from "../uiPrefs";
 import { EditTools } from "./EditTools";
 import { PRESETS } from "../../presets/marketSquare";
 
@@ -31,6 +33,8 @@ export function LevelPanel() {
   const loadPreset = usePlaybound((s) => s.loadPreset);
   const select = usePlaybound((s) => s.select);
   const updateVolume = usePlaybound((s) => s.updateVolume);
+  const setMapBounds = usePlaybound((s) => s.setMapBounds);
+  const setToast = useUiPrefs((s) => s.setToast);
   const selected = level.volumes.find((v) => v.id === selectedId) ?? null;
   const locked = level.locked;
   const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
@@ -121,6 +125,29 @@ export function LevelPanel() {
         <h1 className="panel-title">Level</h1>
         <span className="panel-subtitle mono">{level.name}</span>
       </header>
+
+      <div className="field map-size-field">
+        <span className="field-label">Map size</span>
+        <div className="map-size-picker" role="group" aria-label="Map size">
+          {MAP_SIZES.map((size) => (
+            <button
+              key={size.id}
+              type="button"
+              className={level.bounds === size.bounds ? "active" : ""}
+              aria-pressed={level.bounds === size.bounds}
+              disabled={locked}
+              title={locked ? "Unlock to resize the map" : size.label}
+              onClick={() => {
+                const result = setMapBounds(size.bounds);
+                if (!result.ok) setToast(result.why ?? "Could not resize the map.", "error");
+              }}
+            >
+              <strong>{size.label.split(" · ")[0]}</strong>
+              <span>{size.bounds * 2} m</span>
+            </button>
+          ))}
+        </div>
+      </div>
 
       <label className="field">
         <span className="field-label">Preset</span>

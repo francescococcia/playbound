@@ -1,7 +1,7 @@
 // Dev server route /api/ai/* -> the same handler the Vercel function uses.
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Plugin } from "vite";
-import { handleAi } from "./ai/handler";
+import { handleAi } from "./ai/handler.js";
 
 export function aiDevPlugin(apiKey: string | undefined): Plugin {
   return {

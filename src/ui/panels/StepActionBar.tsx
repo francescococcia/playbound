@@ -109,7 +109,7 @@ export function StepActionBar() {
       setToast("Dress finished.");
       setStepOverride("play");
     } catch (e) {
-      setToast(e instanceof Error ? e.message : String(e));
+      setToast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setDressBusy(false);
     }
@@ -121,7 +121,7 @@ export function StepActionBar() {
       await navigator.clipboard.writeText(url);
       setToast("Play link copied — opens as a game.");
     } catch (e) {
-      setToast(e instanceof Error ? e.message : String(e));
+      setToast(e instanceof Error ? e.message : String(e), "error");
     }
   };
 
@@ -132,7 +132,7 @@ export function StepActionBar() {
       await downloadLevelZip(level);
       setToast("Export downloaded.");
     } catch (e) {
-      setToast(e instanceof Error ? e.message : String(e));
+      setToast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setExportBusy(false);
     }
@@ -155,7 +155,7 @@ export function StepActionBar() {
               if (out.note) setToast(out.note);
               else if (out.proposal) setToast("Sketch proposal ready — Accept or Reject.");
             })
-            .catch((err) => setToast(err instanceof Error ? err.message : String(err)))
+            .catch((err) => setToast(err instanceof Error ? err.message : String(err), "error"))
             .finally(() => setSketchBusy(false));
         }}
       />

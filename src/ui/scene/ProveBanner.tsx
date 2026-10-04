@@ -58,7 +58,7 @@ export function ProveBanner() {
       if (out.note) setToast(out.note);
       else if (out.proposal) setToast("Fix proposal ready — Accept or Reject.");
     } catch (e) {
-      setToast(e instanceof Error ? e.message : String(e));
+      setToast(e instanceof Error ? e.message : String(e), "error");
     } finally {
       setFixBusy(false);
     }
