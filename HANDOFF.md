@@ -491,3 +491,9 @@ Test: Save from Block out or Dress → Open saved shows it → load replaces the
 - **Better buildings** (`server/rodinDevPlugin.ts`): boxes ≥ 6 m wide get a "one single building, no campus/lawns/slab" instruction (added at send time so cache keys and prebaked presets stay valid), 2048 px textures and 15% of the geometry. Tested: a 22×14×30 m "Computer Laboratory wing" came back as one clean glass + buff-brick building.
 - **Walk = stealth playtest:** `src/core/prove/stealth.ts` (`stealthAt`, tested: hidden / cover / seen, same rule as Prove) + `src/ui/scene/Stealth.tsx` (probe in the canvas, pill + red screen edges). Heatmap hidden in Walk. Play mode: same HUD, and the win card says how long you were seen.
 - **Restart the dev server** after pulling (server plugins only load at start).
+
+## 2026-10-04 ~13:00 — Claude Code (cloud) — demo script, no code changes
+
+- Verified: 62 tests, typecheck, build pass; reviewed UI polish commits (no blockers). Bot model faces +Z (heading = atan2(dx, dz)), consistent.
+- Added `DEMO_SCRIPT.md` (shot list, voice-over, fallbacks, submission description under 1000 chars). Linked from `NEXT_SESSION.md`.
+- Cloud session could not deploy (no Vercel login) or reach the live URL (network policy). Francesco added env vars; they load only in a new session. Live site needs a redeploy to pick up `GEMINI_API_KEY`.

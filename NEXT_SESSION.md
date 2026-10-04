@@ -4,6 +4,7 @@ PLAYBOUND: Tencent × Arcade AI Hackathon (Cambridge), Game Tech track. **Submis
 Live: https://playbound-eta.vercel.app · Repo: https://github.com/francescococcia/playbound (`main`)
 
 ## Read first
+0. `DEMO_SCRIPT.md`: shot-by-shot video script + submission form text.
 1. This file. 2. The end of `HANDOFF.md`. 3. `PLAN.md` Round 5. 4. `demo/CREDITS.md` (licences for every demo image).
 
 ## What exists now (all pushed)
@@ -21,7 +22,7 @@ Live: https://playbound-eta.vercel.app · Repo: https://github.com/francescococc
 ## Remaining
 1. Design session finishes → review its commits (tests + build + run the flow) → push → Francesco deploys (`npx vercel deploy --prod --yes` from `playbound/`, clean tree).
 2. Francesco tests locally (needs `npm run dev` + `.env` keys): the 120 m satellite + photos + Dress flow for the video.
-3. Record the video (show credits: OSM, Google imagery, Geograph photos) → submit by 14:00 (live URL + video + repo).
+3. Record the video (follow `DEMO_SCRIPT.md`) (show credits: OSM, Google imagery, Geograph photos) → submit by 14:00 (live URL + video + repo).
 
 ## What only works locally
 Dress / From photo / re-dress (Hyper3D route is dev-only), Google satellite images. Keys are in `playbound/.env` (git-ignored): never paste them anywhere.
