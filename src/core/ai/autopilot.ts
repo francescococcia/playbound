@@ -24,6 +24,8 @@ export const AP_STEPS: { id: Exclude<ApStep, "done">; label: string }[] = [
 export interface ApState {
   active: boolean;
   brief: string;
+  /** Optional map / sketch: the layout is read from it (the brief becomes directions). */
+  image: File | null;
   /** The layout proposal the autopilot asked for (while it is pending). */
   layoutProposalId: string | null;
   layoutAccepted: boolean;
@@ -45,12 +47,12 @@ export interface ApView {
 }
 
 /** Pure: the current step and what the designer can approve next. */
-export function autopilotView(level: Level, proposals: Proposal[], ap: Pick<ApState, "layoutProposalId" | "layoutAccepted" | "styleSet" | "brief">): ApView {
+export function autopilotView(level: Level, proposals: Proposal[], ap: Pick<ApState, "layoutProposalId" | "layoutAccepted" | "styleSet" | "brief"> & { image?: File | null }): ApView {
   const layoutPending = !!ap.layoutProposalId && proposals.some((p) => p.id === ap.layoutProposalId);
   if (!ap.layoutAccepted) {
     return layoutPending
       ? { now: "layout", waiting: true, hint: "Preview the draft layout in the thread, then Accept it (or Dismiss and redraft)." }
-      : { now: "layout", waiting: false, action: ap.layoutProposalId === null ? "Draft the layout" : "Redraft the layout", hint: `I'll draft a greybox for "${ap.brief}".` };
+      : { now: "layout", waiting: false, action: ap.layoutProposalId === null ? "Draft the layout" : "Redraft the layout", hint: ap.image ? `I'll read the greybox from ${ap.image.name}${ap.brief ? `, following: "${ap.brief}"` : ""}.` : `I'll draft a greybox for "${ap.brief}".` };
   }
   const prove = level.prove?.status;
   if (!prove || prove === "idle") return { now: "prove", waiting: false, action: "Run Prove", hint: "A bot walks from spawn to goal and checks it can stay hidden." };
@@ -80,6 +82,7 @@ export function autopilotView(level: Level, proposals: Proposal[], ap: Pick<ApSt
 export const useAutopilot = create<ApState>(() => ({
   active: false,
   brief: "",
+  image: null,
   layoutProposalId: null,
   layoutAccepted: false,
   styleSet: false,
@@ -87,9 +90,9 @@ export const useAutopilot = create<ApState>(() => ({
   busy: false,
 }));
 
-/** Start a run from a one-line brief. Drafts nothing yet: the first step needs approval too. */
-export function startAutopilot(brief: string): void {
-  useAutopilot.setState({ active: true, brief: brief.trim().slice(0, 300), layoutProposalId: null, layoutAccepted: false, styleSet: false, sawFail: false, busy: false });
+/** Start a run from a one-line brief and/or a map. Drafts nothing yet: the first step needs approval too. */
+export function startAutopilot(brief: string, image: File | null = null): void {
+  useAutopilot.setState({ active: true, brief: brief.trim().slice(0, 300), image, layoutProposalId: null, layoutAccepted: false, styleSet: false, sawFail: false, busy: false });
 }
 
 export function stopAutopilot(): void {
@@ -106,7 +109,9 @@ export async function approveAutopilotStep(): Promise<void> {
   try {
     switch (view.now) {
       case "layout": {
-        const ps = await aiAgent(`Build me a level: ${ap.brief}`, undefined, { intent: "build" });
+        const ps = ap.image
+          ? await aiAgent(ap.brief ? `Build this level from the map. ${ap.brief}` : "Build this level from the map.", ap.image, { intent: "sketch" })
+          : await aiAgent(`Build me a level: ${ap.brief}`, undefined, { intent: "build" });
         const layout = ps.find((p) => p.replaceAll);
         useAutopilot.setState({ layoutProposalId: layout?.id ?? "" });
         break;
@@ -121,7 +126,7 @@ export async function approveAutopilotStep(): Promise<void> {
         st.lock();
         break;
       case "style":
-        await aiAgent(`Suggest a look for this level: ${ap.brief}`, undefined, { intent: "style" });
+        await aiAgent(`Suggest a look for this level: ${ap.brief || st.level.name}`, undefined, { intent: "style" });
         break;
       case "dress":
         await dressLevel();
@@ -146,5 +151,6 @@ usePlaybound.subscribe((s, prev) => {
   if (!p || s.proposals.some((x) => x.id === id)) return;
   // Gone from the list: accepted if its boxes are now the level, otherwise dismissed.
   const accepted = !!p.add?.length && p.add.every((v) => s.level.volumes.some((w) => w.id === v.id));
-  useAutopilot.setState(accepted ? { layoutAccepted: true } : { layoutProposalId: "" });
+  // A layout read from a map brings the real place's look: that counts as the Style step.
+  useAutopilot.setState(accepted ? { layoutAccepted: true, styleSet: !!p.styleNotes } : { layoutProposalId: "" });
 });
