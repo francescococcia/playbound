@@ -51,6 +51,7 @@ export function Viewport() {
   const level = usePlaybound((s) => s.level);
   const viewMode = usePlaybound((s) => s.viewMode);
   const select = usePlaybound((s) => s.select);
+  const replacingLayout = usePlaybound((s) => s.proposals.some((p) => p.replaceAll));
   const showHeatmap = useUiPrefs((s) => s.showHeatmap);
   const prove = level.prove;
   const blueprint = isGreybox(level);
@@ -67,6 +68,7 @@ export function Viewport() {
     <main className="viewport">
       <Canvas
         shadows
+        dpr={[1, 1.5]}
         camera={{ position: ORBIT_POS, fov: 45, near: 0.1, far: 250 }}
         onPointerMissed={() => select(null)}
       >
@@ -77,7 +79,7 @@ export function Viewport() {
           castShadow
           position={[22, 40, 14]}
           intensity={blueprint ? 1.1 : 1.35}
-          shadow-mapSize={[2048, 2048]}
+          shadow-mapSize={[1024, 1024]}
           shadow-camera-far={90}
           shadow-camera-left={-35}
           shadow-camera-right={35}
@@ -90,7 +92,7 @@ export function Viewport() {
           <Ground bounds={level.bounds} blueprint={blueprint} />
           <Heatmap />
           {level.volumes.map((v) => (
-            <VolumeMesh key={v.id} volume={v} />
+            <VolumeMesh key={v.id} volume={v} faded={replacingLayout} />
           ))}
           <ProposalGhosts />
           {viewMode === "orbit" && <ProvePath prove={level.prove} />}

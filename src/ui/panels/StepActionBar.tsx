@@ -13,7 +13,7 @@ import { aiSketch, isAiAvailable } from "../../core/ai/client";
 import { dressLevel } from "../../core/dress/dress";
 import { downloadLevelZip } from "../../core/export/exportLevel";
 import { canDress, usePlaybound } from "../../core/store";
-import { ROLE_COLORS, type Role } from "../../core/types";
+import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { playUrl } from "../../core/share";
 import { PRESETS } from "../../presets/marketSquare";
 import { useUiPrefs } from "../uiPrefs";
@@ -59,7 +59,9 @@ export function StepActionBar() {
   }, []);
 
   const dressGate = canDress(level);
-  const dressing = level.volumes.some((v) => v.status === "queued" || v.status === "generating");
+  const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
+  const dressedCount = dressables.filter((v) => v.status === "ready").length;
+  const dressing = dressables.some((v) => v.status === "queued" || v.status === "generating");
 
   const lockDisabled = level.prove?.status !== "pass";
   const lockWhy = lockDisabled
@@ -279,7 +281,7 @@ export function StepActionBar() {
             title={dressWhy}
           >
             {(dressBusy || dressing) && <span className="btn-spin" aria-hidden />}
-            {dressBusy || dressing ? "Dressing…" : "Dress level"}
+            {dressBusy || dressing ? `Dressing ${dressedCount} / ${dressables.length}` : "Dress level"}
           </button>
           {dressDisabled && !dressBusy && <p className="action-why">{dressGate.why}</p>}
         </>

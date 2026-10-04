@@ -1,5 +1,6 @@
-import { Copy, FilePlus, Plus, Trash2 } from "lucide-react";
+import { Copy, FilePlus, Plus, Redo2, Trash2, Undo2 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useHistory } from "../../core/history";
 import { usePlaybound } from "../../core/store";
 import { ROLE_COLORS, type Role } from "../../core/types";
 import { viewGroundCenter } from "../viewPick";
@@ -16,6 +17,10 @@ export function EditTools() {
   const removeVolume = usePlaybound((s) => s.removeVolume);
   const duplicateVolume = usePlaybound((s) => s.duplicateVolume);
   const newLevel = usePlaybound((s) => s.newLevel);
+  const canUndo = useHistory((s) => s.past.length > 0);
+  const canRedo = useHistory((s) => s.future.length > 0);
+  const undo = useHistory((s) => s.undo);
+  const redo = useHistory((s) => s.redo);
   const [addOpen, setAddOpen] = useState(false);
 
   const selected = level.volumes.find((v) => v.id === selectedId) ?? null;
@@ -116,6 +121,28 @@ export function EditTools() {
         >
           <Copy {...ICON} aria-hidden />
           Duplicate
+        </button>
+      </div>
+      <div className="edit-row edit-history-row">
+        <button
+          type="button"
+          className="icon-inline"
+          disabled={locked || !canUndo}
+          title={locked ? "Unlock to undo" : "Undo (Ctrl+Z)"}
+          onClick={undo}
+        >
+          <Undo2 {...ICON} aria-hidden />
+          Undo
+        </button>
+        <button
+          type="button"
+          className="icon-inline"
+          disabled={locked || !canRedo}
+          title={locked ? "Unlock to redo" : "Redo (Ctrl+Y)"}
+          onClick={redo}
+        >
+          <Redo2 {...ICON} aria-hidden />
+          Redo
         </button>
       </div>
       <button

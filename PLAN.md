@@ -234,7 +234,7 @@ Demo: **Cambridge Market Square from an OpenStreetMap screenshot** (`demo/cambri
 | F4 | Claude Code | **Agent replies match the current level:** after a layout is replaced the old conversation doesn't leak old names ("south gate", "stone well"); the fix reply uses the verified fix's own text | todo |
 | F5 | Claude Code | Dress status says "Generating" instead of the API's internal "jobs 1/6" | todo |
 | F6 | Claude Code | **Map size:** Small 40 m / Medium 60 m / Large 80 m; a map import picks the size from the real scale; the designer can change it ("make the map 60 m") | todo, needs Francesco's yes |
-| U22 | Cursor | **Fluid, readable viewport:** see `CURSOR_PROMPT_ROUND5.md` | todo |
+| U22 | Cursor | **Fluid, readable viewport:** see `CURSOR_PROMPT_ROUND5.md` | done |
 
 ---
 

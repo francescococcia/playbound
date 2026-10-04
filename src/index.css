@@ -329,6 +329,8 @@ button.active {
 .edit-tools { display: flex; flex-direction: column; gap: 0.4rem; }
 .edit-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
 .edit-row > button, .new-level-btn { flex: 1 1 auto; font-size: var(--text-sm); }
+.edit-history-row { flex-wrap: nowrap; }
+.edit-history-row > button { flex: 1 1 50%; }
 .add-wrap { position: relative; flex: 1 1 auto; }
 .add-wrap > button { width: 100%; font-size: var(--text-sm); }
 .add-menu {
@@ -385,7 +387,8 @@ button.active {
   min-height: 0;
   border-left: 1px solid var(--border);
   background: var(--panel);
-  overflow: hidden;
+  /* Unlike hidden, clip cannot be scrolled by Thread's scrollIntoView. */
+  overflow: clip;
 }
 .co-designer-head {
   display: flex;
@@ -951,6 +954,20 @@ button.active {
   flex-direction: column;
   gap: var(--space-3);
   scrollbar-width: thin;
+}
+.co-designer > .co-guide {
+  position: relative;
+  z-index: 1;
+  flex: 0 0 auto;
+}
+.co-designer > .co-thread {
+  position: relative;
+  flex: 1 1 0;
+}
+/* Once the conversation starts, keep the guide's header as context and give the thread the room. */
+.co-designer:has(.co-msg--user) > .co-guide .co-guide-body,
+.co-designer:has(.co-attach) > .co-guide .co-guide-body {
+  display: none;
 }
 
 .co-empty { padding: var(--space-2) var(--space-1); }

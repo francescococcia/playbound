@@ -416,3 +416,25 @@ Test: Play step → Copy play link → open in new tab → Play → reach well �
   - **For Cursor (optional):** the proposal tag shows "FROM SKETCH" for text-built layouts too; could read "FROM DESCRIPTION" when the user message didn't attach an image.
 - **B review (Cursor's Play mode): works.** A play link opens the start card, then Play → HUD. Two fixes committed in `PlayMode.tsx`: touchscreen laptops were blocked as "touch devices" (`maxTouchPoints > 0`); now it blocks only when there is no fine pointer. The HUD said "0.0 m" before the first frame. Not fixed (minor): changing only the hash in the same tab doesn't switch editor → play (a new tab or a reload does).
 - **Not deployed:** the working tree has Cursor's uncommitted work (store.ts canDress, DressStyleSetup in CoDesignerPanel, StepActionBar, round4.css). Deploy after Cursor commits.
+
+## 2026-10-04 ~07:35 — Cursor — U22 (fluid, readable viewport)
+
+Built:
+- Labels now render only for spawn/objective plus the selected or hovered box; FPS renders no labels.
+- Dressing uses a violet outline on queued/generating boxes, hover-only per-box text, and one action-bar counter (`Dressing 4 / 19`).
+- Any pending `replaceAll` proposal fades the current layout to 15%, removes its labels/beacon/colliders, and restores it immediately on Dismiss.
+- Canvas DPR is capped at 1.5 and the shadow map is 1024. Kept the default frameloop because route, bot, ghost, and model animations require continuous frames.
+- Co-designer guide/thread/composer no longer overlap: the panel itself cannot be programmatically scrolled, and the guide body collapses while an image is attached or once the conversation starts.
+- Non-preset levels show `Custom` in the preset selector while retaining their real name above it.
+- Added Undo / Redo buttons wired to `useHistory`, disabled while locked or unavailable.
+
+Files: `src/ui/scene/{VolumeMesh,Viewport}.tsx`, `src/ui/panels/{StepActionBar,LevelPanel,EditTools}.tsx`, `src/index.css`, `PLAN.md`, `HANDOFF.md`.
+
+Test:
+- `npm run typecheck` ✅
+- `npm test` ✅ (10 files, 50 tests)
+- `npm run build` ✅ (existing large-chunk warning only)
+- Browser at 1036×502: attached Cambridge OSM image keeps composer visible; replacement preview had zero old-layout DOM labels; runtime Dress state showed one `Dressing 4 / 10` counter and zero per-box loading badges; FPS had zero labels.
+- The live Cambridge AI request was interrupted by the concurrently changing dev server (`ERR_EMPTY_RESPONSE` while generated assets/manifest were updating), so replacement-preview behavior was also verified with a temporary runtime `replaceAll` proposal. No source fixtures were added.
+
+Notes for Claude Code: no core/server/API or protected Round 4 files changed. The unrelated generated GLBs, manifest, and `CURSOR_PROMPT_ROUND5.md` working-tree changes were not staged.

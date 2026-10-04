@@ -130,7 +130,7 @@ export function LevelPanel() {
           disabled={locked}
           title={locked ? "Unlock to switch preset" : undefined}
         >
-          {!PRESETS.some((p) => p.id === level.id) && <option value={level.id}>{level.name}</option>}
+          {!PRESETS.some((p) => p.id === level.id) && <option value={level.id}>Custom</option>}
           {PRESETS.map((p) => (
             <option key={p.id} value={p.id}>
               {p.name}

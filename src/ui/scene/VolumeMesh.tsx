@@ -16,7 +16,7 @@ const RAYCASTER = new THREE.Raycaster();
 const DRAG_THRESHOLD_PX = 5;
 
 function alwaysLabel(role: Volume["role"]) {
-  return role === "spawn" || role === "objective" || role === "cover";
+  return role === "spawn" || role === "objective";
 }
 
 function WireCollider({ size, color }: { size: [number, number, number]; color: string }) {
@@ -34,11 +34,15 @@ function GreyBox({
   color,
   selected,
   hovered,
+  faded = false,
+  loading = false,
 }: {
   size: [number, number, number];
   color: string;
   selected: boolean;
   hovered: boolean;
+  faded?: boolean;
+  loading?: boolean;
 }) {
   const [sx, sy, sz] = size;
   return (
@@ -46,17 +50,18 @@ function GreyBox({
       <boxGeometry args={[sx, sy, sz]} />
       <meshStandardMaterial
         color={color}
-        emissive={selected || hovered ? color : "#000000"}
-        emissiveIntensity={selected ? 0.35 : hovered ? 0.15 : 0}
+        emissive={selected || hovered || loading ? color : "#000000"}
+        emissiveIntensity={selected ? 0.35 : hovered ? 0.15 : loading ? 0.08 : 0}
         transparent
-        opacity={0.92}
+        opacity={faded ? 0.15 : loading ? 0.68 : 0.92}
+        depthWrite={!faded}
       />
     </mesh>
   );
 }
 
 /** One contract volume. Spawn/objective = flat markers; others = solid boxes / dressed GLBs. */
-export function VolumeMesh({ volume }: { volume: Volume }) {
+export function VolumeMesh({ volume, faded = false }: { volume: Volume; faded?: boolean }) {
   const selectedId = usePlaybound((s) => s.selectedId);
   const select = usePlaybound((s) => s.select);
   const updateVolume = usePlaybound((s) => s.updateVolume);
@@ -71,11 +76,9 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
   const selected = selectedId === volume.id;
   const color = ROLE_COLORS[volume.role];
   const isMarker = volume.role === "spawn" || volume.role === "objective";
-  // FPS: only the objective label (clean corridor shot). Orbit: spawn/objective/cover + hover/select.
+  // Keep the scene quiet: spawn/objective stay labelled; everything else appears on intent.
   const showLabel =
-    viewMode === "fps"
-      ? volume.role === "objective"
-      : alwaysLabel(volume.role) || selected || hovered;
+    viewMode !== "fps" && !faded && (alwaysLabel(volume.role) || selected || hovered);
   const yBase = volume.position[1];
   const hasAsset = Boolean(volume.assetUrl);
   const loading = volume.status === "queued" || volume.status === "generating";
@@ -160,7 +163,7 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
     </Html>
   ) : null;
 
-  const loadBadge = loading ? (
+  const loadBadge = loading && hovered && !faded ? (
     <Html position={[0, sy / 2, 0]} center style={{ pointerEvents: "none" }}>
       <span className="vol-loading">
         <span className="btn-spin" aria-hidden />
@@ -193,14 +196,15 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
             emissive={isObjective || selected ? color : "#000000"}
             emissiveIntensity={isObjective ? 0.7 : selected ? 0.55 : 0}
             transparent
-            opacity={0.9}
+            opacity={faded ? 0.15 : 0.9}
+            depthWrite={!faded}
           />
         </mesh>
         <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
           <ringGeometry args={[r * 0.82, r, 32]} />
-          <meshBasicMaterial color={selected ? "#ffffff" : color} />
+          <meshBasicMaterial color={selected ? "#ffffff" : color} transparent opacity={faded ? 0.15 : 1} depthWrite={!faded} />
         </mesh>
-        {isObjective && (
+        {isObjective && !faded && (
           <group>
             <mesh position={[0, 2.2, 0]}>
               <cylinderGeometry args={[0.08, 0.12, 4.2, 10]} />
@@ -235,24 +239,26 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
       onPointerDown={onPointerDown}
       {...hoverHandlers}
     >
-      {hasAsset ? (
+      {hasAsset && !faded ? (
         <Suspense
           fallback={
             <>
-              <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} />
-              <Html position={[0, sy / 2, 0]} center style={{ pointerEvents: "none" }}>
-                <span className="vol-loading">
-                  <span className="btn-spin" aria-hidden />
-                  Loading model…
-                </span>
-              </Html>
+              <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} loading />
+              {hovered && (
+                <Html position={[0, sy / 2, 0]} center style={{ pointerEvents: "none" }}>
+                  <span className="vol-loading">
+                    <span className="btn-spin" aria-hidden />
+                    Loading model…
+                  </span>
+                </Html>
+              )}
             </>
           }
         >
           <DressedModel url={volume.assetUrl!} size={volume.size} />
         </Suspense>
       ) : (
-        <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} />
+        <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} faded={faded} loading={loading && !faded} />
       )}
 
       {hasAsset && (
@@ -261,7 +267,9 @@ export function VolumeMesh({ volume }: { volume: Volume }) {
         </mesh>
       )}
 
-      {(showColliders || selected) && <WireCollider size={volume.size} color={selected ? "#ffffff" : "#58a6ff"} />}
+      {!faded && (showColliders || selected || loading) && (
+        <WireCollider size={volume.size} color={loading ? "#a78bfa" : selected ? "#ffffff" : "#58a6ff"} />
+      )}
 
       {loading && loadBadge}
       {label}
