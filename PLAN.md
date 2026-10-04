@@ -228,12 +228,12 @@ Demo: **Cambridge Market Square from an OpenStreetMap screenshot** (`demo/cambri
 
 | ID | Owner | Task | Status |
 |---|---|---|---|
-| F1 | Claude Code | **No overlaps:** boxes from a sketch/map, an edit or a fix never overlap existing solid boxes (nudge, else drop) | todo |
-| F2 | Claude Code | **Inside the map:** a box's whole footprint stays inside the play area (today only its centre is clamped) | todo |
-| F3 | Claude Code | **Level name** comes from the sketch/map/description on a "replace layout" Accept (not "Market Square (fail)") | todo |
-| F4 | Claude Code | **Agent replies match the current level:** after a layout is replaced the old conversation doesn't leak old names ("south gate", "stone well"); the fix reply uses the verified fix's own text | todo |
-| F5 | Claude Code | Dress status says "Generating" instead of the API's internal "jobs 1/6" | todo |
-| F6 | Claude Code | **Map size:** Small 40 m / Medium 60 m / Large 80 m; a map import picks the size from the real scale; the designer can change it ("make the map 60 m") | todo, needs Francesco's yes |
+| F1 | Claude Code | **No overlaps:** boxes from a sketch/map, an edit or a fix never overlap existing solid boxes (nudge, else drop) | done |
+| F2 | Claude Code | **Inside the map:** a box's whole footprint stays inside the play area (today only its centre is clamped) | done |
+| F3 | Claude Code | **Level name** comes from the sketch/map/description on a "replace layout" Accept (not "Market Square (fail)") | done |
+| F4 | Claude Code | **Agent replies match the current level:** after a layout is replaced the old conversation doesn't leak old names ("south gate", "stone well"); the fix reply uses the verified fix's own text | done |
+| F5 | Claude Code | Dress status says "Generating" instead of the API's internal "jobs 1/6" | done |
+| F6 | Claude Code | **Map size:** Small 40 m / Medium 60 m / Large 80 m; a map import picks the size from the real scale; the designer can change it ("make the map 60 m") | done (UI picker: U22 #9) |
 | U22 | Cursor | **Fluid, readable viewport:** see `CURSOR_PROMPT_ROUND5.md` | done |
 
 ---

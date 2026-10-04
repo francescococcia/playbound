@@ -438,3 +438,13 @@ Test:
 - The live Cambridge AI request was interrupted by the concurrently changing dev server (`ERR_EMPTY_RESPONSE` while generated assets/manifest were updating), so replacement-preview behavior was also verified with a temporary runtime `replaceAll` proposal. No source fixtures were added.
 
 Notes for Claude Code: no core/server/API or protected Round 4 files changed. The unrelated generated GLBs, manifest, and `CURSOR_PROMPT_ROUND5.md` working-tree changes were not staged.
+
+## 2026-10-04 ~08:00 — Claude Code — Round 5 F1–F6 (Francesco's visual check)
+
+- **`src/core/layout.ts` (new, tested):** `keepInside` (the whole footprint inside the map, rotation included; shrinks boxes bigger than the map), `overlaps`, `placeClear` (nudge up to 4 m, else null), `placeAll` (biggest first; spawn/objective never dropped), `MAP_SIZES` (40/60/80 m = bounds 20/30/40), `boundsForWidth`.
+- **Server:** sketch/map/description layouts go through `placeAll` (no overlaps, nothing outside); the model first estimates the real width (`areaMeters`) so a map keeps its real scale, and names the level. Edits: moved/resized boxes and added boxes are placed clear of the rest. Fix search uses the same overlap rule. The agent can propose a map resize ("make the map 60 m" → a `bounds` proposal). Fix replies are the verified fix's own text. The prompt says old conversation may mention boxes that no longer exist.
+- **Store:** `Proposal.levelName` / `Proposal.bounds` applied on Accept; `setMapBounds(b)` (refused while locked; keeps boxes inside); `agentContextAfter` = the last message before a layout was replaced / another level loaded, so the agent's history only covers the current level.
+- Dress status: "Generating 3D" instead of the API's "jobs 1/6".
+- Tested on the dev server with the Cambridge OSM image: name "Cambridge Market Square", map 80 m, 21 boxes, 0 outside, 0 overlaps; "add three carts" → all clear; resize 40 → 60 m; "build a large 80 m smugglers' harbour" → "Smuggler's Wharf", 80 m, 18 boxes. 58 tests pass.
+- **Cursor:** U22 now also has #8 (map size picker → `setMapBounds`) and #9 (camera framing scales with `level.bounds`).
+- Not committed: 17 new GLBs + manifest in `public/assets/gen/` from Francesco's local Dress of Cambridge (his call whether to keep them).
