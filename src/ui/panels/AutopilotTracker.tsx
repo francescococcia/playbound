@@ -1,7 +1,7 @@
 // Autopilot (Round 4 · C) inside the Co-designer: "Build me a level" from one line, then
 // layout → Prove → fix → lock → style → dress, each step only after the designer approves it.
 // Owned by Claude Code. Logic lives in src/core/ai/autopilot.ts (tested).
-import { Check, ImagePlus, Loader2, Wand2, X } from "lucide-react";
+import { ArrowRight, Check, ImagePlus, Loader2, Wand2, X } from "lucide-react";
 import { useRef, useState, type FormEvent } from "react";
 import { AP_STEPS, approveAutopilotStep, autopilotView, startAutopilot, stopAutopilot, useAutopilot } from "../../core/ai/autopilot";
 import { usePlaybound } from "../../core/store";
@@ -26,8 +26,9 @@ export function AutopilotTracker({ aiOk }: { aiOk: boolean }) {
     return (
       <form className="ap-start" onSubmit={submit}>
         <label className="ap-start-label" htmlFor="ap-brief">
-          <Wand2 size={14} strokeWidth={1.75} aria-hidden /> Build me a level
+          <Wand2 size={15} strokeWidth={1.75} aria-hidden /> Build me a level
         </label>
+        <p className="ap-start-sub">Describe a place, or attach a top-down map. I propose each step; you approve it.</p>
         <div className="ap-start-row">
           <input
             ref={fileRef}
@@ -57,10 +58,19 @@ export function AutopilotTracker({ aiOk }: { aiOk: boolean }) {
             placeholder={image ? "Directions, e.g. goal is the main entrance" : `e.g. ${EXAMPLES[0]}`}
             disabled={!aiOk}
           />
-          <button type="submit" className="co-guide-primary" disabled={!aiOk || (!brief.trim() && !image)}>
-            Start
+          <button type="submit" className="ap-go" disabled={!aiOk || (!brief.trim() && !image)}>
+            Start <ArrowRight size={14} strokeWidth={2} aria-hidden />
           </button>
         </div>
+        {aiOk && !brief && !image && (
+          <div className="ap-examples" aria-label="Example briefs">
+            {EXAMPLES.map((ex) => (
+              <button key={ex} type="button" className="ap-example" onClick={() => setBrief(ex)}>
+                {ex}
+              </button>
+            ))}
+          </div>
+        )}
         {image && (
           <p className="ap-file">
             <span>Map: {image.name}</span>

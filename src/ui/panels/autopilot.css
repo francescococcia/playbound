@@ -2,32 +2,98 @@
 .ap-start {
   flex-shrink: 0;
   margin: var(--space-3) var(--space-3) 0;
-  padding: 0.55rem 0.7rem;
-  border: 1px dashed var(--border-strong);
-  border-radius: var(--radius-control);
+  padding: 0.75rem;
+  border: 1px solid #a78bfa4d;
+  border-radius: var(--radius-panel);
+  background:
+    radial-gradient(120% 90% at 0% 0%, #a78bfa1f, transparent 60%),
+    var(--panel-2);
   display: grid;
-  gap: 0.4rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  transition: border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out);
 }
+.ap-start:focus-within { border-color: #a78bfa99; box-shadow: 0 0 0 3px #a78bfa1a; }
 .ap-start-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.4rem;
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: var(--text-xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: var(--text-md);
+  letter-spacing: 0.005em;
+  color: var(--text);
+}
+.ap-start-label svg { color: var(--ai); }
+.ap-start-sub { margin: -0.2rem 0 0.1rem; font-size: var(--text-xs); line-height: 1.45; color: var(--text-muted); }
+.ap-start-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--ink);
+  transition: border-color var(--dur-fast) var(--ease-out);
+}
+.ap-start-row:focus-within { border-color: #a78bfa88; }
+.ap-start-input {
+  flex: 1;
+  width: 0;
+  min-width: 0;
+  min-height: 2rem;
+  padding: 0.3rem 0.35rem;
+  font-size: var(--text-sm);
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+.ap-start-input::placeholder { color: #6f7a90; }
+.ap-attach {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
   color: var(--ai);
 }
-.ap-start-row { display: flex; gap: 0.35rem; }
-.ap-start-input { flex: 1; min-width: 0; font-size: var(--text-sm); }
-.ap-attach { display: inline-grid; place-items: center; padding: 0 0.5rem; color: var(--ai); }
+.ap-attach:hover:not(:disabled) { background: #a78bfa1a; border-color: transparent; }
+.ap-go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  min-height: 2rem;
+  padding: 0.3rem 0.7rem;
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  background: var(--ai);
+  border-color: var(--ai);
+  color: var(--ai-ink);
+}
+.ap-go:hover:not(:disabled) { background: #b9a2ff; border-color: #b9a2ff; }
+.ap-go:disabled { background: var(--panel-2); border-color: var(--border); color: var(--text-muted); opacity: 1; }
+.ap-go svg { transition: transform var(--dur-fast) var(--ease-out); }
+.ap-go:hover:not(:disabled) svg { transform: translateX(2px); }
+.ap-examples { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.ap-example {
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  border: 1px dashed #a78bfa55;
+  background: transparent;
+  color: #cbbcff;
+  font-size: 0.7rem;
+  line-height: 1.3;
+}
+.ap-example:hover:not(:disabled) { border-style: solid; border-color: var(--ai); background: #a78bfa14; color: #fff; }
 .ap-file { margin: 0; display: flex; align-items: center; gap: 0.3rem; font-size: var(--text-xs); color: var(--text-muted); }
 .ap-file span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ap-note, .ap-error { margin: 0; font-size: var(--text-xs); color: var(--text-muted); }
 .ap-error { color: var(--danger); }
 
-.ap { border-left-color: var(--ai); }
+.ap { border-color: #a78bfa66; }
 .ap-head { display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.7rem 0.3rem; }
 .ap-brief { color: var(--text-muted); text-transform: none; letter-spacing: 0; font-weight: 500; }
 .ap-stop { background: none; border: none; padding: 0.2rem; color: var(--text-muted); }
@@ -60,7 +126,7 @@
 .ap-step--now .ap-dot { border-color: var(--ai); color: var(--ai); box-shadow: 0 0 0 2px #a78bfa33; }
 .ap-step--skipped { text-decoration: line-through; opacity: 0.6; }
 
-.ap .co-guide-primary { background: var(--ai); border-color: var(--ai); color: #1a1033; }
+.ap .co-guide-primary { --fill: var(--ai); --fill-ink: var(--ai-ink); }
 .ap-spin { animation: ap-spin 0.9s linear infinite; }
 @keyframes ap-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .ap-spin { animation: none; } }
