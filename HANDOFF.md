@@ -406,3 +406,13 @@ Files: App, `src/ui/play/*`, ShareSaveMenu, StepActionBar, PLAN, HANDOFF.
 
 Test: Play step → Copy play link → open in new tab → Play → reach well → win card; editor link works.
 
+
+## 2026-10-04 ~06:15 — Claude Code — bot model, C (Autopilot), B review
+
+- **Bot model:** `public/assets/gen/bot-runner.glb`, a hooded thief made with the Rodin API + `bbox_condition` (0.7 × 1.8 × 0.5 m; raw bounds came back 0.79 × 1.89 × 0.55, so the proportions held). `BotReplay.tsx` loads it with `useGLTF` + `fitToVolume`; the capsule is the Suspense fallback. The ground ring now tints green/coral with the bot's state; "Spotted!" stays. `prebake --prune` keeps `bot-*` keys. **Still needs an eyeball check** that the model faces where it runs (it should face +Z).
+- **C: Autopilot.** Logic: `src/core/ai/autopilot.ts` (tested). UI: `src/ui/panels/AutopilotTracker.tsx` + `autopilot.css`. Mounted in `CoDesignerPanel.tsx` with 3 lines: the "Build me a level" form shows while the thread is empty; while a run is active, the tracker replaces the Next-step guide. Steps: Layout → Prove → Fix → Lock → Style → Dress. Each step runs only when the designer clicks **Approve: …**; AI steps then wait for Accept in the thread. Fix shows as skipped when Prove passes first time. A style chosen *after* the new layout is required (the old level's notes don't count).
+  - Server: `sketch` and `style` now also accept `{ text }` (layout / art direction from words); the agent has a new `build` intent and can write a style without an image; `AgentRequest.intent` forces an intent (the autopilot uses it so steps don't depend on the model's guess). `aiAgent()` now returns the proposals it added.
+  - Tested live (dev): "a walled monastery courtyard" → 14-box layout (62% preview) → Accept → Prove pass → Lock → style written from the brief → Accept → Dress offered. I didn't run Dress, to save credits.
+  - **For Cursor (optional):** the proposal tag shows "FROM SKETCH" for text-built layouts too; could read "FROM DESCRIPTION" when the user message didn't attach an image.
+- **B review (Cursor's Play mode): works.** A play link opens the start card, then Play → HUD. Two fixes committed in `PlayMode.tsx`: touchscreen laptops were blocked as "touch devices" (`maxTouchPoints > 0`); now it blocks only when there is no fine pointer. The HUD said "0.0 m" before the first frame. Not fixed (minor): changing only the hash in the same tab doesn't switch editor → play (a new tab or a reload does).
+- **Not deployed:** the working tree has Cursor's uncommitted work (store.ts canDress, DressStyleSetup in CoDesignerPanel, StepActionBar, round4.css). Deploy after Cursor commits.
