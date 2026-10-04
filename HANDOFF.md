@@ -378,3 +378,10 @@ Built:
 Files: `src/index.css`, LevelPanel, StepActionBar, Stepper, ViewportChrome, TopBar, EditTools, ShareSaveMenu, PLAN, HANDOFF.
 
 Test at 390×844: open/collapse Co-designer — action bar clears the sheet; Level drawer does not cover the stepper; New level → empty state; search nonsense → no matches; Lock without pass → why text under button.
+
+## 2026-10-04 ~05:40 — Claude Code — play links (core for B) + Co-designer guide
+
+- `src/core/share.ts`: `playUrl(level)` → `…/#play&l=<code>`, `isPlayLink()`, `editorUrlFromPlay()`. Tested. **B (Play mode) is now Cursor's**: see `CURSOR_PROMPT_ROUND4B.md`.
+- Co-designer: the "Step N of 5" guide card (what to do + what to expect + one action), exclusive Option A/B, image hints. `uiPrefs` now clears `stepOverride` automatically when `currentStep(level)` changes (fixes the action bar staying on "Run Prove" after a pass).
+- A (bot replay) is in `src/ui/scene/BotReplay.tsx` + `src/ui/panels/ReplayCard.tsx`, styles in `src/ui/round4.css`.
+

@@ -47,9 +47,27 @@ export async function decodeLevel(code: string): Promise<Level> {
   return { ...level, prove: { status: "idle" } };
 }
 
-/** Full link to this level, e.g. https://playbound-eta.vercel.app/#l=... */
+/** Full link to this level, e.g. https://playbound-eta.vercel.app/#l=... (opens the editor). */
 export async function shareUrl(level: Level, origin = location.origin + location.pathname): Promise<string> {
   return `${origin}#${HASH_KEY}=${await encodeLevel(level)}`;
+}
+
+/**
+ * Link that opens the level as a GAME (Play mode: no editor), e.g. https://…/#play&l=...
+ * Use this for "Copy play link": anyone can play the level from it.
+ */
+export async function playUrl(level: Level, origin = location.origin + location.pathname): Promise<string> {
+  return `${origin}#play&${HASH_KEY}=${await encodeLevel(level)}`;
+}
+
+/** True when the page was opened from a play link (#play&l=...). */
+export function isPlayLink(hash = location.hash): boolean {
+  return new URLSearchParams(hash.replace(/^#/, "")).has("play");
+}
+
+/** The editor link for the current play link (same level, editor UI). */
+export function editorUrlFromPlay(href = location.href): string {
+  return href.replace("#play&", "#");
 }
 
 /** Level from the current page URL (#l=...), or null. Call once on startup. */

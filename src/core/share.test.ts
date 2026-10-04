@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { marketSquarePass } from "../presets/marketSquare";
-import { decodeLevel, deleteSave, encodeLevel, levelFromUrl, listSaves, loadSave, saveLevel, shareUrl } from "./share";
+import { decodeLevel, deleteSave, editorUrlFromPlay, encodeLevel, isPlayLink, levelFromUrl, listSaves, loadSave, playUrl, saveLevel, shareUrl } from "./share";
 import type { Level } from "./types";
 
 const dressed = (): Level => {
@@ -60,5 +60,17 @@ describe("saves", () => {
   it("returns false when storage is unavailable", () => {
     expect(saveLevel(dressed(), null)).toBe(false);
     expect(listSaves(null)).toEqual([]);
+  });
+});
+
+describe("play links", () => {
+  it("#play&l= opens the same level; detects play mode; converts to an editor link", async () => {
+    const url = await playUrl(dressed(), "https://x.app/");
+    expect(url.startsWith("https://x.app/#play&l=")).toBe(true);
+    const hash = new URL(url).hash;
+    expect(isPlayLink(hash)).toBe(true);
+    expect(isPlayLink("#l=abc")).toBe(false);
+    expect((await levelFromUrl(hash))?.name).toBe(marketSquarePass.name);
+    expect(editorUrlFromPlay(url)).toBe(url.replace("#play&", "#"));
   });
 });
