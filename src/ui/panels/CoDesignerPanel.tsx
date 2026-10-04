@@ -560,7 +560,7 @@ function ProposalRow({
       <p className="co-prop-why">{said}</p>
       {changes && <p className="co-prop-changes">{changes}</p>}
       {proposal.replaceAll && <p className="co-prop-warn">Replaces the whole layout</p>}
-      {proposal.styleNotes && !layout && <p className="co-prop-style">{proposal.styleNotes}</p>}
+      {proposal.styleNotes && <p className="co-prop-style">{layout ? `Look: ${proposal.styleNotes}` : proposal.styleNotes}</p>}
       {blocked && <p className="co-prop-warn">Unlock the layout to accept this.</p>}
       <div className="co-prop-actions">
         {hasGhosts && (

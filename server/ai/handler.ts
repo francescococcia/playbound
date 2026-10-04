@@ -82,25 +82,27 @@ export async function sketch(key: string, req: SketchRequest): Promise<AiRespons
   const text = req?.text?.trim().slice(0, 800);
   if (!req?.image && !text) throw new Error("No image or description");
   const sizing = `First decide "areaMeters", the real width of the area: for a map or screenshot, estimate it from street widths and building sizes (a typical town square is 50-70 m); for a hand sketch with no scale use 40. Allowed: 40, 60 or 80. Then place every box at REAL scale in a square of areaMeters x areaMeters centred at (0,0).
-Also give the level a short "name" (2-4 words, e.g. "Cambridge Market Square").`;
+Also give the level a short "name" (2-4 words, e.g. "Cambridge Market Square").
+Also write "styleNotes": art direction for the 3D models (max 30 words, comma-separated, no full sentences): if this is a map or picture of a REAL, recognisable place, describe that place's real architecture (era, materials, colours, roofs; realistic, not fantasy or medieval unless the place really is); otherwise describe a look that fits what is drawn.`;
   const prompt = req.image
     ? `You turn a top-down level sketch (or map, or screenshot) into a greybox level for a first-person game.
 The drawn outer border (or the image edge) is the edge of the play area. ${volumeRules("areaMeters")}
 ${sizing}
 Include every drawn building and object. If the start or goal is not marked, choose sensible places.
-Return JSON: {"name", "areaMeters", "why": "one sentence describing the layout you read", "volumes": [...]}`
+Return JSON: {"name", "areaMeters", "styleNotes", "why": "one sentence describing the layout you read", "volumes": [...]}`
     : `You design a greybox level for a first-person stealth game from the designer's description.
 ${volumeRules(40)}
 Use areaMeters 40 unless the designer asks for a bigger or larger map (then 60 or 80, with coordinates spread to fill it).
 Description: "${text}"
 Make 8-16 boxes (up to 24 on a bigger map): one spawn and one objective at least 20 m apart, buildings that shape streets and sightlines, a few landmarks, and some chest-high cover. Leave a walkable route (at least 2 m wide) from spawn to objective. It does not have to be perfect: the designer will Prove it and fix it.
 Also give the level a short "name" (2-4 words).
-Return JSON: {"name", "areaMeters", "why": "one sentence describing the layout", "volumes": [...]}`;
-  const { data, model } = await geminiJson<{ name?: string; areaMeters?: number; why?: string; volumes?: unknown[] }>(key, prompt, {
+Also write "styleNotes": art direction for the 3D models (max 30 words, comma-separated, no full sentences): if this is a description of a REAL, recognisable place, describe that place's real architecture (era, materials, colours, roofs; realistic, not fantasy or medieval unless the place really is); otherwise describe a look that fits what is drawn.
+Return JSON: {"name", "areaMeters", "styleNotes", "why": "one sentence describing the layout", "volumes": [...]}`;
+  const { data, model } = await geminiJson<{ name?: string; areaMeters?: number; styleNotes?: string; why?: string; volumes?: unknown[] }>(key, prompt, {
     image: req.image,
     schema: {
       type: "object",
-      properties: { name: { type: "string" }, areaMeters: { type: "number" }, why: { type: "string" }, volumes: { type: "array", items: VOLUME_SCHEMA } },
+      properties: { name: { type: "string" }, areaMeters: { type: "number" }, styleNotes: { type: "string" }, why: { type: "string" }, volumes: { type: "array", items: VOLUME_SCHEMA } },
       required: ["volumes"],
     },
   });
@@ -109,10 +111,12 @@ Return JSON: {"name", "areaMeters", "why": "one sentence describing the layout",
   const volumes = ensureMarkers(placed, bounds);
   if (volumes.length < 2) throw new Error(req.image ? "Could not read a layout from that image" : "Could not build a layout from that description");
   const levelName = String(data.name ?? "").trim().slice(0, 40) || undefined;
+  // The new layout brings its own look: the previous level's style notes must not carry over.
+  const styleNotes = String(data.styleNotes ?? "").replace(/\s+/g, " ").trim().slice(0, 300) || undefined;
   const level: Level = { id: "preview", name: "preview", bounds, locked: false, volumes };
   const base = data.why ?? (req.image ? `Greybox from your sketch: ${volumes.length} boxes.` : `Greybox from your description: ${volumes.length} boxes.`);
   const why = `${base} Map ${bounds * 2} m.${dropped.length ? ` Left out ${dropped.length} overlapping box${dropped.length > 1 ? "es" : ""}.` : ""}`;
-  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, levelName, bounds, previewProve: prove(level) } };
+  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, levelName, bounds, styleNotes, previewProve: prove(level) } };
 }
 
 // ---------- style: picture -> style notes ----------
