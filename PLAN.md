@@ -195,7 +195,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | ID | Owner | Task | Status |
 |---|---|---|---|
 | U20 | Claude Code | Motion pass (brief §5): stepper fill, route draw-in, heatmap fade, fail shake / pass sweep, ghost pulse → accept morph, panel slides, card stagger. Reduced-motion respected. | done |
-| U21 | Cursor | Phone layout (bottom sheets), "From photo…" in the inspector (R7), empty states, final polish. | todo |
+| U21 | Cursor | Phone layout (bottom sheets), "From photo…" in the inspector (R7), empty states, final polish. | done |
 | C11 | Claude Code | Review, deploy, README screenshots/GIF, demo rehearsal | todo |
 | H1 | Francesco | Record the demo video (Hyper3D login right before) | todo |
 
@@ -215,7 +215,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | D | Claude Code | **Undo / redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) for edits and accepted proposals; toolbar buttons. | todo |
 | B | Claude Code | **Play mode for shared links:** `#play&l=...` opens a game view (no editor): start at spawn, reach the objective, timer, "Objective reached in N s", Play again, "Open in editor". Share menu offers "Copy play link". | todo |
 | C | Claude Code | **Autopilot ("Build me a level"):** one request → the Co-designer proposes layout → Prove → fix → style, one approved step at a time. | todo |
-| U21 | Cursor | Phone layout check (bottom sheets), empty states, Level panel + step bar + action bar polish, Francesco's visual notes. | todo |
+| U21 | Cursor | Phone layout check (bottom sheets), empty states, Level panel + step bar + action bar polish, Francesco's visual notes. | done |
 
 **Francesco feedback Round 4:** _(write here)_
 

@@ -1,3 +1,4 @@
+import { Camera, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { isLiveAvailable, regenerate, regenerateFromImage } from "../../core/dress/dress";
 import { toJpegDataUrl } from "../../core/image";
@@ -6,6 +7,8 @@ import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { shortLabel } from "../label";
 import { EditTools } from "./EditTools";
 import { PRESETS } from "../../presets/marketSquare";
+
+const ICON = { size: 16, strokeWidth: 1.75 } as const;
 
 const ROLE_ORDER: Role[] = ["spawn", "objective", "cover", "block", "landmark", "prop"];
 
@@ -32,8 +35,11 @@ export function LevelPanel() {
   const locked = level.locked;
   const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
   const anyDressing = dressables.some((v) => v.status && v.status !== "empty");
+  const solids = level.volumes.filter((v) => v.role !== "spawn" && v.role !== "objective");
+  const isBlank = solids.length === 0;
 
   const [query, setQuery] = useState("");
+  const searching = query.trim().length > 0;
   const [liveOk, setLiveOk] = useState<boolean | null>(null);
   const [regenBusy, setRegenBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
@@ -140,13 +146,24 @@ export function LevelPanel() {
           <h2>Boxes</h2>
           <span className="muted mono">{level.volumes.length}</span>
         </div>
-        <input
-          className="search-input"
-          type="search"
-          placeholder="Search boxes…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+        {isBlank && (
+          <p className="empty-state">
+            <strong>Empty level</strong>
+            Start from a sketch in the Co-designer, a preset, or Add a box.
+          </p>
+        )}
+        {!isBlank && (
+          <label className="search-wrap">
+            <Search {...ICON} aria-hidden className="search-icon" />
+            <input
+              className="search-input"
+              type="search"
+              placeholder="Search boxes…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </label>
+        )}
         <div className="role-groups">
           {grouped.map(({ role, items }) => (
             <div key={role} className="role-group">
@@ -176,27 +193,44 @@ export function LevelPanel() {
               </ul>
             </div>
           ))}
-          {grouped.length === 0 && <p className="muted">No boxes match.</p>}
+          {grouped.length === 0 && searching && (
+            <p className="empty-state">
+              <strong>No matches</strong>
+              Nothing matches “{query.trim()}”. Try another name or role.
+            </p>
+          )}
         </div>
       </div>
 
-      {anyDressing && (
+      {locked && (
         <div className="side-section">
           <h2>Dress progress</h2>
-          <ul className="dress-list">
-            {dressables.map((v) => (
-              <li key={v.id} className={`dress-row dress-row--${statusTone(v.status)}`}>
-                <button type="button" className="dress-row-btn" onClick={() => select(v.id)}>
-                  <span className="dress-name">{shortLabel(v.label, 20)}</span>
-                  <span className="dress-status">
-                    {v.status ?? "empty"}
-                    {v.stage ? ` · ${v.stage}` : ""}
-                  </span>
-                  {v.error && <span className="dress-error">{v.error}</span>}
-                </button>
-              </li>
-            ))}
-          </ul>
+          {dressables.length === 0 ? (
+            <p className="empty-state">
+              <strong>Nothing to dress</strong>
+              Unlock and add cover, buildings, landmarks, or props first.
+            </p>
+          ) : !anyDressing ? (
+            <p className="empty-state">
+              <strong>No models yet</strong>
+              Use <em>Dress level</em> in the action bar to generate looks.
+            </p>
+          ) : (
+            <ul className="dress-list">
+              {dressables.map((v) => (
+                <li key={v.id} className={`dress-row dress-row--${statusTone(v.status)}`}>
+                  <button type="button" className="dress-row-btn" onClick={() => select(v.id)}>
+                    <span className="dress-name">{shortLabel(v.label, 20)}</span>
+                    <span className="dress-status">
+                      {v.status ?? "empty"}
+                      {v.stage ? ` · ${v.stage}` : ""}
+                    </span>
+                    {v.error && <span className="dress-error">{v.error}</span>}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       )}
 
@@ -303,17 +337,21 @@ export function LevelPanel() {
                 <div className="regen-row">
                   <button
                     type="button"
-                    className="regen-btn"
+                    className="regen-btn icon-inline"
                     onClick={onRegenerate}
                     disabled={!canRegen}
                     title={regenTitle}
                   >
-                    {generating && !photoBusy ? <span className="regen-spin" aria-hidden /> : null}
+                    {generating && !photoBusy ? (
+                      <span className="regen-spin" aria-hidden />
+                    ) : (
+                      <RefreshCw {...ICON} aria-hidden />
+                    )}
                     {regenBusy || (generating && !photoBusy) ? "Regenerating…" : "Regenerate"}
                   </button>
                   <button
                     type="button"
-                    className="regen-btn regen-btn--photo"
+                    className="regen-btn regen-btn--photo icon-inline"
                     onClick={() => photoRef.current?.click()}
                     disabled={!canRegen}
                     title={
@@ -322,7 +360,7 @@ export function LevelPanel() {
                         : "Image-to-3D from a photo of this object (~2 min, 0.5 credits)"
                     }
                   >
-                    {photoBusy ? <span className="regen-spin" aria-hidden /> : null}
+                    {photoBusy ? <span className="regen-spin" aria-hidden /> : <Camera {...ICON} aria-hidden />}
                     {photoBusy ? "Generating…" : "From photo…"}
                   </button>
                 </div>

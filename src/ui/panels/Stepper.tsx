@@ -61,7 +61,7 @@ export function Stepper() {
               onClick={() => onPick(s.id)}
             >
               <span className="stepper-num" aria-hidden>
-                {isDone ? <Check size={14} strokeWidth={1.75} /> : i + 1}
+                {isDone ? <Check size={16} strokeWidth={1.75} /> : i + 1}
               </span>
               <span className="stepper-label">{s.label}</span>
             </button>

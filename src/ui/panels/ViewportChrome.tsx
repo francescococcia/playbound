@@ -1,6 +1,8 @@
-import { Box, Eye, Map } from "lucide-react";
+import { Box, Eye, Map, Scan } from "lucide-react";
 import { usePlaybound } from "../../core/store";
 import { useUiPrefs } from "../uiPrefs";
+
+const ICON = { size: 16, strokeWidth: 1.75 } as const;
 
 /** Floating viewport controls (bottom-left): view mode, heatmap, colliders. */
 export function ViewportChrome() {
@@ -14,6 +16,7 @@ export function ViewportChrome() {
 
   const heatmapAvailable =
     !!prove && prove.status !== "idle" && !!prove.exposure?.length;
+  const heatmapWhy = heatmapAvailable ? "Toggle exposure heatmap" : "Run Prove to see the heatmap";
 
   return (
     <div className="viewport-chrome" role="toolbar" aria-label="Viewport controls">
@@ -24,7 +27,7 @@ export function ViewportChrome() {
           onClick={() => setViewMode("orbit")}
           title="Orbit camera"
         >
-          <Map size={16} strokeWidth={1.75} />
+          <Map {...ICON} aria-hidden />
           Orbit
         </button>
         <button
@@ -33,7 +36,7 @@ export function ViewportChrome() {
           onClick={() => setViewMode("fps")}
           title="First-person walk"
         >
-          <Eye size={16} strokeWidth={1.75} />
+          <Eye {...ICON} aria-hidden />
           Walk
         </button>
       </div>
@@ -43,9 +46,10 @@ export function ViewportChrome() {
           type="button"
           className={showHeatmap && heatmapAvailable ? "active" : undefined}
           disabled={!heatmapAvailable}
-          title={heatmapAvailable ? "Toggle exposure heatmap" : "Run Prove to see the heatmap"}
+          title={heatmapWhy}
           onClick={() => setShowHeatmap(!showHeatmap)}
         >
+          <Scan {...ICON} aria-hidden />
           Heatmap
         </button>
         <button
@@ -54,7 +58,7 @@ export function ViewportChrome() {
           title="Show collision boxes"
           onClick={() => setShowColliders(!showColliders)}
         >
-          <Box size={16} strokeWidth={1.75} />
+          <Box {...ICON} aria-hidden />
           Colliders
         </button>
       </div>

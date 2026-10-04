@@ -1,6 +1,9 @@
+import { FolderOpen, Link2, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { deleteSave, listSaves, loadSave, saveLevel, shareUrl, type SaveEntry } from "../../core/share";
 import { usePlaybound } from "../../core/store";
+
+const ICON = { size: 16, strokeWidth: 1.75 } as const;
 
 export function ShareSaveMenu({
   onToast,
@@ -60,12 +63,25 @@ export function ShareSaveMenu({
 
   return (
     <>
-      <button type="button" onClick={onShare} disabled={busy} title="Copy share link (#l=… in the URL)">
+      <button
+        type="button"
+        className="icon-inline"
+        onClick={onShare}
+        disabled={busy}
+        title="Copy share link (#l=… in the URL)"
+      >
+        <Link2 {...ICON} aria-hidden />
         {busy ? "Sharing…" : "Share"}
       </button>
       <div className="save-wrap">
-        <button type="button" title="Save / Open levels in this browser" onClick={() => setOpen((o) => !o)}>
-          Save ▾
+        <button
+          type="button"
+          className="icon-inline"
+          title="Save / Open levels in this browser"
+          onClick={() => setOpen((o) => !o)}
+        >
+          <FolderOpen {...ICON} aria-hidden />
+          Save
         </button>
         {open && (
           <div className="save-menu">
@@ -74,7 +90,7 @@ export function ShareSaveMenu({
             </button>
             <div className="save-list-label">Open</div>
             {saves.length === 0 ? (
-              <p className="muted">No saves yet.</p>
+              <p className="empty-state">No saves yet in this browser.</p>
             ) : (
               <ul className="save-list">
                 {saves.map((s) => (
@@ -85,8 +101,13 @@ export function ShareSaveMenu({
                         {s.volumes} boxes · {new Date(s.savedAt).toLocaleString()}
                       </span>
                     </button>
-                    <button type="button" className="save-del" title="Delete" onClick={() => onDelete(s.id)}>
-                      ×
+                    <button
+                      type="button"
+                      className="save-del icon-inline"
+                      title="Delete save"
+                      onClick={() => onDelete(s.id)}
+                    >
+                      <Trash2 {...ICON} aria-hidden />
                     </button>
                   </li>
                 ))}

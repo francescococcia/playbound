@@ -1,9 +1,11 @@
+import { Copy, FilePlus, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { usePlaybound } from "../../core/store";
 import { ROLE_COLORS, type Role } from "../../core/types";
 import { viewGroundCenter } from "../viewPick";
 
 const ADD_ROLES: Role[] = ["cover", "block", "landmark", "prop", "spawn", "objective"];
+const ICON = { size: 16, strokeWidth: 1.75 } as const;
 
 /** Add / Delete / Duplicate / New level — all no-ops while locked. */
 export function EditTools() {
@@ -20,6 +22,15 @@ export function EditTools() {
   const canDuplicate =
     !locked && selected != null && selected.role !== "spawn" && selected.role !== "objective";
   const canDelete = !locked && selected != null;
+
+  const deleteWhy = locked ? "Unlock to edit" : !selected ? "Select a box to delete" : "Delete (Del)";
+  const duplicateWhy = locked
+    ? "Unlock to edit"
+    : !selected
+      ? "Select a box to duplicate"
+      : selected.role === "spawn" || selected.role === "objective"
+        ? "Can't duplicate spawn/objective"
+        : "Duplicate (Ctrl+D)";
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -46,7 +57,6 @@ export function EditTools() {
   const onAdd = (role: Role) => {
     if (locked) return;
     const pos = viewGroundCenter();
-    // Clamp inside bounds a bit
     const lim = level.bounds - 1;
     const x = Math.min(lim, Math.max(-lim, pos[0]));
     const z = Math.min(lim, Math.max(-lim, pos[2]));
@@ -66,11 +76,13 @@ export function EditTools() {
         <div className="add-wrap">
           <button
             type="button"
+            className="icon-inline"
             disabled={locked}
             title={locked ? "Unlock to edit" : "Add a box at the view centre"}
             onClick={() => setAddOpen((o) => !o)}
           >
-            Add ▾
+            <Plus {...ICON} aria-hidden />
+            Add
           </button>
           {addOpen && !locked && (
             <ul className="add-menu" role="menu">
@@ -87,28 +99,33 @@ export function EditTools() {
         </div>
         <button
           type="button"
+          className="icon-inline"
           disabled={!canDelete}
-          title={locked ? "Unlock to edit" : "Delete (Del)"}
+          title={deleteWhy}
           onClick={() => selectedId && removeVolume(selectedId)}
         >
+          <Trash2 {...ICON} aria-hidden />
           Delete
         </button>
         <button
           type="button"
+          className="icon-inline"
           disabled={!canDuplicate}
-          title={
-            locked
-              ? "Unlock to edit"
-              : selected?.role === "spawn" || selected?.role === "objective"
-                ? "Can't duplicate spawn/objective"
-                : "Duplicate (Ctrl+D)"
-          }
+          title={duplicateWhy}
           onClick={() => selectedId && duplicateVolume(selectedId)}
         >
+          <Copy {...ICON} aria-hidden />
           Duplicate
         </button>
       </div>
-      <button type="button" className="new-level-btn" disabled={locked} title={locked ? "Unlock to edit" : "Blank level"} onClick={onNew}>
+      <button
+        type="button"
+        className="new-level-btn icon-inline"
+        disabled={locked}
+        title={locked ? "Unlock to edit" : "Blank level"}
+        onClick={onNew}
+      >
+        <FilePlus {...ICON} aria-hidden />
         New level
       </button>
     </div>
