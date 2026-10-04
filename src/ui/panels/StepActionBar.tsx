@@ -5,6 +5,7 @@ import { downloadLevelZip } from "../../core/export/exportLevel";
 import { canDress, usePlaybound } from "../../core/store";
 import { ROLE_COLORS, type Role } from "../../core/types";
 import { shareUrl } from "../../core/share";
+import { PRESETS } from "../../presets/marketSquare";
 import { useUiPrefs } from "../uiPrefs";
 import { viewGroundCenter } from "../viewPick";
 import { currentStep, type WorkflowStep } from "../workflow";
@@ -12,10 +13,7 @@ import { ShareSaveMenu } from "./ShareSaveMenu";
 
 const ADD_ROLES: Role[] = ["cover", "block", "landmark", "prop", "spawn", "objective"];
 
-/**
- * Bottom-centre step action bar (DESIGN_BRIEF §2).
- * U17: shell + working primaries. U18: disabled reasons + Prove result card.
- */
+/** Bottom-centre step action bar — one primary action per step (DESIGN_BRIEF §2). */
 export function StepActionBar() {
   const level = usePlaybound((s) => s.level);
   const runProve = usePlaybound((s) => s.runProve);
@@ -33,6 +31,7 @@ export function StepActionBar() {
 
   const step: WorkflowStep = stepOverride ?? currentStep(level);
   const [addOpen, setAddOpen] = useState(false);
+  const [presetOpen, setPresetOpen] = useState(false);
   const [dressBusy, setDressBusy] = useState(false);
   const [exportBusy, setExportBusy] = useState(false);
   const [styleBusy, setStyleBusy] = useState(false);
@@ -58,6 +57,11 @@ export function StepActionBar() {
 
   const dressGate = canDress(level);
   const dressing = level.volumes.some((v) => v.status === "queued" || v.status === "generating");
+
+  const lockWhy =
+    level.prove?.status !== "pass"
+      ? "Need a passing Prove before lock — boxes can't move after this; the AI can only change looks"
+      : "Boxes can't move after this; the AI can only change looks";
 
   const onAdd = (role: Role) => {
     if (level.locked) return;
@@ -137,6 +141,12 @@ export function StepActionBar() {
       .finally(() => setStyleBusy(false));
   };
 
+  const sketchWhy = level.locked
+    ? "Unlock to replace the layout"
+    : aiOk === false
+      ? "AI not configured"
+      : "Upload a sketch → greybox proposal";
+
   return (
     <div className="step-action-bar" data-step={step}>
       <input
@@ -170,7 +180,7 @@ export function StepActionBar() {
         }}
       />
 
-      {step === "block-out" && (
+      {step === "blockout" && (
         <>
           <div className="add-wrap action-primary-wrap">
             <button
@@ -198,25 +208,40 @@ export function StepActionBar() {
           <button
             type="button"
             disabled={level.locked || aiOk === false || sketchBusy}
-            title={
-              level.locked
-                ? "Unlock to replace the layout"
-                : aiOk === false
-                  ? "AI not configured"
-                  : "Upload a sketch → greybox proposal"
-            }
+            title={sketchWhy}
             onClick={() => sketchRef.current?.click()}
           >
             {sketchBusy ? "Reading sketch…" : "Sketch → level"}
           </button>
-          <button
-            type="button"
-            disabled={level.locked}
-            title={level.locked ? "Unlock to switch preset" : "Load Market Square (fail)"}
-            onClick={() => loadPreset("market-square-fail")}
-          >
-            Preset
-          </button>
+          <div className="add-wrap">
+            <button
+              type="button"
+              disabled={level.locked}
+              title={level.locked ? "Unlock to switch preset" : "Load a preset"}
+              onClick={() => setPresetOpen((o) => !o)}
+            >
+              Presets ▾
+            </button>
+            {presetOpen && !level.locked && (
+              <ul className="add-menu" role="menu">
+                {PRESETS.map((p) => (
+                  <li key={p.id}>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        loadPreset(p.id);
+                        setPresetOpen(false);
+                        setStepOverride(null);
+                      }}
+                    >
+                      {p.name}
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
           <button
             type="button"
             disabled={level.locked}
@@ -224,6 +249,7 @@ export function StepActionBar() {
             onClick={() => {
               if (!window.confirm("Start a blank level? Unsaved layout changes will be lost.")) return;
               newLevel();
+              setStepOverride("blockout");
             }}
           >
             New
@@ -232,14 +258,19 @@ export function StepActionBar() {
       )}
 
       {step === "prove" && (
-        <button type="button" className="btn-primary" onClick={onProve}>
+        <button
+          type="button"
+          className="btn-primary"
+          onClick={onProve}
+          title="Path + cover + line of sight from the objective"
+        >
           Run Prove
         </button>
       )}
 
       {step === "lock" &&
         (level.locked ? (
-          <button type="button" className="btn-primary" onClick={unlock}>
+          <button type="button" className="btn-primary" onClick={unlock} title="Allow moving boxes again">
             Unlock layout
           </button>
         ) : (
@@ -247,11 +278,7 @@ export function StepActionBar() {
             type="button"
             className="btn-primary"
             disabled={level.prove?.status !== "pass"}
-            title={
-              level.prove?.status !== "pass"
-                ? "Need a passing Prove before lock"
-                : "Boxes can't move after this; the AI can only change looks"
-            }
+            title={lockWhy}
             onClick={onLock}
           >
             Lock layout
@@ -262,7 +289,7 @@ export function StepActionBar() {
         <>
           <button
             type="button"
-            title="Style reference image"
+            title={styleBusy ? "Reading style…" : "Style reference image (+ AI notes proposal)"}
             disabled={styleBusy}
             onClick={() => styleRef.current?.click()}
           >
@@ -273,6 +300,7 @@ export function StepActionBar() {
             type="text"
             value={notesDraft}
             placeholder="Style notes…"
+            title="Style notes used in Dress prompts"
             onChange={(e) => setNotesDraft(e.target.value)}
             onBlur={() => setStyleRef(level.styleRefUrl, notesDraft)}
           />
@@ -281,7 +309,7 @@ export function StepActionBar() {
             className="btn-primary btn-with-spin"
             onClick={onDress}
             disabled={!dressGate.ok || dressBusy}
-            title={dressGate.ok ? "Dress locked volumes" : dressGate.why}
+            title={dressGate.ok ? "Generate looks for locked volumes" : dressGate.why}
           >
             {(dressBusy || dressing) && <span className="btn-spin" aria-hidden />}
             {dressBusy || dressing ? "Dressing…" : "Dress level"}
@@ -291,13 +319,24 @@ export function StepActionBar() {
 
       {step === "play" && (
         <>
-          <button type="button" className="btn-primary" onClick={() => setViewMode("fps")}>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => setViewMode("fps")}
+            title="First-person walk from the spawn"
+          >
             Walk (FPS)
           </button>
-          <button type="button" onClick={onShare}>
+          <button type="button" onClick={onShare} title="Copy a share link to this level">
             Share link
           </button>
-          <button type="button" className="btn-with-spin" onClick={onExport} disabled={exportBusy}>
+          <button
+            type="button"
+            className="btn-with-spin"
+            onClick={onExport}
+            disabled={exportBusy}
+            title={exportBusy ? "Building zip…" : "Download level.json + GLBs"}
+          >
             {exportBusy && <span className="btn-spin" aria-hidden />}
             {exportBusy ? "Exporting…" : "Export zip"}
           </button>

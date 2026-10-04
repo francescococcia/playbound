@@ -296,6 +296,33 @@ Files: SidePanel, ProposalCards, AiPanel, ProveBanner, ProposalGhosts, Viewport,
 
 Test: hero flow with clearer cards/ghosts/legend; From photo on cart (local Hyper3D only).
 
+---
+
+## 2026-10-04 ~01:00 — Cursor — U17 (R3-M1 shell)
+
+Built:
+- Design tokens (ink/panel/proof/danger/ai/amber, radii, type scale) + Space Grotesk / Inter Variable / JetBrains Mono.
+- New shell: Stepper (top), Level panel (left, boxes grouped by role + search + inspector + edit tools), viewport + ViewportChrome (Orbit/Walk, heatmap, colliders), StepActionBar (bottom-centre), Co-designer panel (right placeholder with existing AI + proposals).
+- Blueprint ground grid (cyan ~10% on ink floor) while greybox; cobble returns after dressed assets.
+- `src/ui/workflow.ts`: local `currentStep` / `canVisitStep` until C9 store helpers land (soft-plugs store.currentStep when present).
+
+Files: App, main, index.css, uiPrefs, workflow, panels/{Stepper,LevelPanel,CoDesignerPanel,StepActionBar,ViewportChrome,ProposalCards,SidePanel}, scene/{Viewport,Ground}, PLAN, HANDOFF.
+
+Test: layout matches brief at desktop; stepper + action bar visible; blueprint grid on Market Square; Co-designer shows AI buttons.
+
+---
+
+## 2026-10-04 ~01:05 — Cursor — U18 (stepper + action bar + Prove card)
+
+Built:
+- Wired stepper to C9 `currentStep` / `canEnterStep` / `STEPS` (`blockout` id). Blocked steps show `why` in the tooltip.
+- Step action bar per step: Block out (Add / Sketch / Presets / New), Prove (Run Prove), Lock (with lock explanation), Dress (style + Dress level), Play (Walk / Share / Export / Save).
+- `ProveResultCard`: Pass/Fail, % protected, m exposed, message, Suggest fix on fail. Replaces the old top banner for prove/lock steps.
+
+Files: workflow, Stepper, StepActionBar, ProveResultCard, Viewport, uiPrefs, index.css, PLAN, HANDOFF.
+
+Test: Market Square opens on Prove → Run Prove → fail card with stats → Suggest fix; pass → Lock enables with reason on hover; Dress/Play gates match C9.
+
 ## 2026-10-04 — Claude Code — C9 (Round 3 foundations)
 
 - **Installed:** `motion` (v14: `import { motion, AnimatePresence } from "motion/react"`), `lucide-react`, fonts. The fonts are already imported in `src/main.tsx`. Use these CSS names: `"Space Grotesk"` (500/600/700, headings + numbers), `"Inter Variable"` (UI text), `"JetBrains Mono"` (400/500, measurements).

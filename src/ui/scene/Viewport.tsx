@@ -10,7 +10,7 @@ import { isGreybox } from "../workflow";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
 import { Heatmap } from "./Heatmap";
-import { ProveBanner } from "./ProveBanner";
+import { ProveResultCard } from "../panels/ProveResultCard";
 import { ProvePath } from "./ProvePath";
 import { ProposalGhosts } from "./ProposalGhosts";
 import { VolumeMesh } from "./VolumeMesh";
@@ -97,7 +97,7 @@ export function Viewport() {
         {viewMode === "orbit" ? <OrbitRig /> : <FpsController level={level} />}
       </Canvas>
 
-      <ProveBanner />
+      <ProveResultCard />
       <ViewportChrome />
       <StepActionBar />
 

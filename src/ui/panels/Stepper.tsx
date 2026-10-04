@@ -20,8 +20,9 @@ export function Stepper() {
   const suggestedIdx = stepIndex(suggested);
 
   const onPick = (step: WorkflowStep) => {
-    if (!canVisitStep(level, step)) return;
-    setStepOverride(step);
+    const why = stepBlockedReason(level, step);
+    if (why) return;
+    setStepOverride(step === suggested ? null : step);
   };
 
   return (

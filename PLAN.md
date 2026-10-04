@@ -177,7 +177,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 |---|---|---|---|
 | C9 | Claude Code | Install `motion`, `lucide-react`, fonts (`@fontsource-variable/inter`, `@fontsource/space-grotesk`, `@fontsource/jetbrains-mono`). Store: `currentStep(level)` helper (block-out / prove / lock / dress / play), `acceptAll(ids)`, `highlightedProposalId` + `setHighlightedProposal`. | done |
 | U17 | Cursor | Design tokens (CSS variables from the brief) + fonts + new layout shell: top stepper, left "Level" panel (boxes grouped by role + inspector + edit tools), centre viewport with floating controls, bottom step action bar, right "Co-designer" panel (placeholder). Blueprint ground grid. | done |
-| U18 | Cursor | Stepper + action bar per step (brief §2): one primary action per step, disabled states with reasons, result card for Prove (pass/fail, % protected, m exposed). | todo |
+| U18 | Cursor | Stepper + action bar per step (brief §2): one primary action per step, disabled states with reasons, result card for Prove (pass/fail, % protected, m exposed). | done |
 
 **Francesco feedback R3-M1:** _(write here)_
 

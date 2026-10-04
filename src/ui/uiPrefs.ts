@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { WorkflowStep } from "./workflow";
+import type { Step } from "../core/store";
 
 /** UI-only prefs (not part of the level contract). */
 export const useUiPrefs = create<{
@@ -16,8 +16,8 @@ export const useUiPrefs = create<{
   setCoDesignerOpen: (v: boolean) => void;
   toggleCoDesigner: () => void;
   /** Manual stepper pick; null follows `currentStep(level)`. */
-  stepOverride: WorkflowStep | null;
-  setStepOverride: (s: WorkflowStep | null) => void;
+  stepOverride: Step | null;
+  setStepOverride: (s: Step | null) => void;
   toast: string | null;
   setToast: (msg: string | null) => void;
 }>((set) => ({

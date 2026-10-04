@@ -547,12 +547,15 @@ button.active {
   100% { opacity: 0; }
 }
 .suggest-fix-btn {
-  margin-top: 0.45rem;
+  margin-top: 0.55rem;
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.4rem;
+  width: 100%;
   border-color: var(--danger);
   color: var(--danger);
+  font-weight: 600;
 }
 
 .prove-result-card {
