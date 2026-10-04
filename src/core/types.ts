@@ -64,6 +64,8 @@ export interface GroundImage {
   /** Real-world metres the image covers along X (width) and Z (depth). */
   width: number;
   depth: number;
+  /** Credit line to show with the image (e.g. "© OpenStreetMap contributors"). */
+  credit?: string;
 }
 
 export interface Level {

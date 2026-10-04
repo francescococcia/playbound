@@ -137,8 +137,8 @@ export function Viewport() {
         </div>
       )}
 
-      {/cambridge|openstreetmap|\bosm\b/i.test(level.name) && (
-        <p className="map-credit">© OpenStreetMap contributors</p>
+      {(level.ground?.credit || /cambridge|openstreetmap|\bosm\b/i.test(level.name)) && (
+        <p className="map-credit">{level.ground?.credit ?? "© OpenStreetMap contributors"}</p>
       )}
 
       {viewMode === "fps" && (

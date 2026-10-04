@@ -24,7 +24,7 @@ export async function isAiAvailable(): Promise<boolean> {
 
 /** Sketch / map / screenshot → a whole greybox layout (replaces the level on Accept). */
 export async function aiSketch(image: File | string): Promise<AiOutcome> {
-  return call("sketch", { image: await toDataUrl(image) }, await toDataUrl(image, GROUND_PX));
+  return call("sketch", { image: await toDataUrl(image) }, await toDataUrl(image, GROUND_PX), image);
 }
 
 /** Reference picture → style notes for every Rodin prompt (applies even when locked). */
@@ -45,7 +45,7 @@ export async function aiSuggestFix(): Promise<AiOutcome> {
 /** The floor image is seen at eye level: keep it sharper than what the AI reads (1024 px). */
 const GROUND_PX = 2048;
 
-async function call(action: string, body: unknown, groundImg?: string): Promise<AiOutcome> {
+async function call(action: string, body: unknown, groundImg?: string, source?: File | string): Promise<AiOutcome> {
   const r = await fetch(`/api/ai/${action}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -54,21 +54,39 @@ async function call(action: string, body: unknown, groundImg?: string): Promise<
   const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as AiResponse;
   if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
   const img = groundImg ?? (body as { image?: string }).image;
-  if (j.proposal && img) j.proposal = await withGround(j.proposal, img);
+  if (j.proposal && img) j.proposal = await withGround(j.proposal, img, source);
   if (j.proposal) usePlaybound.getState().addProposal(j.proposal);
   return { proposal: j.proposal, note: j.note, model: j.model };
 }
 
-/** A layout read from an image keeps that image as its floor (depth follows the image's aspect). */
-async function withGround(p: Proposal, img: string): Promise<Proposal> {
+/** A layout read from an image keeps that image as its floor (depth follows the image's aspect).
+ *  A hosted demo map (same file as public/demo/…) is referenced by URL, so play links carry it. */
+async function withGround(p: Proposal, data: string, source?: File | string): Promise<Proposal> {
   if (!p.ground || !p.replaceAll) return p;
+  const hosted = source instanceof File ? await hostedMap(source) : undefined;
+  const img = hosted?.url ?? data;
   const { w, h } = await new Promise<{ w: number; h: number }>((resolve) => {
     const el = new Image();
     el.onload = () => resolve({ w: el.naturalWidth || 1, h: el.naturalHeight || 1 });
     el.onerror = () => resolve({ w: 1, h: 1 });
     el.src = img;
   });
-  return { ...p, ground: { imageUrl: img, width: p.ground.width, depth: (p.ground.width * h) / w } };
+  return { ...p, ground: { imageUrl: img, width: p.ground.width, depth: (p.ground.width * h) / w, credit: hosted?.credit } };
+}
+
+let mapsReq: Promise<{ url: string; sha256: string; credit?: string }[]> | undefined;
+/** The hosted copy of this exact file, if it is one of the demo maps (matched by SHA-256). */
+async function hostedMap(file: File): Promise<{ url: string; credit?: string } | undefined> {
+  try {
+    mapsReq ??= fetch("/demo/maps.json").then((r) => (r.ok ? r.json() : []));
+    const maps = await mapsReq;
+    if (!maps.length || !crypto?.subtle) return undefined;
+    const digest = await crypto.subtle.digest("SHA-256", await file.arrayBuffer());
+    const hex = [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, "0")).join("");
+    return maps.find((m) => m.sha256 === hex);
+  } catch {
+    return undefined;
+  }
 }
 
 // ---- Round 3: the Co-designer agent ----
@@ -103,7 +121,7 @@ export async function aiAgent(message: string, image?: File | string, opts: { in
     if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
     if (image && img) {
       const ground = await toDataUrl(image, GROUND_PX);
-      j.proposals = await Promise.all((j.proposals ?? []).map((p) => withGround(p, ground)));
+      j.proposals = await Promise.all((j.proposals ?? []).map((p) => withGround(p, ground, image)));
     }
     for (const p of j.proposals ?? []) usePlaybound.getState().addProposal(p);
     usePlaybound.getState().updateAgentMessage(replyId, {

@@ -213,6 +213,7 @@ export function PlayMode() {
       </Canvas>
 
       {phase === "playing" && <StealthHud />}
+      {level.ground?.credit && <p className="map-credit">{level.ground.credit}</p>}
       {phase === "playing" && (
         <div className="play-hud" aria-live="polite">
           <div className="play-hud-brand">PLAYBOUND</div>
