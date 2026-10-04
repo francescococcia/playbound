@@ -1,4 +1,20 @@
 {
+  "23739459": {
+    "key": "23739459",
+    "volumeId": "bike-racks-and-stands",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Bike Racks and Stands.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 1.5m wide x 1.1m tall x 3m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "ac8335b6-4fb4-4947-ab43-640beee28d2f",
+    "url": "/assets/gen/23739459.glb",
+    "createdAt": "2026-10-04T06:09:00.446Z"
+  },
+  "89271685": {
+    "key": "89271685",
+    "volumeId": "market-stall-row-2-south",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 2 South.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2.2m wide x 2.7m tall x 8m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "c3101716-536f-4601-9d16-e78792987b91",
+    "url": "/assets/gen/89271685.glb",
+    "createdAt": "2026-10-04T06:07:46.418Z"
+  },
   "9e4a011e": {
     "key": "9e4a011e",
     "volumeId": "chapel",
@@ -86,5 +102,125 @@
     "generationId": "5f88c285-acf5-4fb6-a829-a2aaf8719e25",
     "url": "/assets/gen/bot-runner.glb",
     "createdAt": "2026-10-04T04:54:00.751Z"
+  },
+  "6c26ef00": {
+    "key": "6c26ef00",
+    "volumeId": "petty-cury-east-retail-block",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Petty Cury East Retail Block.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 10m wide x 9m tall x 22m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "3d192e32-e6cf-4682-a6ec-eb2d72e15cea",
+    "url": "/assets/gen/6c26ef00.glb",
+    "createdAt": "2026-10-04T06:01:38.960Z"
+  },
+  "05903cd3": {
+    "key": "05903cd3",
+    "volumeId": "the-guildhall",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: The Guildhall.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 22m wide x 10m tall x 10m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "05d0948c-b53a-421a-96e8-7645fe1628e0",
+    "url": "/assets/gen/05903cd3.glb",
+    "createdAt": "2026-10-04T06:01:40.742Z"
+  },
+  "d5697f18": {
+    "key": "d5697f18",
+    "volumeId": "great-st-mary-s-church",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Great St Mary's Church.\nGameplay role: landmark (readable landmark visible from across a courtyard).\nExact real-world size: 7m wide x 14m tall x 16m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "906eec3e-1b7f-4181-83fd-ac9f64ca6015",
+    "url": "/assets/gen/d5697f18.glb",
+    "createdAt": "2026-10-04T06:02:36.537Z"
+  },
+  "82b9558d": {
+    "key": "82b9558d",
+    "volumeId": "north-market-hill-buildings",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: North Market Hill Buildings.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 18m wide x 8m tall x 5m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "ebce6e46-47cb-4776-8c6b-7406afcc2e50",
+    "url": "/assets/gen/82b9558d.glb",
+    "createdAt": "2026-10-04T06:02:58.771Z"
+  },
+  "c88456de": {
+    "key": "c88456de",
+    "volumeId": "south-east-commercial-block",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: South-East Commercial Block.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 9m wide x 8m tall x 11m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "39f6a955-0ecd-4c2d-b604-8606e8397be8",
+    "url": "/assets/gen/c88456de.glb",
+    "createdAt": "2026-10-04T06:03:38.633Z"
+  },
+  "df18fb48": {
+    "key": "df18fb48",
+    "volumeId": "market-stall-row-1-north",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 1 North.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2m wide x 2.6m tall x 6m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "eeaf3178-1601-404c-8070-910a1a139ece",
+    "url": "/assets/gen/df18fb48.glb",
+    "createdAt": "2026-10-04T06:04:04.898Z"
+  },
+  "df45d9b7": {
+    "key": "df45d9b7",
+    "volumeId": "southwest-row-corner-building",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Southwest Row Corner Building.\nGameplay role: block (solid obstacle that blocks movement and sight).\nExact real-world size: 8m wide x 8m tall x 12m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "a6d5db52-ddee-4ddb-945c-48e79bca0920",
+    "url": "/assets/gen/df45d9b7.glb",
+    "createdAt": "2026-10-04T06:04:05.336Z"
+  },
+  "798ed8ea": {
+    "key": "798ed8ea",
+    "volumeId": "market-stall-row-1-south",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 1 South.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 1.8m wide x 2.6m tall x 6m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "794113db-21b2-4bba-bd21-ddd70945ec72",
+    "url": "/assets/gen/798ed8ea.glb",
+    "createdAt": "2026-10-04T06:04:46.675Z"
+  },
+  "623cdf1f": {
+    "key": "623cdf1f",
+    "volumeId": "market-stall-row-2-north",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 2 North.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2.2m wide x 2.7m tall x 8m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "73f5e3f6-5dba-4879-bd90-1a97050c3f55",
+    "url": "/assets/gen/623cdf1f.glb",
+    "createdAt": "2026-10-04T06:05:43.418Z"
+  },
+  "15e754a6": {
+    "key": "15e754a6",
+    "volumeId": "market-stall-row-3-north",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 3 North.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2.2m wide x 2.7m tall x 9m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "65414f16-8d97-4cff-bdc5-19121e476dce",
+    "url": "/assets/gen/15e754a6.glb",
+    "createdAt": "2026-10-04T06:06:26.088Z"
+  },
+  "b0b62368": {
+    "key": "b0b62368",
+    "volumeId": "market-stall-row-3-south",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 3 South.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2.2m wide x 2.7m tall x 8.5m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "0f35d00d-383c-4e46-8f15-8e23081f752b",
+    "url": "/assets/gen/b0b62368.glb",
+    "createdAt": "2026-10-04T06:06:44.421Z"
+  },
+  "2e905555": {
+    "key": "2e905555",
+    "volumeId": "market-stall-row-4-north",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 4 North.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2.2m wide x 2.7m tall x 9.5m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "13e68374-50c9-46e6-89a4-083cc3b656cf",
+    "url": "/assets/gen/2e905555.glb",
+    "createdAt": "2026-10-04T06:07:41.892Z"
+  },
+  "e97bf6c7": {
+    "key": "e97bf6c7",
+    "volumeId": "market-stall-row-4-south",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Stall Row 4 South.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 2.2m wide x 2.7m tall x 8.5m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "ab10625a-8f12-4d69-83d6-0749af2779c1",
+    "url": "/assets/gen/e97bf6c7.glb",
+    "createdAt": "2026-10-04T06:07:49.494Z"
+  },
+  "c6b6d762": {
+    "key": "c6b6d762",
+    "volumeId": "market-seating-tables-and-parasols",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Market Seating Tables and Parasols.\nGameplay role: prop (set dressing prop that fits the space).\nExact real-world size: 2.5m wide x 2.2m tall x 2m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "2cda90cb-8d0a-405b-93a1-d2b7e8f3b42c",
+    "url": "/assets/gen/c6b6d762.glb",
+    "createdAt": "2026-10-04T06:08:45.747Z"
+  },
+  "7324c975": {
+    "key": "7324c975",
+    "volumeId": "guildhall-bike-racks",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready prop for a first-person level.\nObject: Guildhall Bike Racks.\nGameplay role: cover (provides chest-high cover for a standing human).\nExact real-world size: 3m wide x 1.1m tall x 1m deep.\nCentered, grounded, no floating parts, clean silhouette readable at gameplay distance.\nSingle object, no scene, no characters, no base platform.",
+    "generationId": "c9264c66-9586-433a-b23f-59e3c3a35a82",
+    "url": "/assets/gen/7324c975.glb",
+    "createdAt": "2026-10-04T06:09:06.199Z"
   }
 }
