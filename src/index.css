@@ -326,7 +326,7 @@ button.active {
 .map-size-field { margin: 0; }
 .map-size-picker {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   padding: 0.2rem;
   border: 1px solid var(--border);
   border-radius: var(--radius-control);

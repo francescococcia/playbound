@@ -58,7 +58,7 @@ const ok = (body: AiResponse): AiResult => ({ status: 200, body });
 
 // ---------- sketch: drawing -> greybox ----------
 
-/** Coordinate rules for a map of the given side in metres (40, 60 or 80), or "areaMeters" when the model picks it. */
+/** Coordinate rules for a map of the given side in metres (40, 60, 80 or 120), or "areaMeters" when the model picks it. */
 export const volumeRules = (side: number | "areaMeters" = 40) => `Coordinates: the play area is a square of ${side} m x ${side} m centred at (0,0)${typeof side === "number" ? ` (x and z from -${side / 2} to ${side / 2})` : ""}; every box must fit fully inside it and must not overlap another box. +X = east (right), +Z = south (down in a top-down image), Y up.
 position = centre of the box's BOTTOM face [x, 0, z] in meters; size = [width X, height Y, depth Z] in meters; rotationY in DEGREES (usually 0).
 Roles: "spawn" (player start, exactly one), "objective" (goal, exactly one), "block" (buildings, walls), "landmark" (tall, visible from far: towers, statues), "cover" (chest-high objects players hide behind: carts, low walls, crates), "prop" (other small set dressing).
@@ -81,7 +81,7 @@ export const VOLUME_SCHEMA = {
 export async function sketch(key: string, req: SketchRequest): Promise<AiResponse> {
   const text = req?.text?.trim().slice(0, 800);
   if (!req?.image && !text) throw new Error("No image or description");
-  const sizing = `First decide "areaMeters", the real width of the area: for a map or screenshot, estimate it from street widths and building sizes (a typical town square is 50-70 m); for a hand sketch with no scale use 40. Allowed: 40, 60 or 80. Then place every box at REAL scale in a square of areaMeters x areaMeters centred at (0,0).
+  const sizing = `First decide "areaMeters", the real width of the area: for a map or screenshot, estimate it from street widths and building sizes (a typical town square is 50-70 m, a large building 60-90 m long); for a hand sketch with no scale use 40. Allowed: 40, 60, 80 or 120. Then place every box at REAL scale in a square of areaMeters x areaMeters centred at (0,0).
 Also give the level a short "name" (2-4 words, e.g. "Cambridge Market Square").
 Also write "styleNotes": art direction for the 3D models (max 30 words, comma-separated, no full sentences): if this is a map or picture of a REAL, recognisable place, describe that place's real architecture (era, materials, colours, roofs; realistic, not fantasy or medieval unless the place really is); otherwise describe a look that fits what is drawn.`;
   const prompt = req.image
@@ -93,7 +93,7 @@ Designer's notes (follow them; they win over your own choices, especially where 
 Return JSON: {"name", "areaMeters", "styleNotes", "why": "one sentence describing the layout you read", "volumes": [...]}`
     : `You design a greybox level for a first-person stealth game from the designer's description.
 ${volumeRules(40)}
-Use areaMeters 40 unless the designer asks for a bigger or larger map (then 60 or 80, with coordinates spread to fill it).
+Use areaMeters 40 unless the designer asks for a bigger or larger map (then 60, 80 or 120, with coordinates spread to fill it).
 Description: "${text}"
 Make 8-16 boxes (up to 24 on a bigger map): one spawn and one objective at least 20 m apart, buildings that shape streets and sightlines, a few landmarks, and some chest-high cover. Leave a walkable route (at least 2 m wide) from spawn to objective. It does not have to be perfect: the designer will Prove it and fix it.
 Also give the level a short "name" (2-4 words).
@@ -380,7 +380,7 @@ function vec3(x: unknown): [number, number, number] | null {
 }
 
 const clampPos = ([x, , z]: [number, number, number], b: number): [number, number, number] => [clamp(r1(x), -b + 0.5, b - 0.5), 0, clamp(r1(z), -b + 0.5, b - 0.5)];
-const clampSize = (s: [number, number, number]): [number, number, number] => s.map((n) => clamp(r1(Math.abs(n)), 0.3, 30)) as [number, number, number];
+const clampSize = (s: [number, number, number]): [number, number, number] => s.map((n) => clamp(r1(Math.abs(n)), 0.3, 90)) as [number, number, number];
 const clamp = (n: number, lo: number, hi: number) => Math.min(hi, Math.max(lo, n));
 const r1 = (n: number) => Math.round(n * 10) / 10;
 /** Models answer in degrees (prompts ask for degrees); the level stores radians. */

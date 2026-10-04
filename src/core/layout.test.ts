@@ -52,6 +52,7 @@ describe("layout hygiene", () => {
   it("picks a map size from the real width", () => {
     expect(boundsForWidth(35)).toBe(20);
     expect(boundsForWidth(55)).toBe(30);
-    expect(boundsForWidth(120)).toBe(40);
+    expect(boundsForWidth(120)).toBe(60);
+    expect(boundsForWidth(300)).toBe(60);
   });
 });

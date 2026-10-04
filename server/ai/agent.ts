@@ -36,7 +36,7 @@ Choose ONE intent:
 - "fix": make a failing level pass (our verified fixer will place cover; you just explain)
 - "explain": answer a question about the level, Prove, sightlines, why it fails, etc. (no edits)
 - "edit": change the layout as asked (add/move/remove boxes). Give 1-3 ALTERNATIVE proposals, each a complete small change.
-  To change the MAP SIZE (the designer asks for a bigger/smaller map, or 40/60/80 m), set "mapSize" to 40, 60 or 80 and give no edits.
+  To change the MAP SIZE (the designer asks for a bigger/smaller map, or 40/60/80/120 m), set "mapSize" to 40, 60, 80 or 120 and give no edits.
   STRICT: every object your "why" mentions adding (cart, wall, crates...) MUST be a full entry in that proposal's "add" (label, role, position [x,0,z], size [w,h,d]). Every box you move/resize MUST be in "update" with its id. Don't describe changes you didn't include.
 - "sketch": the attached image is a layout drawing/map to turn into a greybox
 - "build": no image, the designer describes a WHOLE NEW level in words ("build me a smugglers' harbour"); our level builder drafts it, you just introduce it
@@ -46,7 +46,7 @@ Choose ONE intent:
 The FLOOR is the map/sketch image the layout was read from; it can't be restyled. If asked, explain that and suggest re-importing a cleaner map image.
 Rules: reply in 1-3 short sentences, plain words, refer to boxes by their labels, use numbers from FACTS. Nothing is applied until the designer clicks Accept: say "I propose" / "here are options", never "I've added / locked in / applied". Never claim a change passes unless it is a "fix". If the level is locked and the designer wants a LAYOUT change, still choose "edit" (our code offers an Unlock step first); look changes never need unlocking.
 Also give 2-3 short follow-up suggestions the designer could click next (max 6 words each).
-Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id","position"?,"size"?,"rotationY"?}], "remove": [ids]}], "mapSize"?: 40|60|80, "targets"?: [ids], "look"?: "...", "chips": [..]}`;
+Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id","position"?,"size"?,"rotationY"?}], "remove": [ids]}], "mapSize"?: 40|60|80|120, "targets"?: [ids], "look"?: "...", "chips": [..]}`;
 
   const { data, model } = await geminiJson<{ intent?: string; reply?: string; edits?: unknown[]; mapSize?: number; targets?: unknown[]; look?: string; chips?: unknown[] }>(key, prompt, {
     // No responseSchema here on purpose: with the deeply nested schema Gemini drops the
@@ -113,7 +113,7 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
       });
       reply = "The layout is locked, so its boxes can't change yet. I propose unlocking it first: accept, then ask me again.";
     } else if (size && size.bounds === level.bounds) {
-      reply = `The map is already ${size.bounds * 2} m × ${size.bounds * 2} m. Sizes: 40, 60 or 80 m.`;
+      reply = `The map is already ${size.bounds * 2} m × ${size.bounds * 2} m. Sizes: 40, 60, 80 or 120 m.`;
     } else if (size) {
       const bigger = size.bounds > level.bounds;
       proposals.push({

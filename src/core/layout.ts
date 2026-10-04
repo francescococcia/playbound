@@ -8,6 +8,7 @@ export const MAP_SIZES = [
   { id: "small", label: "Small · 40 m", bounds: 20 },
   { id: "medium", label: "Medium · 60 m", bounds: 30 },
   { id: "large", label: "Large · 80 m", bounds: 40 },
+  { id: "huge", label: "Huge · 120 m", bounds: 60 },
 ] as const;
 
 /** Smallest map size whose side is at least `metres` (capped at Large). */
