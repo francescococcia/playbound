@@ -30,7 +30,7 @@ if (process.argv.includes("--prune")) {
   const file = "public/assets/gen/manifest.json";
   const manifest: Record<string, { url: string }> = JSON.parse(readFileSync(file, "utf8"));
   for (const key of Object.keys(manifest)) {
-    if (jobs.has(key)) continue;
+    if (jobs.has(key) || key.startsWith("bot-")) continue; // bot-* = replay runner, not a preset prop
     const glb = `public${manifest[key].url}`;
     if (existsSync(glb)) rmSync(glb);
     delete manifest[key];

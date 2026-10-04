@@ -1,9 +1,10 @@
 // Playtest replay (Round 4 · A): after Prove, a bot runs the route. Coral + "Spotted!" when it
 // is in the open, green when protected. Ends with a card: "Spotted for X s of Y s".
-import { Html } from "@react-three/drei";
+import { Html, useGLTF } from "@react-three/drei";
 import { useFrame } from "@react-three/fiber";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Color, type Group, type MeshStandardMaterial } from "three";
+import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type Ref } from "react";
+import { Color, type Group, type Mesh, type MeshStandardMaterial } from "three";
+import { fitToVolume } from "../../core/dress/fit";
 import { create } from "zustand";
 import { replayTimeline, sampleReplay, type ReplayTimeline } from "../../core/prove/replay";
 import { usePlaybound } from "../../core/store";
@@ -29,6 +30,9 @@ export const useReplay = create<{
 const START_DELAY_S = 0.9; // let the route draw first
 const GREEN = new Color(SCENE.proof);
 const CORAL = new Color(SCENE.danger);
+/** Player-scale runner made with Hyper3D Rodin (API + bbox_condition), fitted like any prop. */
+const BOT_URL = "/assets/gen/bot-runner.glb";
+const BOT_SIZE: [number, number, number] = [0.7, 1.8, 0.5];
 
 export function BotReplay() {
   const prove = usePlaybound((s) => s.level.prove);
@@ -68,7 +72,10 @@ function Runner({ tl }: { tl: ReplayTimeline }) {
     color.current.lerp(s.spotted ? CORAL : GREEN, Math.min(1, dt * 10));
     body.current?.color.copy(color.current);
     body.current?.emissive.copy(color.current);
-    if (ring.current) ring.current.opacity = s.spotted ? 0.35 + 0.35 * Math.abs(Math.sin(state.clock.elapsedTime * 8)) : 0.25;
+    if (ring.current) {
+      ring.current.color.copy(color.current);
+      ring.current.opacity = s.spotted ? 0.45 + 0.4 * Math.abs(Math.sin(state.clock.elapsedTime * 8)) : 0.5;
+    }
     if (s.spotted !== spotted && time > 0) setSpotted(s.spotted);
     if (t.current >= tl.totalSeconds + 0.4 && useReplay.getState().playing) {
       useReplay.setState({
@@ -85,18 +92,12 @@ function Runner({ tl }: { tl: ReplayTimeline }) {
 
   return (
     <group ref={grp}>
-      {/* body + head: a simple, readable runner (1.8 m tall like the Prove agent) */}
-      <mesh position={[0, 0.75, 0]} castShadow>
-        <capsuleGeometry args={[0.3, 0.8, 6, 12]} />
-        <meshStandardMaterial ref={body} emissiveIntensity={0.45} roughness={0.4} />
-      </mesh>
-      <mesh position={[0, 1.6, 0]} castShadow>
-        <sphereGeometry args={[0.2, 16, 12]} />
-        <meshStandardMaterial color="#e8edf7" />
-      </mesh>
+      <Suspense fallback={<CapsuleBot bodyRef={body} />}>
+        <BotModel />
+      </Suspense>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
         <ringGeometry args={[0.45, 0.7, 32]} />
-        <meshStandardMaterial ref={ring} color={SCENE.danger} transparent opacity={0.25} depthWrite={false} />
+        <meshStandardMaterial ref={ring} color={SCENE.proof} transparent opacity={0.5} depthWrite={false} />
       </mesh>
       {spotted && (
         <Html position={[0, 2.25, 0]} center style={{ pointerEvents: "none" }}>
@@ -104,5 +105,34 @@ function Runner({ tl }: { tl: ReplayTimeline }) {
         </Html>
       )}
     </group>
+  );
+}
+
+/** The generated runner, fitted inside a 0.7 × 1.8 × 0.5 m box (bottom-centre at the origin). */
+function BotModel() {
+  const gltf = useGLTF(BOT_URL);
+  const obj = useMemo(() => gltf.scene.clone(true), [gltf.scene]);
+  useLayoutEffect(() => {
+    fitToVolume(obj, BOT_SIZE);
+    obj.traverse((n) => {
+      if ((n as Mesh).isMesh) (n as Mesh).castShadow = true;
+    });
+  }, [obj]);
+  return <primitive object={obj} />;
+}
+
+/** Fallback while the model loads: a simple capsule runner tinted green / coral. */
+function CapsuleBot({ bodyRef }: { bodyRef: Ref<MeshStandardMaterial> }) {
+  return (
+    <>
+      <mesh position={[0, 0.75, 0]} castShadow>
+        <capsuleGeometry args={[0.3, 0.8, 6, 12]} />
+        <meshStandardMaterial ref={bodyRef} emissiveIntensity={0.45} roughness={0.4} />
+      </mesh>
+      <mesh position={[0, 1.6, 0]} castShadow>
+        <sphereGeometry args={[0.2, 16, 12]} />
+        <meshStandardMaterial color="#e8edf7" />
+      </mesh>
+    </>
   );
 }

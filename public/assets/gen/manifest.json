@@ -78,5 +78,13 @@
     "generationId": "867c74e1-66f7-4d22-b9d3-425713d42764",
     "url": "/assets/gen/aa8fb871.glb",
     "createdAt": "2026-10-04T04:43:07.093Z"
+  },
+  "bot-runner": {
+    "key": "bot-runner",
+    "volumeId": "bot",
+    "prompt": "Style: stylised medieval European market town, warm hand-painted textures, readable game art.\nGame-ready character for a first-person stealth level.\nObject: young hooded medieval thief, full body, mid-stride running pose, satchel on the hip.\nExact real-world size: 0.7m wide x 1.8m tall x 0.5m deep.\nCentered, grounded, feet on the ground, clean silhouette readable at gameplay distance.\nSingle character, no scene, no base platform, no weapons.",
+    "generationId": "5f88c285-acf5-4fb6-a829-a2aaf8719e25",
+    "url": "/assets/gen/bot-runner.glb",
+    "createdAt": "2026-10-04T04:54:00.751Z"
   }
 }
