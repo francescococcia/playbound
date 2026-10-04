@@ -7,6 +7,6 @@ export default defineConfig(({ mode }) => {
   // "" prefix = load ALL vars from .env, but only into this Node process (never the browser).
   const env = loadEnv(mode, process.cwd(), "");
   return {
-    plugins: [react(), rodinDevPlugin(), aiDevPlugin(env.GEMINI_API_KEY)],
+    plugins: [react(), rodinDevPlugin(env.HYPER3D_API_KEY), aiDevPlugin(env.GEMINI_API_KEY)],
   };
 });

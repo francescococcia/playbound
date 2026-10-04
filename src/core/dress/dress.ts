@@ -102,7 +102,7 @@ Match the object in the reference image (shape, materials, colours).` : base;
   }
 
   try {
-    const body: GenerateRequest = { key, prompt, volumeId: id, ...(image && { image }) };
+    const body: GenerateRequest = { key, prompt, volumeId: id, size: v.size, ...(image && { image }) };
     let job = await postJson<JobResponse>("/api/rodin/generate", body);
     while (job.status !== "ready" && job.status !== "error") {
       setVolumeAsset(id, { status: job.status === "queued" ? "queued" : "generating", stage: job.stage });

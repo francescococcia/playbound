@@ -215,7 +215,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | D | Claude Code | **Undo / redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) for edits and accepted proposals; toolbar buttons. | todo |
 | B | Cursor | **Play mode for shared links:** `#play&l=...` opens a game view (no editor): start at spawn, reach the objective, timer, "Objective reached in N s", Play again, "Open in editor". Share menu offers "Copy play link". | todo |
 | C | Claude Code | **Autopilot ("Build me a level"):** one request → the Co-designer proposes layout → Prove → fix → style, one approved step at a time. | todo |
-| H3D | Claude Code | **Hyper3D API** (Business key, local dev route): generation with `bbox_condition` = the box size; CLI kept as fallback. |todo|
+| H3D | Claude Code | **Hyper3D API** (Business key, local dev route): generation with `bbox_condition` = the box size; CLI kept as fallback. |done|
 | U21 | Cursor | Phone layout check (bottom sheets), empty states, Level panel + step bar + action bar polish, Francesco's visual notes. | done |
 
 **Francesco feedback Round 4:** _(write here)_
@@ -223,6 +223,7 @@ Then U10 polish. Stop after and tell Francesco what to test.
 ---
 
 ## Known facts (keep updated)
+- **Hyper3D API + BBOX control (4 Oct, 05:30):** the dev route uses the HTTP API when `HYPER3D_API_KEY` is set (`bbox_condition` = box size in cm, scaled to ≤2048); the CLI is the fallback. Hay bales test: **fill 42% (CLI) → 97% (API + bbox)**, ~2 min, 0.5 credits.
 - **Hyper3D CLI login expires after a few hours** ("Authentication expired"). Run `hyper3d auth login` again before any live generation, especially right before recording the demo.
 - **AI co-designer measured (3 Oct, Gemini 3.8 Flash):** sketch → level 8 s, style → notes 5 s, command 6 s, fix 1.4 s (fast mode; verified by Prove, with a search fallback if the AI fails). Sketch of the market square comes back as a "death corridor" (0%), which is the hero demo. Usage cap: 30 requests / 10 min per visitor, 400 / day per server.
 - **AI provider test (3 Oct):** sketch → greybox JSON works on every model tested (6 boxes, right roles, positions within ~1 m). Speed: **Gemini 3.8 Flash direct 12 s (free)**, Cursor SDK + Claude Sonnet 5.5 27 s, Cursor SDK + Gemini 3.8 Flash 94 s. Cursor SDK on Windows needs `JsonlLocalAgentStore` (default SQLite path exceeds MAX_PATH); its custom tools were blocked by `tools: []`. Decision: **Gemini direct** for the app (free, fastest, works on the public site); the "fix" agent loop runs in our code (model proposes → our Prove checks).

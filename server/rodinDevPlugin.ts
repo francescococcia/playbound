@@ -17,6 +17,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import { dirname, join, resolve } from "node:path";
 import type { Plugin } from "vite";
 import type { GenerateRequest, JobResponse, ManifestEntry } from "../src/core/dress/rodinTypes.ts";
+import { apiDownloadList, apiGenerate, apiStatus } from "./rodinApi.ts";
 
 const ROOT = resolve(process.cwd());
 const GEN_DIR = join(ROOT, "public", "assets", "gen");
@@ -37,11 +38,16 @@ interface Job {
   url?: string;
   error?: string;
   finalizing?: boolean;
+  /** Set when the job runs through the HTTP API (BBOX control) instead of the CLI. */
+  api?: { uuid: string; subscriptionKey: string };
 }
 
 const jobs = new Map<string, Job>();
+/** Hyper3D API key (Business). When set, generation uses the API with bbox_condition. */
+let apiKey: string | undefined;
 
-export function rodinDevPlugin(): Plugin {
+export function rodinDevPlugin(key?: string): Plugin {
+  apiKey = key || undefined;
   return {
     name: "playbound-rodin-dev",
     apply: "serve",
@@ -58,7 +64,7 @@ export function rodinDevPlugin(): Plugin {
 
 async function handle(req: IncomingMessage, res: ServerResponse) {
   const url = new URL(req.url ?? "/", "http://local");
-  if (url.pathname === "/health") return send(res, 200, { live: true });
+  if (url.pathname === "/health") return send(res, 200, { live: true, via: apiKey ? "api" : "cli" });
 
   if (url.pathname === "/generate" && req.method === "POST") {
     const body = JSON.parse(await readBody(req)) as GenerateRequest;
@@ -71,6 +77,19 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 
     // `generationId` adopts an existing Rodin generation (made via MCP or the website): no new credits.
     let generationId = body.generationId;
+    if (!generationId && apiKey) {
+      // HTTP API with BBOX control: Rodin generates to the box's proportions.
+      let image: { data: Buffer; mime: string; name: string } | undefined;
+      if (body.image) {
+        const m = /^data:(image\/(\w+));base64,(.+)$/.exec(body.image);
+        if (!m) return send(res, 400, { jobId: "", status: "error", error: "Reference must be an image data URL" } satisfies JobResponse);
+        image = { data: Buffer.from(m[3], "base64"), mime: m[1], name: `${body.key}.${m[2] === "jpeg" ? "jpg" : m[2]}` };
+      }
+      const task = await apiGenerate(apiKey, { prompt: body.prompt, size: body.size, image, quality: Number(RODIN_QUALITY) });
+      const job: Job = { jobId: task.uuid, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued", fromImage: !!body.image, api: task };
+      jobs.set(job.jobId, job);
+      return send(res, 200, view(job));
+    }
     if (!generationId) {
       const args = ["generate", "--prompt", body.prompt, "--format", "glb", "--quality", RODIN_QUALITY];
       if (body.image) {
@@ -108,18 +127,18 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
 }
 
 async function refresh(job: Job) {
+  if (job.api) {
+    const s = await apiStatus(apiKey!, job.api.subscriptionKey);
+    job.stage = s.detail;
+    if (s.state === "failed") [job.status, job.error] = ["error", "Rodin job failed"];
+    else if (s.state === "done") startFinalize(job);
+    else job.status = s.state === "waiting" ? "queued" : "generating";
+    return;
+  }
   const s = await cli(["status", job.jobId]);
   if (s.stage) job.stage = `${s.stage.name} ${s.stage.current}/${s.stage.total}`;
   if (s.status === "completed") {
-    job.status = "processing";
-    job.stage = "optimizing";
-    if (!job.finalizing) {
-      job.finalizing = true;
-      finalize(job).catch((e: unknown) => {
-        job.status = "error";
-        job.error = `Post-processing failed: ${String(e)}`;
-      });
-    }
+    startFinalize(job);
   } else if (/fail|error|cancel/i.test(String(s.status))) {
     job.status = "error";
     job.error = `Rodin status: ${s.status}`;
@@ -128,9 +147,21 @@ async function refresh(job: Job) {
   }
 }
 
+function startFinalize(job: Job) {
+  job.status = "processing";
+  job.stage = "optimizing";
+  if (job.finalizing) return;
+  job.finalizing = true;
+  finalize(job).catch((e: unknown) => {
+    job.status = "error";
+    job.error = `Post-processing failed: ${String(e)}`;
+  });
+}
+
 async function finalize(job: Job) {
-  const r = await cli(["result", job.jobId]);
-  const files: { name: string; url: string; role?: string }[] = r.files ?? [];
+  const files: { name: string; url: string }[] = job.api
+    ? await apiDownloadList(apiKey!, job.api.uuid)
+    : ((await cli(["result", job.jobId])).files ?? []);
   const pick = files.find((f) => f.name.includes("pbr") && f.name.endsWith(".glb")) ?? files.find((f) => f.name.endsWith(".glb"));
   if (!pick) throw new Error("No GLB in Rodin result");
 
