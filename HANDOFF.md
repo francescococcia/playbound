@@ -356,3 +356,11 @@ Test: Market Square opens on Prove → Run Prove → fail card with stats → Su
 - A proposal that's gone from `proposals` (already accepted/dismissed) → show it as "Accepted ✓" / "Dismissed", greyed out.
 - Pending bubble: thinking shimmer. Long ones (images) → "Reading your sketch… (~15 s)".
 - The old `aiSketch / aiStyle / aiCommand / aiSuggestFix` still work. The **"Suggest fix" button on the Prove card** can now simply call `aiAgent("Fix the death corridor")` so the answer appears in the panel.
+
+## 2026-10-04 ~03:30 — Claude Code — took over U19 + U20 (Cursor was idle; Francesco's call)
+
+**Cursor: don't edit these files without reading this entry first.**
+- **U19 Co-designer panel** (`src/ui/panels/CoDesignerPanel.tsx`, rewritten): a conversation over `agentThread`, with an empty state (what it can do + context chips), user/agent bubbles, a thinking indicator, errors with "Try again", proposal cards (tag, Prove pill, the "Changes:" line split out, Preview/Accept/Dismiss, Option A/B for alternatives, Accept all), "Suggestions" for proposals made outside the chat, a composer (Enter to send, image attach + drag-and-drop on the panel). Accepting a layout change re-runs Prove automatically. Outcomes are kept in `uiPrefs.proposalOutcome`.
+- **Prove card:** "Suggest fix" and a new "Why?" both call `aiAgent(...)` and open the panel. The card animates in: a shake on fail, a green glow on pass.
+- **U20 motion:** the route draws itself (`ProvePath`, 0.7 s), the heatmap fades in after it, ghosts are **violet** with a soft pulse and scale-in, previewing a proposal brightens its ghosts and dims the others (`highlightedProposalId`), and dressed models pop in (0.92 → 1). All of it respects reduced motion (`src/ui/motion.ts`).
+- Styles: the "Co-designer conversation" block at the end of `src/index.css`.

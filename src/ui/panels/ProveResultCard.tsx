@@ -1,5 +1,7 @@
+import { HelpCircle, Sparkles } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import { useEffect, useState } from "react";
-import { aiSuggestFix, isAiAvailable } from "../../core/ai/client";
+import { aiAgent, isAiAvailable } from "../../core/ai/client";
 import { usePlaybound } from "../../core/store";
 import { useUiPrefs } from "../uiPrefs";
 import { currentStep } from "../workflow";
@@ -11,12 +13,12 @@ export function ProveResultCard() {
   const viewMode = usePlaybound((s) => s.viewMode);
   const locked = level.locked;
   const stepOverride = useUiPrefs((s) => s.stepOverride);
-  const setToast = useUiPrefs((s) => s.setToast);
+  const setCoDesignerOpen = useUiPrefs((s) => s.setCoDesignerOpen);
+  const fixBusy = usePlaybound((s) => s.agentThread.some((m) => m.pending));
+  const reduce = useReducedMotion();
   const step = stepOverride ?? currentStep(level);
 
   const [aiOk, setAiOk] = useState<boolean | null>(null);
-  const [fixBusy, setFixBusy] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -27,16 +29,6 @@ export function ProveResultCard() {
       cancelled = true;
     };
   }, []);
-
-  useEffect(() => {
-    if (!fixBusy) {
-      setElapsed(0);
-      return;
-    }
-    const t0 = Date.now();
-    const id = window.setInterval(() => setElapsed(Math.floor((Date.now() - t0) / 1000)), 250);
-    return () => window.clearInterval(id);
-  }, [fixBusy]);
 
   if (step !== "prove" && step !== "lock") return null;
   if (!prove || prove.status === "idle") return null;
@@ -49,22 +41,28 @@ export function ProveResultCard() {
     prove.exposedMeters != null ? `${prove.exposedMeters.toFixed(0)} m` : "—";
   const showFix = prove.status === "fail" && !locked;
 
-  const onFix = async () => {
+  // Both answers land in the Co-designer conversation (the AI's one home).
+  const ask = (q: string) => {
     if (fixBusy || aiOk === false) return;
-    setFixBusy(true);
-    try {
-      const out = await aiSuggestFix();
-      if (out.note) setToast(out.note);
-      else if (out.proposal) setToast("Fix proposal ready — Accept or Reject.");
-    } catch (e) {
-      setToast(e instanceof Error ? e.message : String(e));
-    } finally {
-      setFixBusy(false);
-    }
+    setCoDesignerOpen(true);
+    aiAgent(q);
   };
 
   return (
-    <div className={`prove-result-card prove-result-card--${tone}`} role="status">
+    <motion.div
+      key={prove.checkedAt}
+      className={`prove-result-card prove-result-card--${tone}`}
+      role="status"
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      animate={
+        reduce
+          ? { opacity: 1 }
+          : tone === "fail"
+            ? { opacity: 1, y: 0, x: [0, -7, 6, -4, 2, 0] }
+            : { opacity: 1, y: 0, boxShadow: ["0 0 0 0 #3ddc9700", "0 0 0 8px #3ddc9733", "0 0 0 0 #3ddc9700"] }
+      }
+      transition={{ duration: 0.55, ease: "easeOut", x: { delay: 0.2, duration: 0.45 } }}
+    >
       <div className="prove-result-head">
         <span className="prove-result-status">{prove.status === "pass" ? "Pass" : "Fail"}</span>
         <span className="muted mono">Prove</span>
@@ -86,22 +84,27 @@ export function ProveResultCard() {
       </p>
 
       {showFix && (
-        <button
-          type="button"
-          className="suggest-fix-btn"
-          disabled={fixBusy || aiOk === false}
-          title={aiOk === false ? "AI not configured" : "Ask AI for cover that makes Prove pass"}
-          onClick={onFix}
-        >
-          {fixBusy ? (
-            <>
-              <span className="btn-spin" aria-hidden /> Suggesting… ~5–10 s · {elapsed}s
-            </>
-          ) : (
-            "Suggest fix"
-          )}
-        </button>
+        <div className="prove-result-actions">
+          <button
+            type="button"
+            className="suggest-fix-btn"
+            disabled={fixBusy || aiOk === false}
+            title={aiOk === false ? "AI not configured" : "The Co-designer proposes cover, checked by Prove"}
+            onClick={() => ask("Fix the death corridor")}
+          >
+            {fixBusy ? <span className="btn-spin" aria-hidden /> : <Sparkles size={14} strokeWidth={1.75} />} Suggest fix
+          </button>
+          <button
+            type="button"
+            className="why-btn"
+            disabled={fixBusy || aiOk === false}
+            title="Explain why it fails"
+            onClick={() => ask("Why does it fail?")}
+          >
+            <HelpCircle size={14} strokeWidth={1.75} /> Why?
+          </button>
+        </div>
       )}
-    </div>
+    </motion.div>
   );
 }

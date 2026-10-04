@@ -1,6 +1,8 @@
-import { useEffect, useMemo } from "react";
+import { useFrame } from "@react-three/fiber";
+import { useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { usePlaybound } from "../../core/store";
+import { reducedMotion } from "../motion";
 import { useUiPrefs } from "../uiPrefs";
 
 /** Ground-plane exposure heatmap: red = seen from objective, blue = hidden. */
@@ -48,6 +50,18 @@ export function Heatmap() {
 
   useEffect(() => () => texture?.dispose(), [texture]);
 
+  // Fade in after the route has started drawing (DESIGN_BRIEF §5).
+  const mat = useRef<THREE.MeshBasicMaterial>(null);
+  const age = useRef(0);
+  useEffect(() => {
+    age.current = reducedMotion() ? 10 : 0;
+  }, [checkedAt, show]);
+  useFrame((_, dt) => {
+    if (!mat.current || age.current > 1.2) return;
+    age.current += dt;
+    mat.current.opacity = Math.min(1, Math.max(0, (age.current - 0.35) / 0.5));
+  });
+
   if (!ready || !texture || !cols || !cell) return null;
 
   const size = cols * cell;
@@ -55,7 +69,7 @@ export function Heatmap() {
   return (
     <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.02, 0]} renderOrder={1}>
       <planeGeometry args={[size, size]} />
-      <meshBasicMaterial map={texture} transparent depthWrite={false} />
+      <meshBasicMaterial ref={mat} map={texture} transparent opacity={0} depthWrite={false} />
     </mesh>
   );
 }

@@ -20,6 +20,9 @@ export const useUiPrefs = create<{
   setStepOverride: (s: Step | null) => void;
   toast: string | null;
   setToast: (msg: string | null) => void;
+  /** What the designer did with each AI proposal (for "Accepted ✓" / "Dismissed" rows). */
+  proposalOutcome: Record<string, "accepted" | "dismissed">;
+  setProposalOutcome: (id: string, o: "accepted" | "dismissed") => void;
 }>((set) => ({
   showColliders: false,
   setShowColliders: (showColliders) => set({ showColliders }),
@@ -35,4 +38,6 @@ export const useUiPrefs = create<{
   setStepOverride: (stepOverride) => set({ stepOverride }),
   toast: null,
   setToast: (toast) => set({ toast }),
+  proposalOutcome: {},
+  setProposalOutcome: (id, o) => set((s) => ({ proposalOutcome: { ...s.proposalOutcome, [id]: o } })),
 }));
