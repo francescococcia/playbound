@@ -52,6 +52,8 @@ export function Heatmap() {
 
   // Fade in after the route has started drawing (DESIGN_BRIEF §5).
   const mat = useRef<THREE.MeshBasicMaterial>(null);
+  // Over a map / satellite floor, keep the heatmap see-through so the streets stay readable.
+  const maxOpacity = usePlaybound((s) => (s.level.ground?.imageUrl ? 0.5 : 1));
   const age = useRef(0);
   useEffect(() => {
     age.current = reducedMotion() ? 10 : 0;
@@ -59,7 +61,7 @@ export function Heatmap() {
   useFrame((_, dt) => {
     if (!mat.current || age.current > 1.2) return;
     age.current += dt;
-    mat.current.opacity = Math.min(1, Math.max(0, (age.current - 0.35) / 0.5));
+    mat.current.opacity = maxOpacity * Math.min(1, Math.max(0, (age.current - 0.35) / 0.5));
   });
 
   if (!ready || !texture || !cols || !cell) return null;

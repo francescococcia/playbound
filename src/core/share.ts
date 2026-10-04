@@ -17,6 +17,8 @@ function slim(level: Level): Level {
     bounds: level.bounds,
     styleNotes: level.styleNotes,
     locked: level.locked,
+    // Uploaded floor images are too big for a link; hosted ones (/demo/…) travel with it.
+    ...(level.ground?.imageUrl.startsWith("/") && { ground: level.ground }),
     volumes: level.volumes.map((v): Volume => {
       const keepAsset = v.status === "ready" && v.assetUrl?.startsWith("/assets/");
       return {
@@ -127,7 +129,7 @@ export function saveLevel(level: Level, s: Storage | null = store()): boolean {
     name: level.name,
     savedAt: new Date().toISOString(),
     volumes: level.volumes.length,
-    level: slim(level),
+    level: { ...slim(level), ...(level.ground && { ground: level.ground }) }, // saves keep the floor image
   };
   return writeSaves(s, [rec, ...readSaves(s).filter((r) => r.id !== level.id)].slice(0, 30));
 }

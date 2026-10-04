@@ -292,9 +292,12 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
     set({
       level: {
         ...level,
+        // A replaced layout is a new level: it must not keep a preset's id (preset menu, saves).
+        id: p.replaceAll ? `level-${Date.now().toString(36)}` : level.id,
         volumes,
         bounds,
         name: p.replaceAll && p.levelName ? p.levelName : level.name,
+        ground: p.replaceAll ? (p.ground?.imageUrl ? p.ground : undefined) : level.ground,
         styleNotes: p.styleNotes ?? level.styleNotes,
         prove: changesLayout || p.bounds ? idle : level.prove,
       },

@@ -9,6 +9,7 @@ import { groundUnderCamera, setViewGroundPicker } from "../viewPick";
 import { isGreybox } from "../workflow";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
+import { GroundImage } from "./GroundImage";
 import { Heatmap } from "./Heatmap";
 import { ProveResultCard } from "../panels/ProveResultCard";
 import { ReplayCard } from "../panels/ReplayCard";
@@ -57,6 +58,8 @@ export function Viewport() {
     const proposed = s.proposals.find((p) => (p.replaceAll || p.bounds) && p.bounds);
     return proposed?.bounds && proposed.bounds > s.level.bounds ? proposed.bounds : s.level.bounds;
   });
+  // While a layout read from an image is pending, show its floor image (the old level is faded).
+  const previewGround = usePlaybound((s) => s.proposals.find((p) => p.replaceAll && p.ground?.imageUrl)?.ground);
   const showHeatmap = useUiPrefs((s) => s.showHeatmap);
   const prove = level.prove;
   const blueprint = isGreybox(level);
@@ -104,6 +107,7 @@ export function Viewport() {
         <Suspense fallback={null}>
           {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
           <Ground bounds={previewBounds} blueprint={blueprint} />
+          <GroundImage ground={previewGround ?? level.ground} bounds={previewBounds} dim={blueprint} />
           <Heatmap />
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} faded={replacingLayout} />

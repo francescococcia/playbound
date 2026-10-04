@@ -5,6 +5,7 @@ import { editorUrlFromPlay } from "../../core/share";
 import { usePlaybound } from "../../core/store";
 import { FpsController } from "../scene/FpsController";
 import { Ground } from "../scene/Ground";
+import { GroundImage } from "../scene/GroundImage";
 import { isGreybox } from "../workflow";
 import { PlayVolume } from "./PlayVolume";
 import "./play.css";
@@ -187,6 +188,7 @@ export function PlayMode() {
         <Suspense fallback={null}>
           {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
           <Ground bounds={level.bounds} blueprint={blueprint} />
+          <GroundImage ground={level.ground} bounds={level.bounds} />
           {level.volumes.map((v) => (
             <PlayVolume key={v.id} volume={v} />
           ))}

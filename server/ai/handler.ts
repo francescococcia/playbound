@@ -116,7 +116,10 @@ Return JSON: {"name", "areaMeters", "styleNotes", "why": "one sentence describin
   const level: Level = { id: "preview", name: "preview", bounds, locked: false, volumes };
   const base = data.why ?? (req.image ? `Greybox from your sketch: ${volumes.length} boxes.` : `Greybox from your description: ${volumes.length} boxes.`);
   const why = `${base} Map ${bounds * 2} m.${dropped.length ? ` Left out ${dropped.length} overlapping box${dropped.length > 1 ? "es" : ""}.` : ""}`;
-  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, levelName, bounds, styleNotes, previewProve: prove(level) } };
+  // The image covers areaMeters (real scale); the client lays it on the floor under the boxes.
+  const area = Math.min(300, Math.max(20, Number(data.areaMeters) || bounds * 2));
+  const ground = req.image ? { imageUrl: "", width: area, depth: area } : undefined;
+  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, levelName, bounds, styleNotes, ground, previewProve: prove(level) } };
 }
 
 // ---------- style: picture -> style notes ----------

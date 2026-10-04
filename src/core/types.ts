@@ -55,6 +55,15 @@ export interface ProveResult {
   checkedAt?: string;
 }
 
+/** The map / sketch the layout was read from, laid on the floor (centred at 0,0, north = -Z). */
+export interface GroundImage {
+  /** Image URL (a data URL for an upload, or a hosted /path). Empty until the client attaches it. */
+  imageUrl: string;
+  /** Real-world metres the image covers along X (width) and Z (depth). */
+  width: number;
+  depth: number;
+}
+
 export interface Level {
   id: string;
   name: string;
@@ -65,6 +74,8 @@ export interface Level {
   prove?: ProveResult;
   locked: boolean;
   volumes: Volume[];
+  /** Map / sketch image under the level (Round 5). */
+  ground?: GroundImage;
   environment?: {
     provider: "hy-world" | "hdri-fallback";
     assetUrl?: string;
@@ -92,6 +103,8 @@ export interface Proposal {
   styleNotes?: string;
   /** Name for the level (sketch / map / description), applied with replaceAll. */
   levelName?: string;
+  /** Floor image for a replaceAll layout read from an image (the client fills imageUrl). */
+  ground?: GroundImage;
   /** New map half-extent in metres (20 = 40 m square, 30 = 60 m, 40 = 80 m). */
   bounds?: number;
   /** Prove result if this proposal were accepted (filled by the fix agent). */

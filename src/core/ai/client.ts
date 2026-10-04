@@ -50,8 +50,22 @@ async function call(action: string, body: unknown): Promise<AiOutcome> {
   });
   const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as AiResponse;
   if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
+  const img = (body as { image?: string }).image;
+  if (j.proposal && img) j.proposal = await withGround(j.proposal, img);
   if (j.proposal) usePlaybound.getState().addProposal(j.proposal);
   return { proposal: j.proposal, note: j.note, model: j.model };
+}
+
+/** A layout read from an image keeps that image as its floor (depth follows the image's aspect). */
+async function withGround(p: Proposal, img: string): Promise<Proposal> {
+  if (!p.ground || !p.replaceAll) return p;
+  const { w, h } = await new Promise<{ w: number; h: number }>((resolve) => {
+    const el = new Image();
+    el.onload = () => resolve({ w: el.naturalWidth || 1, h: el.naturalHeight || 1 });
+    el.onerror = () => resolve({ w: 1, h: 1 });
+    el.src = img;
+  });
+  return { ...p, ground: { imageUrl: img, width: p.ground.width, depth: (p.ground.width * h) / w } };
 }
 
 // ---- Round 3: the Co-designer agent ----
@@ -84,6 +98,7 @@ export async function aiAgent(message: string, image?: File | string, opts: { in
     });
     const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as Partial<AgentResponse> & { error?: string };
     if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
+    if (img) j.proposals = await Promise.all((j.proposals ?? []).map((p) => withGround(p, img)));
     for (const p of j.proposals ?? []) usePlaybound.getState().addProposal(p);
     usePlaybound.getState().updateAgentMessage(replyId, {
       pending: false,
