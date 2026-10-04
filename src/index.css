@@ -553,6 +553,29 @@ button.active {
   max-width: calc(100% - 1.5rem);
   text-align: center;
 }
+.map-credit {
+  position: absolute;
+  right: var(--space-3);
+  bottom: 5.6rem;
+  z-index: 5;
+  margin: 0;
+  padding: 0.2rem 0.45rem;
+  border-radius: 4px;
+  background: #0b101cee;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 0.62rem;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+.map-credit--inline {
+  position: static;
+  right: auto;
+  bottom: auto;
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
 
 .viewport-chrome {
   position: absolute;
@@ -1478,6 +1501,12 @@ button.active {
     bottom: calc(var(--co-collapsed-h) + 3.6rem + env(safe-area-inset-bottom, 0px));
   }
   .app-shell--co-open .viewport-hint {
+    bottom: calc(var(--co-open-h) + 3.6rem + env(safe-area-inset-bottom, 0px));
+  }
+  .map-credit:not(.map-credit--inline) {
+    bottom: calc(var(--co-collapsed-h) + 3.6rem + env(safe-area-inset-bottom, 0px));
+  }
+  .app-shell--co-open .map-credit:not(.map-credit--inline) {
     bottom: calc(var(--co-open-h) + 3.6rem + env(safe-area-inset-bottom, 0px));
   }
 

@@ -72,7 +72,7 @@ export function Viewport() {
       <Canvas
         shadows
         dpr={[1, 1.5]}
-        camera={{ position: ORBIT_POS, fov: 45, near: 0.1, far: 250 }}
+        camera={{ position: ORBIT_POS, fov: 45, near: 0.1, far: Math.max(250, 140 * mapScale) }}
         onPointerMissed={() => select(null)}
       >
         <color attach="background" args={[bg]} />
@@ -124,6 +124,10 @@ export function Viewport() {
           <span className="heatmap-swatch heatmap-swatch--hidden" />
           Blue = hidden
         </div>
+      )}
+
+      {/cambridge|openstreetmap|\bosm\b/i.test(level.name) && (
+        <p className="map-credit">© OpenStreetMap contributors</p>
       )}
 
       {viewMode === "fps" && (

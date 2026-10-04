@@ -647,6 +647,9 @@ function Composer({ disabled, dropped, onConsumeDrop }: { disabled: boolean; dro
           </button>
         </div>
       )}
+      {image && /osm|openstreetmap/i.test(image.name) && (
+        <p className="map-credit map-credit--inline">© OpenStreetMap contributors</p>
+      )}
       {image && (
         <p className="co-image-hint">
           <strong>Top-down drawing or map</strong> → a full greybox proposal (~15 s, replaces the level when you Accept).{" "}

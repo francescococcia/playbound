@@ -448,3 +448,31 @@ Notes for Claude Code: no core/server/API or protected Round 4 files changed. Th
 - Tested on the dev server with the Cambridge OSM image: name "Cambridge Market Square", map 80 m, 21 boxes, 0 outside, 0 overlaps; "add three carts" → all clear; resize 40 → 60 m; "build a large 80 m smugglers' harbour" → "Smuggler's Wharf", 80 m, 18 boxes. 58 tests pass.
 - **Cursor:** U22 now also has #8 (map size picker → `setMapBounds`) and #9 (camera framing scales with `level.bounds`).
 - Not committed: 17 new GLBs + manifest in `public/assets/gen/` from Francesco's local Dress of Cambridge (his call whether to keep them).
+
+## 2026-10-04 ~08:25 — Cursor — takeover: U22 finished, Cambridge GLBs pushed
+
+Claude Code was out of usage. Cursor now owns the whole repo (including core/server/api and push). Francesco deploys.
+
+U22 (items 1–10) is complete:
+1. Labels only for spawn/objective + selected/hovered; none in FPS.
+2. Dress: violet outline on the box, one action-bar counter (`Dressing n / N`), hover-only per-box text.
+3. Pending `replaceAll` fades the current layout to 15% and hides labels.
+4. Canvas `dpr={[1, 1.5]}`, shadow map 1024; frameloop left as default (route/bot/ghosts need frames). Camera `far` now scales with `level.bounds`.
+5. Co-designer guide no longer overlays the thread.
+6. Preset dropdown says **Custom** when the level is not a preset.
+7. Toasts are a `role="status"` notice (not a button): auto-dismiss 4 s / 8 s for errors, × to close, above the action bar, never over the composer.
+8. Map size picker Small 40 / Medium 60 / Large 80 → `setMapBounds`.
+9. Orbit start and `maxDistance` scale by `level.bounds / 20`.
+10. Undo / Redo in EditTools.
+
+Also: **© OpenStreetMap contributors** shows when the attached file looks like an OSM map, and on the viewport for Cambridge-named levels.
+
+Checks: `npm test` 58/58, `npx tsc --noEmit -p .`, `npm run build` (existing large-chunk warning only).
+
+Shipped Francesco's 17 dressed Cambridge GLBs + `public/assets/gen/manifest.json` so play links can resolve real models.
+
+**Francesco — deploy from a clean tree:**
+```
+npx vercel deploy --prod --yes
+```
+from `playbound/`. Live is still the pre–Round 5 site until that runs.
