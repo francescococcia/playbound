@@ -203,6 +203,24 @@ Then U10 polish. Stop after and tell Francesco what to test.
 
 ---
 
+# ROUND 4: make it playable and visual (planned 4 Oct, ~04:00)
+
+**Why:** there's time before 14:00. Goals: show Prove in action (a bot that gets spotted), turn share links into a real game (Arcade fit), basic undo, then an AI autopilot for the whole pipeline (Tencent fit).
+**Feature freeze: 11:00.** After that only bug fixes, then video + submission.
+**File split (no shared files):** Claude Code = new files + `src/core/**` + `CoDesignerPanel.tsx` + its own stylesheet `src/ui/round4.css`. Cursor = `src/index.css`, `LevelPanel`, `StepActionBar`, `Stepper`, `ViewportChrome`, `TopBar` (U21 polish).
+
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| A | Claude Code | **Playtest bot replay:** after Prove, a bot runs the route; red + "Spotted!" when exposed, green in cover; end card "Spotted for X s of Y s". Replay button. | todo |
+| D | Claude Code | **Undo / redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) for edits and accepted proposals; toolbar buttons. | todo |
+| B | Claude Code | **Play mode for shared links:** `#play&l=...` opens a game view (no editor): start at spawn, reach the objective, timer, "Objective reached in N s", Play again, "Open in editor". Share menu offers "Copy play link". | todo |
+| C | Claude Code | **Autopilot ("Build me a level"):** one request → the Co-designer proposes layout → Prove → fix → style, one approved step at a time. | todo |
+| U21 | Cursor | Phone layout check (bottom sheets), empty states, Level panel + step bar + action bar polish, Francesco's visual notes. | todo |
+
+**Francesco feedback Round 4:** _(write here)_
+
+---
+
 ## Known facts (keep updated)
 - **Hyper3D CLI login expires after a few hours** ("Authentication expired"). Run `hyper3d auth login` again before any live generation, especially right before recording the demo.
 - **AI co-designer measured (3 Oct, Gemini 3.8 Flash):** sketch → level 8 s, style → notes 5 s, command 6 s, fix 1.4 s (fast mode; verified by Prove, with a search fallback if the AI fails). Sketch of the market square comes back as a "death corridor" (0%), which is the hero demo. Usage cap: 30 requests / 10 min per visitor, 400 / day per server.
