@@ -22,7 +22,8 @@ function formatTime(sec: number): string {
 
 function isTouchDevice(): boolean {
   if (typeof window === "undefined") return false;
-  return window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 0;
+  // Only block phones/tablets: touchscreen laptops also report touch points but have a mouse.
+  return !window.matchMedia("(any-pointer: fine)").matches;
 }
 
 function PlayWatcher({
@@ -98,7 +99,7 @@ export function PlayMode() {
   const level = usePlaybound((s) => s.level);
   const [phase, setPhase] = useState<Phase>("start");
   const [elapsed, setElapsed] = useState(0);
-  const [dist, setDist] = useState(0);
+  const [dist, setDist] = useState(Infinity); // "Find the gold beacon" until the first frame
   const [winTime, setWinTime] = useState(0);
   const [runId, setRunId] = useState(0);
   const [touch] = useState(() => isTouchDevice());
@@ -124,7 +125,7 @@ export function PlayMode() {
 
   const startPlay = () => {
     setElapsed(0);
-    setDist(0);
+    setDist(Infinity);
     setPhase("playing");
     setRunId((n) => n + 1);
   };
@@ -132,7 +133,7 @@ export function PlayMode() {
   const playAgain = () => {
     setWinTime(0);
     setElapsed(0);
-    setDist(0);
+    setDist(Infinity);
     setPhase("playing");
     setRunId((n) => n + 1);
   };
