@@ -476,3 +476,11 @@ Shipped Francesco's 17 dressed Cambridge GLBs + `public/assets/gen/manifest.json
 npx vercel deploy --prod --yes
 ```
 from `playbound/`. Live is still the pre–Round 5 site until that runs.
+
+## 2026-10-04 ~10:30 — Cursor — Save / Open saved in the Level panel
+
+The Level panel preset row now has **Save** and **Open saved** at every step, including while the layout is locked. Save writes the current level with `saveLevel`. Open saved lists `listSaves()` and loads with `loadSave(id)` then `setLevel`. A save can be deleted from the same menu.
+
+Files: `src/ui/panels/LevelPanel.tsx`, `src/index.css`, `HANDOFF.md`.
+
+Test: Save from Block out or Dress → Open saved shows it → load replaces the level. Preset dropdown stays locked-only; these two buttons do not.

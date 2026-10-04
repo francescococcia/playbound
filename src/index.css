@@ -1032,6 +1032,18 @@ button.active {
   padding: 0.4rem 0.5rem;
 }
 
+.preset-row { display: grid; gap: 0.35rem; }
+.preset-row > select { width: 100%; }
+.level-save-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 0.35rem; }
+.level-save-actions > button,
+.level-save-actions .save-wrap > button { width: 100%; font-size: var(--text-xs); }
+.level-save-menu {
+  left: 0;
+  right: auto;
+  bottom: auto;
+  top: calc(100% + 0.3rem);
+  width: min(16rem, calc(var(--left-w) - 1.5rem));
+}
 .save-wrap { position: relative; }
 .save-menu {
   position: absolute;

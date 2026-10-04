@@ -1,8 +1,9 @@
-import { Camera, PanelLeftClose, PanelLeftOpen, RefreshCw, Search } from "lucide-react";
+import { Camera, FolderOpen, PanelLeftClose, PanelLeftOpen, RefreshCw, Save, Search, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { isLiveAvailable, regenerate, regenerateFromImage } from "../../core/dress/dress";
 import { toJpegDataUrl } from "../../core/image";
 import { MAP_SIZES } from "../../core/layout";
+import { deleteSave, listSaves, loadSave, saveLevel, type SaveEntry } from "../../core/share";
 import { usePlaybound } from "../../core/store";
 import { DRESS_ROLES, ROLE_COLORS, type Role } from "../../core/types";
 import { shortLabel } from "../label";
@@ -31,6 +32,7 @@ export function LevelPanel() {
   const level = usePlaybound((s) => s.level);
   const selectedId = usePlaybound((s) => s.selectedId);
   const loadPreset = usePlaybound((s) => s.loadPreset);
+  const setLevel = usePlaybound((s) => s.setLevel);
   const select = usePlaybound((s) => s.select);
   const updateVolume = usePlaybound((s) => s.updateVolume);
   const setMapBounds = usePlaybound((s) => s.setMapBounds);
@@ -54,7 +56,14 @@ export function LevelPanel() {
   const [regenBusy, setRegenBusy] = useState(false);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [regenError, setRegenError] = useState<string | null>(null);
+  const [savesOpen, setSavesOpen] = useState(false);
+  const [saves, setSaves] = useState<SaveEntry[]>([]);
   const photoRef = useRef<HTMLInputElement>(null);
+
+  const refreshSaves = () => setSaves(listSaves());
+  useEffect(() => {
+    if (savesOpen) refreshSaves();
+  }, [savesOpen]);
 
   useEffect(() => {
     let cancelled = false;
@@ -182,22 +191,100 @@ export function LevelPanel() {
         </div>
       </div>
 
-      <label className="field">
+      <div className="field">
         <span className="field-label">Preset</span>
-        <select
-          value={level.id}
-          onChange={(e) => loadPreset(e.target.value)}
-          disabled={locked}
-          title={locked ? "Unlock to switch preset" : undefined}
-        >
-          {!PRESETS.some((p) => p.id === level.id) && <option value={level.id}>Custom</option>}
-          {PRESETS.map((p) => (
-            <option key={p.id} value={p.id}>
-              {p.name}
-            </option>
-          ))}
-        </select>
-      </label>
+        <div className="preset-row">
+          <select
+            value={level.id}
+            onChange={(e) => loadPreset(e.target.value)}
+            disabled={locked}
+            title={locked ? "Unlock to switch preset" : undefined}
+          >
+            {!PRESETS.some((p) => p.id === level.id) && <option value={level.id}>Custom</option>}
+            {PRESETS.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+          <div className="level-save-actions">
+            <button
+              type="button"
+              className="icon-inline"
+              title="Save this level in this browser"
+              onClick={() => {
+                const name = window.prompt("Save as", level.name);
+                if (name === null) return;
+                const ok = saveLevel({ ...level, name: name.trim() || level.name });
+                refreshSaves();
+                setToast(ok ? "Level saved in this browser." : "Could not save (storage blocked).", ok ? "info" : "error");
+              }}
+            >
+              <Save size={14} strokeWidth={1.75} aria-hidden />
+              Save
+            </button>
+            <div className="save-wrap">
+              <button
+                type="button"
+                className="icon-inline"
+                title="Open a level saved in this browser"
+                aria-expanded={savesOpen}
+                onClick={() => setSavesOpen((o) => !o)}
+              >
+                <FolderOpen size={14} strokeWidth={1.75} aria-hidden />
+                Open saved
+              </button>
+              {savesOpen && (
+                <div className="save-menu level-save-menu">
+                  {saves.length === 0 ? (
+                    <p className="empty-state">No saves yet in this browser.</p>
+                  ) : (
+                    <ul className="save-list">
+                      {saves.map((s) => (
+                        <li key={s.id}>
+                          <button
+                            type="button"
+                            className="save-load"
+                            onClick={() => {
+                              const next = loadSave(s.id);
+                              if (!next) {
+                                setToast("Save not found.", "error");
+                                refreshSaves();
+                                return;
+                              }
+                              setLevel(next);
+                              setSavesOpen(false);
+                              setToast(`Loaded “${next.name}”.`);
+                            }}
+                          >
+                            {s.name}
+                            <span className="save-meta">
+                              {s.volumes} boxes · {new Date(s.savedAt).toLocaleString()}
+                            </span>
+                          </button>
+                          <button
+                            type="button"
+                            className="save-del icon-inline"
+                            title="Delete save"
+                            onClick={() => {
+                              if (!window.confirm("Delete this save?")) return;
+                              deleteSave(s.id);
+                              refreshSaves();
+                              setToast("Save deleted.");
+                            }}
+                          >
+                            <Trash2 size={14} strokeWidth={1.75} aria-hidden />
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
 
       <EditTools />
 
