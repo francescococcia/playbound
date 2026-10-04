@@ -68,7 +68,9 @@ export async function regenerate(id: string): Promise<void> {
  * usual prompt. The model is still fitted inside the box. Live (local) only: ~2 min, 0.5 credits.
  * `image` = a JPEG/PNG data URL (use toJpegDataUrl from ../image for File uploads).
  */
-export async function regenerateFromImage(id: string, image: string): Promise<void> {
+/** Image-to-3D from 1–5 photos of the same object (different sides = a more accurate model). */
+export async function regenerateFromImage(id: string, image: string | string[]): Promise<void> {
+  const images = (Array.isArray(image) ? image : [image]).slice(0, 5);
   const { level, setVolumeAsset } = usePlaybound.getState();
   const v = level.volumes.find((x) => x.id === id);
   if (!v || !DRESS_ROLES.includes(v.role)) return;
@@ -78,17 +80,18 @@ export async function regenerateFromImage(id: string, image: string): Promise<vo
   }
   setVolumeAsset(id, { variant: (v.variant ?? 0) + 1, status: "queued", error: undefined, stage: undefined });
   manifestReq = undefined;
-  await dressVolume(id, image);
+  await dressVolume(id, images);
 }
 
-async function dressVolume(id: string, image?: string): Promise<void> {
+async function dressVolume(id: string, images?: string[]): Promise<void> {
+  const image = images?.[0];
   const { level, setVolumeAsset } = usePlaybound.getState();
   const v = level.volumes.find((x) => x.id === id) as Volume;
   const base = buildPrompt(v, level.styleNotes);
   const prompt = image ? `${base}
-Match the object in the reference image (shape, materials, colours).` : base;
+Match the object in the reference ${images!.length > 1 ? `photos (${images!.length} views of the same object)` : "image"} (shape, materials, colours).` : base;
   // The reference image is part of the cache key: same photo + same box = same model.
-  const key = assetKey(image ? `${prompt}|img:${hash(image)}` : prompt, v.size, v.variant ?? 0);
+  const key = assetKey(image ? `${prompt}|img:${hash(images!.join("|"))}` : prompt, v.size, v.variant ?? 0);
   setVolumeAsset(id, { prompt });
 
   const manifest = await loadManifest();
@@ -102,7 +105,7 @@ Match the object in the reference image (shape, materials, colours).` : base;
   }
 
   try {
-    const body: GenerateRequest = { key, prompt, volumeId: id, size: v.size, ...(image && { image }) };
+    const body: GenerateRequest = { key, prompt, volumeId: id, size: v.size, ...(image && { image }), ...(images && images.length > 1 && { images }) };
     let job = await postJson<JobResponse>("/api/rodin/generate", body);
     while (job.status !== "ready" && job.status !== "error") {
       setVolumeAsset(id, { status: job.status === "queued" ? "queued" : "generating", stage: job.stage });

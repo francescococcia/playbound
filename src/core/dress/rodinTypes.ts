@@ -8,6 +8,8 @@ export interface GenerateRequest {
   generationId?: string;
   /** Optional reference photo/sketch of the object (JPEG data URL) → Rodin image-to-3D. */
   image?: string;
+  /** 2–5 photos of the same object from different sides (multi-view image-to-3D, API route). */
+  images?: string[];
   /** Box size in metres [w, h, d] → Rodin bbox_condition (API route only). */
   size?: [number, number, number];
 }

@@ -121,12 +121,12 @@ export function LevelPanel() {
     }
   };
 
-  const onFromPhoto = async (file: File | undefined) => {
-    if (!file || !selected || !canRegen) return;
+  const onFromPhoto = async (files: File[]) => {
+    if (!files.length || !selected || !canRegen) return;
     setPhotoBusy(true);
     setRegenError(null);
     try {
-      await regenerateFromImage(selected.id, await toJpegDataUrl(file));
+      await regenerateFromImage(selected.id, await Promise.all(files.slice(0, 5).map((f) => toJpegDataUrl(f))));
     } catch (e) {
       setRegenError(e instanceof Error ? e.message : String(e));
     } finally {
@@ -474,11 +474,12 @@ export function LevelPanel() {
                   ref={photoRef}
                   type="file"
                   accept="image/*"
+                  multiple
                   hidden
                   onChange={(e) => {
-                    const f = e.target.files?.[0];
+                    const fs = [...(e.target.files ?? [])];
                     e.target.value = "";
-                    void onFromPhoto(f);
+                    void onFromPhoto(fs);
                   }}
                 />
                 <div className="regen-row">
@@ -504,7 +505,7 @@ export function LevelPanel() {
                     title={
                       liveOk === false
                         ? "needs Hyper3D connection"
-                        : "Image-to-3D from a photo of this object (~2 min, 0.5 credits)"
+                        : "Image-to-3D from 1–5 photos of this object; several sides = a more accurate model (~2 min, 0.5 credits)"
                     }
                   >
                     {photoBusy ? <span className="regen-spin" aria-hidden /> : <Camera {...ICON} aria-hidden />}

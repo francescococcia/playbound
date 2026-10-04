@@ -88,13 +88,13 @@ ${BUILDING_HINT}` : body.prompt;
     let generationId = body.generationId;
     if (!generationId && apiKey) {
       // HTTP API with BBOX control: Rodin generates to the box's proportions.
-      let image: { data: Buffer; mime: string; name: string } | undefined;
-      if (body.image) {
-        const m = /^data:(image\/(\w+));base64,(.+)$/.exec(body.image);
+      const images: { data: Buffer; mime: string; name: string }[] = [];
+      for (const [i, url] of (body.images ?? (body.image ? [body.image] : [])).entries()) {
+        const m = /^data:(image\/(\w+));base64,(.+)$/.exec(url);
         if (!m) return send(res, 400, { jobId: "", status: "error", error: "Reference must be an image data URL" } satisfies JobResponse);
-        image = { data: Buffer.from(m[3], "base64"), mime: m[1], name: `${body.key}.${m[2] === "jpeg" ? "jpg" : m[2]}` };
+        images.push({ data: Buffer.from(m[3], "base64"), mime: m[1], name: `${body.key}-${i}.${m[2] === "jpeg" ? "jpg" : m[2]}` });
       }
-      const task = await apiGenerate(apiKey, { prompt, size: body.size, image, quality: Number(RODIN_QUALITY) });
+      const task = await apiGenerate(apiKey, { prompt, size: body.size, images, quality: Number(RODIN_QUALITY) });
       const job: Job = { jobId: task.uuid, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued", fromImage: !!body.image, big, api: task };
       jobs.set(job.jobId, job);
       return send(res, 200, view(job));

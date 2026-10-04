@@ -19,7 +19,7 @@ export interface ApiTask {
 
 export async function apiGenerate(
   key: string,
-  opts: { prompt: string; size?: [number, number, number]; image?: { data: Buffer; mime: string; name: string }; quality: number },
+  opts: { prompt: string; size?: [number, number, number]; images?: { data: Buffer; mime: string; name: string }[]; quality: number },
 ): Promise<ApiTask> {
   const form = new FormData();
   form.append("tier", "Gen-2.5-Medium");
@@ -28,7 +28,8 @@ export async function apiGenerate(
   form.append("material", "PBR");
   form.append("quality_override", String(opts.quality));
   if (opts.size) for (const n of bboxCondition(opts.size)) form.append("bbox_condition", String(n));
-  if (opts.image) form.append("images", new Blob([new Uint8Array(opts.image.data)], { type: opts.image.mime }), opts.image.name);
+  // Several views of the same object: Rodin fuses them into one model (max 5).
+  for (const img of (opts.images ?? []).slice(0, 5)) form.append("images", new Blob([new Uint8Array(img.data)], { type: img.mime }), img.name);
   const r = await fetch(`${BASE}/rodin`, { method: "POST", headers: { Authorization: `Bearer ${key}` }, body: form });
   const j = (await r.json().catch(() => ({}))) as { error?: string; message?: string; uuid?: string; jobs?: { subscription_key?: string } };
   if (!r.ok || j.error || !j.uuid || !j.jobs?.subscription_key) {
