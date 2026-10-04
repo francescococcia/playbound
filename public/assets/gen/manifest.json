@@ -222,5 +222,14 @@
     "generationId": "c9264c66-9586-433a-b23f-59e3c3a35a82",
     "url": "/assets/gen/7324c975.glb",
     "createdAt": "2026-10-04T06:09:06.199Z"
+  },
+  "demo-guildhall": {
+    "key": "demo-guildhall",
+    "volumeId": "guildhall",
+    "prompt": "Style: Victorian Portland stone civic architecture, yellow Cambridge brick facades, realistic.\nGame-ready building for a first-person level.\nObject: The Guildhall, Cambridge: 1930s neoclassical civic building, buff brick with stone dressings, clock above the cornice, flat roof.\nExact real-world size: 18m wide x 12m tall x 12m deep.\nOnly the building: no market stalls, no people, no flags, no base platform.",
+    "generationId": "46a42e9b-8bb2-450f-9a66-806aa5649220",
+    "url": "/assets/gen/demo-guildhall.glb",
+    "createdAt": "2026-10-04T08:53:01.207Z",
+    "fromImage": true
   }
 }
