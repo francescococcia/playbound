@@ -1,4 +1,5 @@
 import { Environment } from "@react-three/drei";
+import { SceneBoundary, SKY_HDR } from "../scene/SceneBoundary";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { editorUrlFromPlay } from "../../core/share";
@@ -189,7 +190,11 @@ export function PlayMode() {
           shadow-camera-bottom={-35}
         />
         <Suspense fallback={null}>
-          {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
+          {!blueprint && (
+            <SceneBoundary label="sky">
+              <Environment files={SKY_HDR} environmentIntensity={0.55} />
+            </SceneBoundary>
+          )}
           <Ground bounds={level.bounds} blueprint={blueprint} />
           <GroundImage ground={level.ground} bounds={level.bounds} />
           {level.volumes.map((v) => (

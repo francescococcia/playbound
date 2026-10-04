@@ -1,6 +1,7 @@
 // Playtest replay (Round 4 · A): after Prove, a bot runs the route. Coral + "Spotted!" when it
 // is in the open, green when protected. Ends with a card: "Spotted for X s of Y s".
 import { Html, useGLTF } from "@react-three/drei";
+import { SceneBoundary } from "./SceneBoundary";
 import { useFrame } from "@react-three/fiber";
 import { Suspense, useEffect, useLayoutEffect, useMemo, useRef, useState, type Ref } from "react";
 import { Color, type Group, type Mesh, type MeshStandardMaterial } from "three";
@@ -93,7 +94,9 @@ function Runner({ tl }: { tl: ReplayTimeline }) {
   return (
     <group ref={grp}>
       <Suspense fallback={<CapsuleBot bodyRef={body} />}>
-        <BotModel />
+        <SceneBoundary label="runner" fallback={<CapsuleBot bodyRef={body} />}>
+          <BotModel />
+        </SceneBoundary>
       </Suspense>
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.04, 0]}>
         <ringGeometry args={[0.45, 0.7, 32]} />

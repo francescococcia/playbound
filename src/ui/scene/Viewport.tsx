@@ -1,5 +1,6 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import { Environment, OrbitControls } from "@react-three/drei";
+import { SceneBoundary, SKY_HDR } from "./SceneBoundary";
 import { Suspense, useEffect } from "react";
 import { usePlaybound } from "../../core/store";
 import { StepActionBar } from "../panels/StepActionBar";
@@ -106,7 +107,11 @@ export function Viewport() {
         />
         <ViewPicker />
         <Suspense fallback={null}>
-          {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
+          {!blueprint && (
+            <SceneBoundary label="sky">
+              <Environment files={SKY_HDR} environmentIntensity={0.55} />
+            </SceneBoundary>
+          )}
           <Ground bounds={previewBounds} blueprint={blueprint} />
           <GroundImage ground={previewGround ?? level.ground} bounds={previewBounds} dim={blueprint} />
           {viewMode === "orbit" && <Heatmap />}

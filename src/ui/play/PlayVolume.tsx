@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { ROLE_COLORS, type Volume } from "../../core/types";
+import { SceneBoundary } from "../scene/SceneBoundary";
 import { DressedModel } from "../scene/DressedModel";
 
 /** Non-interactive volume for Play mode — no labels, selection, or drag. */
@@ -58,7 +59,17 @@ export function PlayVolume({ volume }: { volume: Volume }) {
             </mesh>
           }
         >
-          <DressedModel url={volume.assetUrl!} size={volume.size} />
+          <SceneBoundary
+            label={volume.label}
+            fallback={
+              <mesh position={[0, sy / 2, 0]} castShadow receiveShadow>
+                <boxGeometry args={[sx, sy, sz]} />
+                <meshStandardMaterial color={color} roughness={0.85} metalness={0} transparent opacity={0.9} />
+              </mesh>
+            }
+          >
+            <DressedModel url={volume.assetUrl!} size={volume.size} />
+          </SceneBoundary>
         </Suspense>
       ) : (
         <mesh position={[0, sy / 2, 0]} castShadow receiveShadow>

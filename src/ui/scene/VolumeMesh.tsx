@@ -6,6 +6,7 @@ import { usePlaybound } from "../../core/store";
 import { ROLE_COLORS, type Volume } from "../../core/types";
 import { shortLabel } from "../label";
 import { useUiPrefs } from "../uiPrefs";
+import { SceneBoundary } from "./SceneBoundary";
 import { DressedModel } from "./DressedModel";
 
 const GROUND = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
@@ -255,7 +256,12 @@ export function VolumeMesh({ volume, faded = false }: { volume: Volume; faded?: 
             </>
           }
         >
-          <DressedModel url={volume.assetUrl!} size={volume.size} />
+          <SceneBoundary
+            label={volume.label}
+            fallback={<GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} faded={faded} loading={false} />}
+          >
+            <DressedModel url={volume.assetUrl!} size={volume.size} />
+          </SceneBoundary>
         </Suspense>
       ) : (
         <GreyBox size={volume.size} color={color} selected={selected} hovered={hovered} faded={faded} loading={loading && !faded} />
