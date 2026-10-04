@@ -6,6 +6,8 @@ import { usePlaybound } from "../../core/store";
 import { FpsController } from "../scene/FpsController";
 import { Ground } from "../scene/Ground";
 import { GroundImage } from "../scene/GroundImage";
+import { StealthHud, StealthProbe } from "../scene/Stealth";
+import { useStealth } from "../../core/prove/stealth";
 import { isGreybox } from "../workflow";
 import { PlayVolume } from "./PlayVolume";
 import "./play.css";
@@ -104,6 +106,7 @@ export function PlayMode() {
   const [winTime, setWinTime] = useState(0);
   const [runId, setRunId] = useState(0);
   const [touch] = useState(() => isTouchDevice());
+  const seenSeconds = useStealth((s) => s.seenSeconds);
 
   const blueprint = isGreybox(level);
   const objective = useMemo(() => {
@@ -196,6 +199,7 @@ export function PlayMode() {
         {(phase === "playing" || phase === "won") && (
           <>
             <FpsController key={`fps-${runId}`} level={level} />
+            <StealthProbe key={`stealth-${runId}`} level={level} counting={phase === "playing"} />
             {phase === "playing" && <LockOnDemand enabled />}
             <PlayWatcher
               key={`watch-${runId}`}
@@ -208,6 +212,7 @@ export function PlayMode() {
         )}
       </Canvas>
 
+      {phase === "playing" && <StealthHud />}
       {phase === "playing" && (
         <div className="play-hud" aria-live="polite">
           <div className="play-hud-brand">PLAYBOUND</div>
@@ -244,7 +249,9 @@ export function PlayMode() {
             <p className="play-brand">PLAYBOUND</p>
             <h1 className="play-title">Objective reached</h1>
             <p className="play-time">{formatTime(winTime)}</p>
-            <p className="play-controls">You made it to the gold beacon.</p>
+            <p className="play-controls">
+              You made it to the gold beacon{seenSeconds >= 0.1 ? `, seen by defenders for ${seenSeconds.toFixed(1)} s` : " without being seen"}.
+            </p>
             <div className="play-actions">
               <button type="button" className="play-btn" onClick={playAgain}>
                 Play again

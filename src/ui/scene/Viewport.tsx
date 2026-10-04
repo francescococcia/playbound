@@ -10,6 +10,7 @@ import { isGreybox } from "../workflow";
 import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
 import { GroundImage } from "./GroundImage";
+import { StealthHud, StealthProbe } from "./Stealth";
 import { Heatmap } from "./Heatmap";
 import { ProveResultCard } from "../panels/ProveResultCard";
 import { ReplayCard } from "../panels/ReplayCard";
@@ -108,7 +109,7 @@ export function Viewport() {
           {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
           <Ground bounds={previewBounds} blueprint={blueprint} />
           <GroundImage ground={previewGround ?? level.ground} bounds={previewBounds} dim={blueprint} />
-          <Heatmap />
+          {viewMode === "orbit" && <Heatmap />}
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} faded={replacingLayout} />
           ))}
@@ -118,9 +119,11 @@ export function Viewport() {
         </Suspense>
 
         {viewMode === "orbit" ? <OrbitRig bounds={previewBounds} /> : <FpsController level={level} />}
+        {viewMode === "fps" && <StealthProbe level={level} />}
       </Canvas>
 
       <ProveResultCard />
+      {viewMode === "fps" && <StealthHud />}
       <ReplayCard />
       <ViewportChrome />
       <StepActionBar />

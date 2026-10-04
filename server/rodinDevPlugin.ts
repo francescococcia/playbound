@@ -26,6 +26,8 @@ const REF_DIR = join(ROOT, "cache", "ref");
 const MANIFEST = join(GEN_DIR, "manifest.json");
 /** Faces requested from Rodin. Lower = faster download; we simplify further anyway. */
 const RODIN_QUALITY = "50000";
+const BUILDING_HINT =
+  "ONE single building as one connected volume that fills the box: not a complex, campus or group of buildings. No landscaping, lawns, trees, roads, paving, fences or ground slab around it.";
 
 interface Job {
   jobId: string; // Rodin generation id
@@ -38,6 +40,8 @@ interface Job {
   url?: string;
   error?: string;
   finalizing?: boolean;
+  /** Building-sized box (≥ 6 m wide): sharper textures and more geometry kept. */
+  big?: boolean;
   /** Set when the job runs through the HTTP API (BBOX control) instead of the CLI. */
   api?: { uuid: string; subscriptionKey: string };
 }
@@ -75,6 +79,11 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
     const running = [...jobs.values()].find((j) => j.key === body.key && j.status !== "error");
     if (running) return send(res, 200, view(running));
 
+    // Big boxes: Rodin otherwise tends to make a whole "site" (several buildings, lawns, a slab).
+    // Added here, not in the shared prompt, so cached keys (prebaked presets) stay valid.
+    const big = !!body.size && Math.max(body.size[0], body.size[2]) >= 6;
+    const prompt = big && !body.image ? `${body.prompt}
+${BUILDING_HINT}` : body.prompt;
     // `generationId` adopts an existing Rodin generation (made via MCP or the website): no new credits.
     let generationId = body.generationId;
     if (!generationId && apiKey) {
@@ -85,13 +94,13 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         if (!m) return send(res, 400, { jobId: "", status: "error", error: "Reference must be an image data URL" } satisfies JobResponse);
         image = { data: Buffer.from(m[3], "base64"), mime: m[1], name: `${body.key}.${m[2] === "jpeg" ? "jpg" : m[2]}` };
       }
-      const task = await apiGenerate(apiKey, { prompt: body.prompt, size: body.size, image, quality: Number(RODIN_QUALITY) });
-      const job: Job = { jobId: task.uuid, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued", fromImage: !!body.image, api: task };
+      const task = await apiGenerate(apiKey, { prompt, size: body.size, image, quality: Number(RODIN_QUALITY) });
+      const job: Job = { jobId: task.uuid, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued", fromImage: !!body.image, big, api: task };
       jobs.set(job.jobId, job);
       return send(res, 200, view(job));
     }
     if (!generationId) {
-      const args = ["generate", "--prompt", body.prompt, "--format", "glb", "--quality", RODIN_QUALITY];
+      const args = ["generate", "--prompt", prompt, "--format", "glb", "--quality", RODIN_QUALITY];
       if (body.image) {
         // Image-to-3D: the CLI takes a local file path.
         const m = /^data:image\/(\w+);base64,(.+)$/.exec(body.image);
@@ -106,7 +115,7 @@ async function handle(req: IncomingMessage, res: ServerResponse) {
         return send(res, 502, { jobId: "", status: "error", error: `Hyper3D CLI gave no generation id: ${JSON.stringify(out).slice(0, 300)}` } satisfies JobResponse);
       }
     }
-    const job: Job = { jobId: generationId, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued", fromImage: !!body.image };
+    const job: Job = { jobId: generationId, key: body.key, volumeId: body.volumeId, prompt: body.prompt, status: "queued", fromImage: !!body.image, big };
     jobs.set(job.jobId, job);
     return send(res, 200, view(job));
   }
@@ -173,8 +182,9 @@ async function finalize(job: Job) {
   const out = join(GEN_DIR, `${job.key}.glb`);
   await run(process.execPath, [
     gltfTransformEntry(), "optimize", raw, out,
-    "--texture-size", "1024", "--texture-compress", "webp",
-    "--simplify-ratio", "0.05", "--simplify-error", "0.005",
+    // Buildings are seen up close in Walk mode: 2K textures, keep 15% of the geometry (props: 1K, 5%).
+    "--texture-size", job.big ? "2048" : "1024", "--texture-compress", "webp",
+    "--simplify-ratio", job.big ? "0.15" : "0.05", "--simplify-error", job.big ? "0.002" : "0.005",
     "--compress", "meshopt",
   ]);
 

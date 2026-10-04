@@ -1,0 +1,47 @@
+/* Walk / Play stealth HUD (Round 5). */
+.stealth-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow: inset 0 0 0 0 rgba(255, 107, 90, 0);
+  transition: box-shadow 0.25s ease;
+  z-index: 4;
+}
+.stealth-vignette--on {
+  box-shadow: inset 0 0 120px 30px rgba(255, 107, 90, 0.55);
+  animation: stealth-pulse 1.1s ease-in-out infinite;
+}
+@keyframes stealth-pulse {
+  50% { box-shadow: inset 0 0 90px 18px rgba(255, 107, 90, 0.35); }
+}
+
+.stealth-pill {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  background: rgba(14, 19, 32, 0.82);
+  border: 1px solid var(--border-strong, #354468);
+  color: var(--text, #e8edf7);
+  font-size: 0.85rem;
+  pointer-events: none;
+  z-index: 5;
+  backdrop-filter: blur(4px);
+}
+.stealth-pill strong { font-family: var(--font-display, sans-serif); letter-spacing: 0.02em; }
+.stealth-hint { color: var(--text-muted, #8b95a8); font-size: 0.75rem; }
+.stealth-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: currentColor; }
+.stealth-pill--hidden { color: #5ea8ff; border-color: #5ea8ff66; }
+.stealth-pill--cover { color: var(--proof, #3ddc97); border-color: #3ddc9766; }
+.stealth-pill--seen { color: var(--danger, #ff6b5a); border-color: #ff6b5a99; }
+.stealth-pill strong, .stealth-pill .stealth-hint { color: var(--text, #e8edf7); }
+.stealth-pill .stealth-hint { color: var(--text-muted, #8b95a8); }
+
+@media (prefers-reduced-motion: reduce) {
+  .stealth-vignette, .stealth-vignette--on { animation: none; transition: none; }
+}
