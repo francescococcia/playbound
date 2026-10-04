@@ -364,3 +364,17 @@ Test: Market Square opens on Prove → Run Prove → fail card with stats → Su
 - **Prove card:** "Suggest fix" and a new "Why?" both call `aiAgent(...)` and open the panel. The card animates in: a shake on fail, a green glow on pass.
 - **U20 motion:** the route draws itself (`ProvePath`, 0.7 s), the heatmap fades in after it, ghosts are **violet** with a soft pulse and scale-in, previewing a proposal brightens its ghosts and dims the others (`highlightedProposalId`), and dressed models pop in (0.92 → 1). All of it respects reduced motion (`src/ui/motion.ts`).
 - Styles: the "Co-designer conversation" block at the end of `src/index.css`.
+
+---
+
+## 2026-10-04 ~05:20 — Cursor — U21 (Round 4 polish)
+
+Built:
+- **Phone / tablet layout (≤960):** fixed Co-designer `position: relative` override that broke the bottom sheet; action bar / viewport chrome / legend / toast sit above the sheet using `--co-open-h` / `--co-collapsed-h` (no overlap when open or collapsed). Touch targets ≥ 40 px. Compact stepper on narrow screens.
+- **Empty states:** blank level (“Start from a sketch… / preset / Add a box”), no search matches, nothing to dress / no models yet.
+- **Polish:** Level panel search + spacing; lucide 16 px icons on EditTools, StepActionBar, ViewportChrome, ShareSaveMenu, inspector Regen/From photo; visible amber `action-why` under disabled Lock/Dress/Sketch; focus rings unchanged (amber inset).
+- TopBar stubbed (unused since Stepper). Francesco Round 4 feedback was empty.
+
+Files: `src/index.css`, LevelPanel, StepActionBar, Stepper, ViewportChrome, TopBar, EditTools, ShareSaveMenu, PLAN, HANDOFF.
+
+Test at 390×844: open/collapse Co-designer — action bar clears the sheet; Level drawer does not cover the stepper; New level → empty state; search nonsense → no matches; Lock without pass → why text under button.
