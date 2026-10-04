@@ -391,3 +391,18 @@ Test at 390×844: open/collapse Co-designer — action bar clears the sheet; Lev
 - **For Cursor (optional, in EditTools):** Undo / Redo icon buttons (lucide `Undo2` / `Redo2`) → `useHistory().undo()` / `.redo()`, disabled when `useHistory().past.length === 0` / `future.length === 0` or the level is locked.
 - Rodin now goes through the Hyper3D **HTTP API with `bbox_condition`** when `HYPER3D_API_KEY` is in `.env` (dev route); the CLI is the fallback. All 10 demo models are being re-prebaked through it (cache keys include `PIPELINE_VERSION = "bbox1"`).
 
+---
+
+## 2026-10-04 ~05:45 — Cursor — B (Play mode for share links)
+
+Built:
+- `App.tsx`: `isPlayLink()` → full-screen `<PlayMode />` (no editor).
+- `src/ui/play/`: PlayMode (start → FPS run → win), PlayVolume (no labels/selection; gold beacon; dressed if `ready`), `play.css`.
+- Win within 2 m of objective; timer + distance HUD; Play again / Open in editor (`editorUrlFromPlay`) / Make your own.
+- Touch devices: “Play on a computer with a keyboard” + editor/home links.
+- ShareSaveMenu: **Copy play link** + Copy link; Play step action bar: **Copy play link** is the main share action.
+
+Files: App, `src/ui/play/*`, ShareSaveMenu, StepActionBar, PLAN, HANDOFF.
+
+Test: Play step → Copy play link → open in new tab → Play → reach well → win card; editor link works.
+
