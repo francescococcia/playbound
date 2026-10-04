@@ -484,3 +484,10 @@ The Level panel preset row now has **Save** and **Open saved** at every step, in
 Files: `src/ui/panels/LevelPanel.tsx`, `src/index.css`, `HANDOFF.md`.
 
 Test: Save from Block out or Dress → Open saved shows it → load replaces the level. Preset dropdown stays locked-only; these two buttons do not.
+
+## 2026-10-04 ~10:50 — Claude Code — map floor, better buildings, Walk stealth HUD
+
+- **Map on the floor:** a layout read from an image keeps it as `level.ground` ({imageUrl, width, depth} in metres; the server returns the width it read, the client attaches the image and its aspect). `src/ui/scene/GroundImage.tsx` draws it at y 0.008, cropped to the play area (editor + Play). Heatmap is 50% over it. Saves keep it; share/play links only keep hosted images (`/…`), not uploads (too big for a URL). A replaced layout gets a new level id.
+- **Better buildings** (`server/rodinDevPlugin.ts`): boxes ≥ 6 m wide get a "one single building, no campus/lawns/slab" instruction (added at send time so cache keys and prebaked presets stay valid), 2048 px textures and 15% of the geometry. Tested: a 22×14×30 m "Computer Laboratory wing" came back as one clean glass + buff-brick building.
+- **Walk = stealth playtest:** `src/core/prove/stealth.ts` (`stealthAt`, tested: hidden / cover / seen, same rule as Prove) + `src/ui/scene/Stealth.tsx` (probe in the canvas, pill + red screen edges). Heatmap hidden in Walk. Play mode: same HUD, and the win card says how long you were seen.
+- **Restart the dev server** after pulling (server plugins only load at start).
