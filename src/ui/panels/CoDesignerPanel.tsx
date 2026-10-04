@@ -9,6 +9,8 @@ import { shareUrl } from "../../core/share";
 import { STEPS, canDress, currentStep, usePlaybound, type AgentMessage, type Step } from "../../core/store";
 import type { Level, Proposal } from "../../core/types";
 import { useUiPrefs } from "../uiPrefs";
+import { useAutopilot } from "../../core/ai/autopilot";
+import { AutopilotTracker } from "./AutopilotTracker";
 
 export function CoDesignerPanel() {
   const open = useUiPrefs((s) => s.coDesignerOpen);
@@ -18,6 +20,7 @@ export function CoDesignerPanel() {
   const [aiOk, setAiOk] = useState<boolean | null>(null);
   const [dragging, setDragging] = useState(false);
   const [dropped, setDropped] = useState<File | null>(null);
+  const autopilot = useAutopilot((s) => s.active);
 
   useEffect(() => {
     let cancelled = false;
@@ -73,7 +76,9 @@ export function CoDesignerPanel() {
 
       {open && (
         <>
-          <NextStepGuide aiOk={!!aiOk} />
+          {/* Autopilot (Claude Code): the start form while the thread is empty; its tracker replaces the guide while running. */}
+          {(autopilot || thread.length === 0) && <AutopilotTracker aiOk={!!aiOk} />}
+          {!autopilot && <NextStepGuide aiOk={!!aiOk} />}
           <Thread disabled={!aiOk} />
           <Composer disabled={!aiOk || busy} dropped={dropped} onConsumeDrop={() => setDropped(null)} />
           {dragging && (

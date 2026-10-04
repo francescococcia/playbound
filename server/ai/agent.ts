@@ -11,7 +11,7 @@ import { geminiJson } from "./gemini.js";
 import { VOLUME_RULES, buildEditProposal, fix, longestExposedStretch, sketch, style } from "./handler.js";
 
 type Intent = AgentResponse["intent"];
-const INTENTS: Intent[] = ["fix", "explain", "edit", "sketch", "style", "chat"];
+const INTENTS: Intent[] = ["fix", "explain", "edit", "sketch", "build", "style", "chat"];
 
 export async function agent(key: string, req: AgentRequest): Promise<AgentResponse> {
   const level = req?.level;
@@ -37,7 +37,8 @@ Choose ONE intent:
 - "edit": change the layout as asked (add/move/remove boxes). Give 1-3 ALTERNATIVE proposals, each a complete small change.
   STRICT: every object your "why" mentions adding (cart, wall, crates...) MUST be a full entry in that proposal's "add" (label, role, position [x,0,z], size [w,h,d]). Every box you move/resize MUST be in "update" with its id. Don't describe changes you didn't include.
 - "sketch": the attached image is a layout drawing/map to turn into a greybox
-- "style": the attached image is a look/mood reference for the 3D art
+- "build": no image, the designer describes a WHOLE NEW level in words ("build me a smugglers' harbour"); our level builder drafts it, you just introduce it
+- "style": the attached image is a look/mood reference for the 3D art, OR (no image) the designer asks for a look/style/art direction in words
 - "chat": anything else
 Rules: reply in 1-3 short sentences, plain words, refer to boxes by their labels, use numbers from FACTS. Nothing is applied until the designer clicks Accept: say "I propose" / "here are options", never "I've added / locked in / applied". Never claim a change passes unless it is a "fix". If the level is locked, don't propose layout edits; explain it must be unlocked.
 Also give 2-3 short follow-up suggestions the designer could click next (max 6 words each).
@@ -50,7 +51,8 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
   });
 
   let intent: Intent = INTENTS.includes(data.intent as Intent) ? (data.intent as Intent) : "chat";
-  if (req.image && intent !== "style") intent = intent === "sketch" ? "sketch" : looksLikeStyle(message) ? "style" : "sketch";
+  if (req.intent && INTENTS.includes(req.intent)) intent = req.intent;
+  else if (req.image && intent !== "style") intent = intent === "sketch" ? "sketch" : looksLikeStyle(message) ? "style" : "sketch";
   let reply = (data.reply ?? "").trim() || "Done.";
   const chips = (data.chips ?? []).filter((c): c is string => typeof c === "string" && !!c.trim()).map((c) => c.trim().slice(0, 48)).slice(0, 3);
   const proposals: Proposal[] = [];
@@ -62,8 +64,15 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
   } else if (intent === "sketch" && req.image) {
     const r = await sketch(key, { image: req.image });
     if (r.proposal) proposals.push(r.proposal);
-  } else if (intent === "style" && req.image) {
-    const r = await style(key, { image: req.image });
+  } else if (intent === "build" && !req.image) {
+    if (level.locked) {
+      reply = "The layout is locked, so I can't replace it. Unlock it in the Lock step, then ask again.";
+    } else {
+      const r = await sketch(key, { text: message });
+      if (r.proposal) proposals.push(r.proposal);
+    }
+  } else if (intent === "style") {
+    const r = await style(key, req.image ? { image: req.image } : { text: `${message}${level.styleNotes ? "" : ` (level: ${levelSummary(level)})`}` });
     if (r.proposal) proposals.push(r.proposal);
   } else if (intent === "edit") {
     if (level.locked) {
@@ -98,6 +107,11 @@ function levelFacts(level: Level, r: ProveResult): string {
     `All boxes: ${JSON.stringify(level.volumes.map((v) => ({ id: v.id, label: v.label, role: v.role, at: [r1(v.position[0]), r1(v.position[2])], size: v.size })))}`,
   ];
   return lines.filter(Boolean).join("\n");
+}
+
+/** Short description of the boxes, so a style written from words fits the level. */
+function levelSummary(level: Level): string {
+  return level.volumes.filter((v) => v.role !== "spawn" && v.role !== "objective").map((v) => v.label).slice(0, 12).join(", ");
 }
 
 function defaultChips(level: Level, r: ProveResult): string[] {

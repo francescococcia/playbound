@@ -2,8 +2,8 @@
 // (server/aiDevPlugin.ts) and the Vercel function (api/ai/[action].ts).
 //
 //   GET  health   -> { ai, model }
-//   POST sketch   { image }        -> Proposal(replaceAll)   layout from a drawing
-//   POST style    { image }        -> Proposal(styleNotes)   style from a picture
+//   POST sketch   { image | text } -> Proposal(replaceAll)   layout from a drawing or a description
+//   POST style    { image | text } -> Proposal(styleNotes)   style from a picture or a description
 //   POST command  { text, level }  -> Proposal(add/update/remove)
 //   POST fix      { level }        -> Proposal(add cover) that PASSES Prove (agent loop)
 //
@@ -76,38 +76,44 @@ export const VOLUME_SCHEMA = {
 };
 
 export async function sketch(key: string, req: SketchRequest): Promise<AiResponse> {
-  if (!req?.image) throw new Error("No image");
-  const prompt = `You turn a top-down level sketch (or map, or screenshot) into a greybox level for a first-person game.
+  const text = req?.text?.trim().slice(0, 800);
+  if (!req?.image && !text) throw new Error("No image or description");
+  const prompt = req.image
+    ? `You turn a top-down level sketch (or map, or screenshot) into a greybox level for a first-person game.
 The drawn outer border is the edge of the play area. ${VOLUME_RULES}
 Include every drawn building and object. If the start or goal is not marked, choose sensible places.
-Return JSON: {"why": "one sentence describing the layout you read", "volumes": [...]}`;
+Return JSON: {"why": "one sentence describing the layout you read", "volumes": [...]}`
+    : `You design a greybox level for a first-person stealth game from the designer's description.
+${VOLUME_RULES}
+Description: "${text}"
+Make 8-16 boxes: one spawn and one objective at least 20 m apart, buildings that shape streets and sightlines, a few landmarks, and some chest-high cover. Leave a walkable route (at least 2 m wide) from spawn to objective. It does not have to be perfect: the designer will Prove it and fix it.
+Return JSON: {"why": "one sentence describing the layout", "volumes": [...]}`;
   const { data, model } = await geminiJson<{ why?: string; volumes?: unknown[] }>(key, prompt, {
     image: req.image,
     schema: { type: "object", properties: { why: { type: "string" }, volumes: { type: "array", items: VOLUME_SCHEMA } }, required: ["volumes"] },
   });
   const volumes = ensureMarkers(cleanVolumes(data.volumes ?? [], 20, new Set()), 20);
-  if (volumes.length < 2) throw new Error("Could not read a layout from that image");
+  if (volumes.length < 2) throw new Error(req.image ? "Could not read a layout from that image" : "Could not build a layout from that description");
   const level: Level = { id: "preview", name: "preview", bounds: 20, locked: false, volumes };
-  return {
-    model,
-    proposal: { id: pid("sketch"), source: "sketch", why: data.why ?? `Greybox from your sketch: ${volumes.length} boxes.`, replaceAll: true, add: volumes, previewProve: prove(level) },
-  };
+  const why = data.why ?? (req.image ? `Greybox from your sketch: ${volumes.length} boxes.` : `Greybox from your description: ${volumes.length} boxes.`);
+  return { model, proposal: { id: pid("sketch"), source: "sketch", why, replaceAll: true, add: volumes, previewProve: prove(level) } };
 }
 
 // ---------- style: picture -> style notes ----------
 
 export async function style(key: string, req: StyleRequest): Promise<AiResponse> {
-  if (!req?.image) throw new Error("No image");
-  const prompt = `You are an art director. Describe the visual style of this reference image as notes that will be prepended to text-to-3D prompts for game props.
+  const text = req?.text?.trim().slice(0, 800);
+  if (!req?.image && !text) throw new Error("No image or description");
+  const prompt = `You are an art director. Describe the visual style ${req.image ? "of this reference image" : `that fits this level: "${text}"`} as notes that will be prepended to text-to-3D prompts for game props.
 Cover: setting/era, materials, colour palette, level of stylisation (e.g. hand-painted, realistic, low-poly), mood. Max 30 words, comma-separated, no full sentences, no mention of "image".
-Return JSON: {"styleNotes": "...", "why": "one short sentence on what you saw"}`;
+Return JSON: {"styleNotes": "...", "why": "one short sentence on ${req.image ? "what you saw" : "the look you chose"}"}`;
   const { data, model } = await geminiJson<{ styleNotes?: string; why?: string }>(key, prompt, {
     image: req.image,
     schema: { type: "object", properties: { styleNotes: { type: "string" }, why: { type: "string" } }, required: ["styleNotes"] },
   });
   const styleNotes = (data.styleNotes ?? "").replace(/\s+/g, " ").trim().slice(0, 300);
-  if (!styleNotes) throw new Error("Could not read a style from that image");
-  return { model, proposal: { id: pid("style"), source: "style", why: data.why ?? "Style read from your reference image.", styleNotes } };
+  if (!styleNotes) throw new Error(req.image ? "Could not read a style from that image" : "Could not write a style for that description");
+  return { model, proposal: { id: pid("style"), source: "style", why: data.why ?? (req.image ? "Style read from your reference image." : "Style written from your description."), styleNotes } };
 }
 
 // ---------- command: text -> edits ----------

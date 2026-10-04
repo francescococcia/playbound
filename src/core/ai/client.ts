@@ -64,7 +64,7 @@ const mid = () => `m-${Date.now().toString(36)}${Math.random().toString(36).slic
  * `proposals`) and follow-up chips. Errors land in the bubble's `error` (no throw).
  * `image`: a sketch (→ layout) or a picture (→ style); the agent decides which.
  */
-export async function aiAgent(message: string, image?: File | string): Promise<void> {
+export async function aiAgent(message: string, image?: File | string, opts: { intent?: AgentResponse["intent"] } = {}): Promise<AgentResponse["proposals"]> {
   const st = usePlaybound.getState();
   const history = st.agentThread
     .filter((m) => !m.pending && !m.error && m.text)
@@ -78,7 +78,7 @@ export async function aiAgent(message: string, image?: File | string): Promise<v
     const r = await fetch("/api/ai/agent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message, image: img, level: usePlaybound.getState().level, history }),
+      body: JSON.stringify({ message, image: img, level: usePlaybound.getState().level, history, intent: opts.intent }),
     });
     const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as Partial<AgentResponse> & { error?: string };
     if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
@@ -91,7 +91,9 @@ export async function aiAgent(message: string, image?: File | string): Promise<v
       intent: j.intent,
       model: j.model,
     });
+    return j.proposals ?? [];
   } catch (e) {
     usePlaybound.getState().updateAgentMessage(replyId, { pending: false, error: e instanceof Error ? e.message : String(e) });
+    return [];
   }
 }

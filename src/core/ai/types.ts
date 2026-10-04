@@ -3,11 +3,14 @@
 import type { Level, Proposal } from "../types";
 
 /** Images are sent as data URLs (the client downscales to ≤1024 px JPEG first). */
+/** Either an image or a text description (the autopilot builds from words). */
 export interface SketchRequest {
-  image: string;
+  image?: string;
+  text?: string;
 }
 export interface StyleRequest {
-  image: string;
+  image?: string;
+  text?: string;
 }
 export interface CommandRequest {
   text: string;
@@ -45,6 +48,8 @@ export interface AgentRequest {
   level: Level;
   /** Last few turns, oldest first (for follow-ups like "make it bigger"). */
   history?: AgentTurn[];
+  /** Skip intent detection (the autopilot knows what each step needs). */
+  intent?: AgentResponse["intent"];
 }
 
 export interface AgentResponse {
@@ -55,7 +60,7 @@ export interface AgentResponse {
   /** 2–3 short follow-up suggestions for the chips. */
   chips: string[];
   /** What the agent decided to do. */
-  intent: "fix" | "explain" | "edit" | "sketch" | "style" | "chat";
+  intent: "fix" | "explain" | "edit" | "sketch" | "build" | "style" | "chat";
   model?: string;
   error?: string;
 }
