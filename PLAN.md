@@ -214,11 +214,27 @@ Then U10 polish. Stop after and tell Francesco what to test.
 | A | Claude Code | **Playtest bot replay:** after Prove, a bot runs the route; red + "Spotted!" when exposed, green in cover; end card "Spotted for X s of Y s". Replay button. | done |
 | D | Claude Code | **Undo / redo** (Ctrl+Z / Ctrl+Y / Ctrl+Shift+Z) for edits and accepted proposals; toolbar buttons. | done |
 | B | Cursor | **Play mode for shared links:** `#play&l=...` opens a game view (no editor): start at spawn, reach the objective, timer, "Objective reached in N s", Play again, "Open in editor". Share menu offers "Copy play link". | done |
-| C | Claude Code | **Autopilot ("Build me a level"):** one request → the Co-designer proposes layout → Prove → fix → style, one approved step at a time. | todo |
+| C | Claude Code | **Autopilot ("Build me a level"):** one request → the Co-designer proposes layout → Prove → fix → style, one approved step at a time. | done |
 | H3D | Claude Code | **Hyper3D API** (Business key, local dev route): generation with `bbox_condition` = the box size; CLI kept as fallback. |done|
 | U21 | Cursor | Phone layout check (bottom sheets), empty states, Level panel + step bar + action bar polish, Francesco's visual notes. | done |
 
-**Francesco feedback Round 4:** _(write here)_
+**Francesco feedback Round 4 (visual check, Cambridge map test, 4 Oct ~07:10):** new boxes are built on top of existing ones; some buildings stick out of the map; the view is heavy (labels everywhere) and should feel more fluid; can the map be bigger / can I choose its size?
+
+---
+
+## Round 5: fixes from the visual check (before the 11:00 freeze)
+
+Demo: **Cambridge Market Square from an OpenStreetMap screenshot** (`demo/cambridge-market-square-osm.png`, credit "© OpenStreetMap contributors") → greybox (21 boxes, 11 s) → passes → "festival day: clear the stalls" → fails 0% → bot "Spotted!" → "Fix it" → 34% pass → Lock → Dress → play link.
+
+| ID | Owner | Task | Status |
+|---|---|---|---|
+| F1 | Claude Code | **No overlaps:** boxes from a sketch/map, an edit or a fix never overlap existing solid boxes (nudge, else drop) | todo |
+| F2 | Claude Code | **Inside the map:** a box's whole footprint stays inside the play area (today only its centre is clamped) | todo |
+| F3 | Claude Code | **Level name** comes from the sketch/map/description on a "replace layout" Accept (not "Market Square (fail)") | todo |
+| F4 | Claude Code | **Agent replies match the current level:** after a layout is replaced the old conversation doesn't leak old names ("south gate", "stone well"); the fix reply uses the verified fix's own text | todo |
+| F5 | Claude Code | Dress status says "Generating" instead of the API's internal "jobs 1/6" | todo |
+| F6 | Claude Code | **Map size:** Small 40 m / Medium 60 m / Large 80 m; a map import picks the size from the real scale; the designer can change it ("make the map 60 m") | todo, needs Francesco's yes |
+| U22 | Cursor | **Fluid, readable viewport:** see `CURSOR_PROMPT_ROUND5.md` | todo |
 
 ---
 
