@@ -37,7 +37,7 @@
 }
 
 * { box-sizing: border-box; }
-html, body, #root { height: 100%; margin: 0; }
+html, body, #root { height: 100%; margin: 0; overflow: hidden; }
 body {
   font-family: var(--font-ui);
   font-size: var(--text-md);
@@ -94,10 +94,19 @@ button.active {
   display: grid;
   grid-template-columns: var(--left-w) 1fr var(--right-w);
   min-height: 0;
+  min-width: 0;
   position: relative;
+  overflow: hidden;
 }
+.app-body > * { min-width: 0; min-height: 0; }
 .app-shell--co-collapsed .app-body {
   grid-template-columns: var(--left-w) 1fr 3rem;
+}
+.app-shell--level-collapsed .app-body {
+  grid-template-columns: 2.75rem 1fr var(--right-w);
+}
+.app-shell--level-collapsed.app-shell--co-collapsed .app-body {
+  grid-template-columns: 2.75rem 1fr 3rem;
 }
 
 .mobile-level-toggle { display: none; }
@@ -139,6 +148,12 @@ button.active {
 }
 .app-shell--co-collapsed .app-toast {
   left: calc(var(--left-w) + (100vw - var(--left-w) - 3rem) / 2);
+}
+.app-shell--level-collapsed .app-toast {
+  left: calc(2.75rem + (100vw - 2.75rem - var(--right-w)) / 2);
+}
+.app-shell--level-collapsed.app-shell--co-collapsed .app-toast {
+  left: calc(2.75rem + (100vw - 2.75rem - 3rem) / 2);
 }
 .app-toast--visible {
   opacity: 1;
@@ -277,6 +292,29 @@ button.active {
   -webkit-overflow-scrolling: touch;
 }
 .panel-head { display: flex; flex-direction: column; gap: 0.15rem; }
+.panel-head-row { display: flex; align-items: center; justify-content: space-between; gap: 0.35rem; }
+.level-collapse { flex-shrink: 0; }
+.level-panel--collapsed {
+  padding: 0.55rem 0.25rem;
+  align-items: center;
+  overflow: hidden;
+}
+.level-panel--collapsed .panel-head,
+.level-panel--collapsed .panel-head-row { align-items: center; }
+.level-panel--collapsed .panel-title { display: none; }
+.level-rail-label {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.75rem 0.2rem;
+}
+.level-rail-label:hover { color: var(--text); background: transparent; }
 .panel-title {
   margin: 0;
   font-family: var(--font-display);
@@ -315,6 +353,25 @@ button.active {
   color: var(--amber);
 }
 .map-size-picker button.active span { color: var(--amber); opacity: 0.8; }
+.map-size-suggest {
+  margin: 0;
+  color: var(--ai);
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+.level-panel,
+.co-thread,
+.co-designer {
+  scrollbar-width: thin;
+  scrollbar-color: #354468 transparent;
+}
+.level-panel::-webkit-scrollbar,
+.co-thread::-webkit-scrollbar { width: 8px; }
+.level-panel::-webkit-scrollbar-thumb,
+.co-thread::-webkit-scrollbar-thumb {
+  background: #354468;
+  border-radius: 8px;
+}
 .side-section h2,
 .section-row h2 {
   margin: 0 0 0.5rem;
@@ -527,6 +584,37 @@ button.active {
 }
 .co-designer--collapsed .co-designer-body { display: none; }
 .co-designer--collapsed .status-label { display: none; }
+@media (min-width: 961px) {
+  .co-designer--collapsed {
+    overflow: hidden;
+  }
+  .co-designer--collapsed .co-designer-title span { display: none; }
+  .co-designer--collapsed .co-designer-head {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.75rem;
+    height: 100%;
+    padding: 0.7rem 0.15rem;
+    border-bottom: 0;
+  }
+  .co-designer--collapsed .co-designer-head-actions { flex-direction: column; }
+  .co-designer--collapsed .co-designer-toggle {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+    border: 0;
+    background: transparent;
+    color: var(--text-muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-family: var(--font-display);
+    font-weight: 600;
+    padding: 0.6rem 0.15rem;
+    min-width: 0;
+    min-height: 0;
+  }
+  .co-designer--collapsed .co-designer-toggle:hover { color: var(--text); background: transparent; }
+}
 .co-designer-proposals { margin-top: 0.25rem; }
 
 /* ── Viewport ── */
@@ -1065,11 +1153,6 @@ button.active {
 .co-designer > .co-thread {
   position: relative;
   flex: 1 1 0;
-}
-/* Once the conversation starts, keep the guide's header as context and give the thread the room. */
-.co-designer:has(.co-msg--user) > .co-guide .co-guide-body,
-.co-designer:has(.co-attach) > .co-guide .co-guide-body {
-  display: none;
 }
 
 .co-empty { padding: var(--space-2) var(--space-1); }

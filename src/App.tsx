@@ -11,6 +11,7 @@ import { useUiPrefs } from "./ui/uiPrefs";
 
 export default function App() {
   const panelOpen = useUiPrefs((s) => s.panelOpen);
+  const levelOpen = useUiPrefs((s) => s.levelOpen);
   const setPanelOpen = useUiPrefs((s) => s.setPanelOpen);
   const togglePanel = useUiPrefs((s) => s.togglePanel);
   const coDesignerOpen = useUiPrefs((s) => s.coDesignerOpen);
@@ -51,6 +52,7 @@ export default function App() {
       className={[
         "app-shell",
         panelOpen ? "app-shell--level-open" : "",
+        levelOpen ? "" : "app-shell--level-collapsed",
         coDesignerOpen ? "app-shell--co-open" : "app-shell--co-collapsed",
       ]
         .filter(Boolean)

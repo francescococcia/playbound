@@ -1,4 +1,4 @@
-import { Camera, RefreshCw, Search } from "lucide-react";
+import { Camera, PanelLeftClose, PanelLeftOpen, RefreshCw, Search } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { isLiveAvailable, regenerate, regenerateFromImage } from "../../core/dress/dress";
 import { toJpegDataUrl } from "../../core/image";
@@ -34,7 +34,13 @@ export function LevelPanel() {
   const select = usePlaybound((s) => s.select);
   const updateVolume = usePlaybound((s) => s.updateVolume);
   const setMapBounds = usePlaybound((s) => s.setMapBounds);
+  const suggestedBounds = usePlaybound((s) => {
+    const proposed = s.proposals.find((p) => (p.replaceAll || p.bounds) && p.bounds && p.bounds > s.level.bounds);
+    return proposed?.bounds;
+  });
   const setToast = useUiPrefs((s) => s.setToast);
+  const levelOpen = useUiPrefs((s) => s.levelOpen);
+  const toggleLevel = useUiPrefs((s) => s.toggleLevel);
   const selected = level.volumes.find((v) => v.id === selectedId) ?? null;
   const locked = level.locked;
   const dressables = level.volumes.filter((v) => DRESS_ROLES.includes(v.role));
@@ -120,21 +126,48 @@ export function LevelPanel() {
   };
 
   return (
-    <aside className="level-panel">
+    <aside className={`level-panel${levelOpen ? "" : " level-panel--collapsed"}`}>
       <header className="panel-head">
-        <h1 className="panel-title">Level</h1>
-        <span className="panel-subtitle mono">{level.name}</span>
+        <div className="panel-head-row">
+          <h1 className="panel-title">Level</h1>
+          <button
+            type="button"
+            className="icon-btn level-collapse"
+            onClick={toggleLevel}
+            title={levelOpen ? "Hide level panel" : "Show level panel"}
+            aria-expanded={levelOpen}
+          >
+            {levelOpen ? <PanelLeftClose {...ICON} aria-hidden /> : <PanelLeftOpen {...ICON} aria-hidden />}
+            <span className="sr-only">{levelOpen ? "Hide level panel" : "Show level panel"}</span>
+          </button>
+        </div>
+        {levelOpen && <span className="panel-subtitle mono">{level.name}</span>}
       </header>
-
+      {!levelOpen && (
+        <button type="button" className="level-rail-label" onClick={toggleLevel}>
+          Level
+        </button>
+      )}
+      {levelOpen && (
+      <>
       <div className="field map-size-field">
         <span className="field-label">Map size</span>
+        {suggestedBounds && suggestedBounds !== level.bounds && (
+          <p className="map-size-suggest">Sketch needs {suggestedBounds * 2} m. The view already uses it; Accept keeps it.</p>
+        )}
         <div className="map-size-picker" role="group" aria-label="Map size">
           {MAP_SIZES.map((size) => (
             <button
               key={size.id}
               type="button"
-              className={level.bounds === size.bounds ? "active" : ""}
-              aria-pressed={level.bounds === size.bounds}
+              className={
+                suggestedBounds === size.bounds
+                  ? "active map-size-suggested"
+                  : level.bounds === size.bounds && !suggestedBounds
+                    ? "active"
+                    : ""
+              }
+              aria-pressed={suggestedBounds ? suggestedBounds === size.bounds : level.bounds === size.bounds}
               disabled={locked}
               title={locked ? "Unlock to resize the map" : size.label}
               onClick={() => {
@@ -412,6 +445,8 @@ export function LevelPanel() {
           <p className="muted">Select a box in the viewport or list.</p>
         )}
       </div>
+      </>
+      )}
     </aside>
   );
 }

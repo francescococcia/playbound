@@ -105,7 +105,8 @@ function NextStepGuide({ aiOk }: { aiOk: boolean }) {
   const lock = usePlaybound((s) => s.lock);
   const setViewMode = usePlaybound((s) => s.setViewMode);
   const setToast = useUiPrefs((s) => s.setToast);
-  const [open, setOpen] = useState(true);
+  const hasConversation = usePlaybound((s) => s.agentThread.some((m) => m.role === "user"));
+  const [open, setOpen] = useState(!hasConversation);
   const [busy, setBusy] = useState(false);
   const step: Step = currentStep(level);
   const n = STEPS.findIndex((x) => x.id === step) + 1;

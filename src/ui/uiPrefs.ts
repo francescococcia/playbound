@@ -19,6 +19,9 @@ export const useUiPrefs = create<{
   panelOpen: boolean;
   setPanelOpen: (v: boolean) => void;
   togglePanel: () => void;
+  /** Desktop: left Level panel can be collapsed to a rail. */
+  levelOpen: boolean;
+  toggleLevel: () => void;
   /** Mobile / desktop: Co-designer collapse. */
   coDesignerOpen: boolean;
   setCoDesignerOpen: (v: boolean) => void;
@@ -39,6 +42,8 @@ export const useUiPrefs = create<{
   panelOpen: false,
   setPanelOpen: (panelOpen) => set({ panelOpen }),
   togglePanel: () => set((s) => ({ panelOpen: !s.panelOpen })),
+  levelOpen: true,
+  toggleLevel: () => set((s) => ({ levelOpen: !s.levelOpen })),
   coDesignerOpen: true,
   setCoDesignerOpen: (coDesignerOpen) => set({ coDesignerOpen }),
   toggleCoDesigner: () => set((s) => ({ coDesignerOpen: !s.coDesignerOpen })),

@@ -53,11 +53,15 @@ export function Viewport() {
   const viewMode = usePlaybound((s) => s.viewMode);
   const select = usePlaybound((s) => s.select);
   const replacingLayout = usePlaybound((s) => s.proposals.some((p) => p.replaceAll));
+  const previewBounds = usePlaybound((s) => {
+    const proposed = s.proposals.find((p) => (p.replaceAll || p.bounds) && p.bounds);
+    return proposed?.bounds && proposed.bounds > s.level.bounds ? proposed.bounds : s.level.bounds;
+  });
   const showHeatmap = useUiPrefs((s) => s.showHeatmap);
   const prove = level.prove;
   const blueprint = isGreybox(level);
-  const mapScale = level.bounds / 20;
-  const shadowExtent = Math.max(35, level.bounds + 5);
+  const mapScale = previewBounds / 20;
+  const shadowExtent = Math.max(35, previewBounds + 5);
   const showLegend =
     showHeatmap &&
     viewMode === "orbit" &&
@@ -99,7 +103,7 @@ export function Viewport() {
         <ViewPicker />
         <Suspense fallback={null}>
           {!blueprint && <Environment preset="city" environmentIntensity={0.55} />}
-          <Ground bounds={level.bounds} blueprint={blueprint} />
+          <Ground bounds={previewBounds} blueprint={blueprint} />
           <Heatmap />
           {level.volumes.map((v) => (
             <VolumeMesh key={v.id} volume={v} faded={replacingLayout} />
@@ -109,7 +113,7 @@ export function Viewport() {
           {viewMode === "orbit" && <BotReplay />}
         </Suspense>
 
-        {viewMode === "orbit" ? <OrbitRig bounds={level.bounds} /> : <FpsController level={level} />}
+        {viewMode === "orbit" ? <OrbitRig bounds={previewBounds} /> : <FpsController level={level} />}
       </Canvas>
 
       <ProveResultCard />
