@@ -88,7 +88,8 @@ Also write "styleNotes": art direction for the 3D models (max 30 words, comma-se
     ? `You turn a top-down level sketch (or map, or screenshot) into a greybox level for a first-person game.
 The drawn outer border (or the image edge) is the edge of the play area. ${volumeRules("areaMeters")}
 ${sizing}
-Include every drawn building and object. If the start or goal is not marked, choose sensible places.
+Include every drawn building and object. If the start or goal is not marked, choose sensible places.${text ? `
+Designer's notes (follow them; they win over your own choices, especially where the start/spawn and goal/objective go): "${text}"` : ""}
 Return JSON: {"name", "areaMeters", "styleNotes", "why": "one sentence describing the layout you read", "volumes": [...]}`
     : `You design a greybox level for a first-person stealth game from the designer's description.
 ${volumeRules(40)}

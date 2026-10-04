@@ -69,7 +69,8 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
       reply = r.proposal.why; // already ends with the Prove result
     } else if (r.note) reply = r.note;
   } else if (intent === "sketch" && req.image) {
-    const r = await sketch(key, { image: req.image });
+    // The designer's words steer the layout ("goal is the West Hub entrance").
+    const r = await sketch(key, { image: req.image, text: message || undefined });
     if (r.proposal) proposals.push(r.proposal);
   } else if (intent === "build" && !req.image) {
     if (level.locked) {
@@ -172,5 +173,7 @@ function defaultChips(level: Level, r: ProveResult): string[] {
 }
 
 function looksLikeStyle(msg: string): boolean {
+  // "look at this map and build it" is a layout request: layout words win.
+  if (/\b(map|layout|build|level|plan|sketch|greybox|blockout|start|spawn|goal|objective)\b/i.test(msg)) return false;
   return /style|look|mood|colou?r|art|vibe|aesthetic|like this/i.test(msg);
 }
