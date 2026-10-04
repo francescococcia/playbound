@@ -1,10 +1,12 @@
 // The Co-designer (DESIGN_BRIEF §4): the AI's one home. A conversation where every answer
 // can be acted on. Proposals are violet ghosts until the designer Accepts them.
-import { ArrowUp, Check, Eye, ImagePlus, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowUp, Check, ChevronDown, Eye, ImagePlus, Lock, Paintbrush, Play, RotateCcw, Share2, Sparkles, X } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useMemo, useRef, useState, type DragEvent, type KeyboardEvent } from "react";
 import { aiAgent, isAiAvailable } from "../../core/ai/client";
-import { usePlaybound, type AgentMessage } from "../../core/store";
+import { dressLevel } from "../../core/dress/dress";
+import { shareUrl } from "../../core/share";
+import { STEPS, canDress, currentStep, usePlaybound, type AgentMessage, type Step } from "../../core/store";
 import type { Level, Proposal } from "../../core/types";
 import { useUiPrefs } from "../uiPrefs";
 
@@ -71,6 +73,7 @@ export function CoDesignerPanel() {
 
       {open && (
         <>
+          <NextStepGuide aiOk={!!aiOk} />
           <Thread disabled={!aiOk} />
           <Composer disabled={!aiOk || busy} dropped={dropped} onConsumeDrop={() => setDropped(null)} />
           {dragging && (
@@ -83,6 +86,150 @@ export function CoDesignerPanel() {
       )}
     </aside>
   );
+}
+
+// ---------- next-step guide ----------
+
+/**
+ * Always answers "what do I do now, and what will happen?" for the step the level is in.
+ * One primary action (the same as the action bar), plus what to expect.
+ */
+function NextStepGuide({ aiOk }: { aiOk: boolean }) {
+  const level = usePlaybound((s) => s.level);
+  const runProve = usePlaybound((s) => s.runProve);
+  const lock = usePlaybound((s) => s.lock);
+  const setViewMode = usePlaybound((s) => s.setViewMode);
+  const setToast = useUiPrefs((s) => s.setToast);
+  const [open, setOpen] = useState(true);
+  const [busy, setBusy] = useState(false);
+  const step: Step = currentStep(level);
+  const n = STEPS.findIndex((x) => x.id === step) + 1;
+  const pv = level.prove;
+  const failing = pv?.status === "fail";
+  const g = guideFor(step, failing, pv?.exposedMeters);
+
+  const act = async () => {
+    if (step === "blockout") return aiOk && aiAgent("Build a medieval market square level");
+    if (step === "prove") return failing && aiOk ? aiAgent("Fix the death corridor") : runProve();
+    if (step === "lock") return lock();
+    if (step === "dress") {
+      const gate = canDress(level);
+      if (!gate.ok) return setToast(gate.why ?? "Not ready to dress yet");
+      setBusy(true);
+      try {
+        await dressLevel();
+      } catch (e) {
+        setToast(e instanceof Error ? e.message : String(e));
+      } finally {
+        setBusy(false);
+      }
+      return;
+    }
+    if (step === "play") return setViewMode("fps");
+  };
+  const secondary = async () => {
+    if (step === "prove" && failing) return aiAgent("Why does it fail?");
+    if (step === "play") {
+      try {
+        await navigator.clipboard.writeText(await shareUrl(level));
+        setToast("Share link copied");
+      } catch {
+        setToast("Could not copy the link");
+      }
+    }
+  };
+
+  return (
+    <section className={`co-guide co-guide--${step}${failing && step === "prove" ? " co-guide--fail" : ""}`}>
+      <button type="button" className="co-guide-head" onClick={() => setOpen(!open)} aria-expanded={open}>
+        <span className="co-guide-step">
+          Step {n} of 5 · {STEPS[n - 1].label}
+        </span>
+        <ChevronDown size={14} strokeWidth={1.75} className={open ? "co-guide-chev co-guide-chev--open" : "co-guide-chev"} />
+      </button>
+      {open && (
+        <div className="co-guide-body">
+          <p className="co-guide-do">{g.doThis}</p>
+          <p className="co-guide-expect">{g.expect}</p>
+          <div className="co-guide-actions">
+            <button type="button" className="co-guide-primary" disabled={busy || (g.needsAi && !aiOk)} onClick={act}>
+              {g.icon}
+              {busy ? "Working…" : g.action}
+            </button>
+            {g.second && (
+              <button type="button" className="co-guide-secondary" disabled={g.needsAi && !aiOk} onClick={secondary}>
+                {g.second}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function guideFor(step: Step, failing: boolean, exposed?: number) {
+  const icon = (I: typeof Play) => <I size={14} strokeWidth={1.75} />;
+  switch (step) {
+    case "blockout":
+      return {
+        doThis: "Lay out the level with grey boxes: pick a preset on the left, Add boxes, or drop a top-down sketch below.",
+        expect: "A sketch comes back as violet ghost boxes. Nothing changes until you Accept.",
+        action: "Build one for me",
+        second: null,
+        icon: icon(Sparkles),
+        needsAi: true,
+      };
+    case "prove":
+      return failing
+        ? {
+            doThis: `It fails: ${exposed ?? "part"} m of the route is in the open (red). Add cover, then Prove again.`,
+            expect: "Suggest fix proposes cover that already passes Prove. Or drag a blue cover box next to the red line yourself.",
+            action: "Suggest fix",
+            second: "Why does it fail?",
+            icon: icon(Sparkles),
+            needsAi: true,
+          }
+        : {
+            doThis: "Check the layout is playable: a bot walks from the start (green) to the goal (gold).",
+            expect: "You get the route, a heatmap of what defenders at the goal can see, Pass or Fail, and a bot replays the run.",
+            action: "Run Prove",
+            second: null,
+            icon: icon(Play),
+            needsAi: false,
+          };
+    case "lock":
+      return {
+        doThis: "It passes. Lock the layout so the gameplay can no longer change.",
+        expect: "After locking, boxes stay put. The AI can only change how things look.",
+        action: "Lock layout",
+        second: null,
+        icon: icon(Lock),
+        needsAi: false,
+      };
+    case "dress":
+      return {
+        doThis: "Optional: drop a picture below to set the art style. Then dress the level.",
+        expect: "Every box becomes a 3D model (Hyper3D Rodin) that fits inside it. Prebaked ones are instant; new ones take ~2 min each when running locally.",
+        action: "Dress level",
+        second: null,
+        icon: icon(Paintbrush),
+        needsAi: false,
+      };
+    default:
+      return {
+        doThis: "Walk your level: click Walk it, then click the view. WASD to move, mouse to look, Esc to exit.",
+        expect: "You collide with the original boxes, so the art can never block a route. Share copies a link anyone can open.",
+        action: "Walk it",
+        second: (
+          <>
+            <Share2 size={13} strokeWidth={1.75} /> Copy share link
+          </>
+        ),
+        icon: icon(Play),
+        needsAi: false,
+      };
+  }
 }
 
 // ---------- conversation ----------
@@ -212,7 +359,12 @@ function AgentBubble({ m, showChips, disabled }: { m: AgentMessage; showChips: b
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.2, delay: reduce ? 0 : i * 0.05 }}
             >
-              <ProposalRow proposalId={id} index={i} optionLabel={alternatives ? `Option ${"ABC"[i]}` : undefined} />
+              <ProposalRow
+                proposalId={id}
+                index={i}
+                optionLabel={alternatives ? `Option ${"ABC"[i]}` : undefined}
+                siblings={alternatives ? ids.filter((x) => x !== id) : undefined}
+              />
             </motion.div>
           ))}
           {!alternatives && live.length > 1 && (
@@ -238,7 +390,20 @@ function AgentBubble({ m, showChips, disabled }: { m: AgentMessage; showChips: b
 
 // ---------- proposals ----------
 
-function ProposalRow({ proposal: given, proposalId, index, optionLabel }: { proposal?: Proposal; proposalId?: string; index: number; optionLabel?: string }) {
+function ProposalRow({
+  proposal: given,
+  proposalId,
+  index,
+  optionLabel,
+  siblings,
+}: {
+  proposal?: Proposal;
+  proposalId?: string;
+  index: number;
+  optionLabel?: string;
+  /** Other options of the same answer: accepting this one dismisses them (they're alternatives). */
+  siblings?: string[];
+}) {
   const id = given?.id ?? proposalId!;
   const proposal = usePlaybound((s) => s.proposals.find((p) => p.id === id));
   const locked = usePlaybound((s) => s.level.locked);
@@ -254,7 +419,7 @@ function ProposalRow({ proposal: given, proposalId, index, optionLabel }: { prop
     return (
       <div className={`co-prop co-prop--done co-prop--${outcome ?? "dismissed"}`}>
         {optionLabel && <span className="co-prop-tag">{optionLabel}</span>}
-        <span>{outcome === "accepted" ? "Accepted" : "Dismissed"}</span>
+        <span>{outcome === "accepted" ? "Accepted" : siblings ? "Not chosen" : "Dismissed"}</span>
         {outcome === "accepted" && <Check size={13} strokeWidth={2} />}
       </div>
     );
@@ -308,6 +473,12 @@ function ProposalRow({ proposal: given, proposalId, index, optionLabel }: { prop
             setOutcome(id, "accepted");
             setHighlight(null);
             accept(id);
+            for (const other of siblings ?? []) {
+              if (usePlaybound.getState().proposals.some((p) => p.id === other)) {
+                setOutcome(other, "dismissed");
+                reject(other);
+              }
+            }
             if (layout) runProve(); // show the result straight away
           }}
         >
@@ -367,6 +538,12 @@ function Composer({ disabled, dropped, onConsumeDrop }: { disabled: boolean; dro
             <X size={13} strokeWidth={1.75} />
           </button>
         </div>
+      )}
+      {image && (
+        <p className="co-image-hint">
+          <strong>Top-down drawing or map</strong> → a full greybox proposal (~15 s, replaces the level when you Accept).{" "}
+          <strong>Picture of a place or artwork</strong> → art style for Dress (~7 s). Say which, or just send.
+        </p>
       )}
       <div className="co-input-row">
         <button type="button" className="icon-btn" title="Attach a sketch or style picture" disabled={disabled} onClick={() => fileRef.current?.click()}>

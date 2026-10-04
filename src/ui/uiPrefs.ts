@@ -41,3 +41,10 @@ export const useUiPrefs = create<{
   proposalOutcome: {},
   setProposalOutcome: (id, o) => set((s) => ({ proposalOutcome: { ...s.proposalOutcome, [id]: o } })),
 }));
+
+// When the level itself moves to another step (Prove passed, layout locked, dressed…),
+// drop any manual step pick so the stepper and action bar follow the real next step.
+import { currentStep, usePlaybound } from "../core/store";
+usePlaybound.subscribe((s, prev) => {
+  if (currentStep(s.level) !== currentStep(prev.level)) useUiPrefs.getState().setStepOverride(null);
+});
