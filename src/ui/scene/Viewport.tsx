@@ -11,6 +11,8 @@ import { FpsController } from "./FpsController";
 import { Ground } from "./Ground";
 import { Heatmap } from "./Heatmap";
 import { ProveResultCard } from "../panels/ProveResultCard";
+import { ReplayCard } from "../panels/ReplayCard";
+import { BotReplay } from "./BotReplay";
 import { ProvePath } from "./ProvePath";
 import { ProposalGhosts } from "./ProposalGhosts";
 import { VolumeMesh } from "./VolumeMesh";
@@ -92,12 +94,14 @@ export function Viewport() {
           ))}
           <ProposalGhosts />
           {viewMode === "orbit" && <ProvePath prove={level.prove} />}
+          {viewMode === "orbit" && <BotReplay />}
         </Suspense>
 
         {viewMode === "orbit" ? <OrbitRig /> : <FpsController level={level} />}
       </Canvas>
 
       <ProveResultCard />
+      <ReplayCard />
       <ViewportChrome />
       <StepActionBar />
 

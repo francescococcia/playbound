@@ -10,6 +10,7 @@ import App from "./App";
 import { levelFromUrl } from "./core/share";
 import { usePlaybound } from "./core/store";
 import "./index.css";
+import "./ui/round4.css";
 
 // Opened from a share link (#l=...)? Load that level instead of the default preset.
 levelFromUrl().then((level) => {
