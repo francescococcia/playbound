@@ -176,3 +176,37 @@ describe("round 5: replaced layouts, map size", () => {
     expect(s().setMapBounds(30).ok).toBe(false);
   });
 });
+
+describe("round 5: changes after Dress", () => {
+  const dressAll = () =>
+    usePlaybound.setState((st) => ({
+      level: { ...st.level, volumes: st.level.volumes.map((v) => ({ ...v, assetUrl: `/assets/gen/${v.id}.glb`, status: "ready" as const })) },
+    }));
+
+  it("a look change on a locked, dressed level marks only those boxes for a new model", () => {
+    s().loadPreset("market-square-pass");
+    s().runProve();
+    s().lock();
+    dressAll();
+    const [a, b] = s().level.volumes.filter((v) => v.role === "block");
+    s().addProposal({ id: "look", source: "style", why: "", redress: { ids: [a.id], note: "glassier facade" } });
+    s().acceptProposal("look");
+    const after = (id: string) => s().level.volumes.find((v) => v.id === id)!;
+    expect(after(a.id)).toMatchObject({ lookNote: "glassier facade", variant: 1, status: "empty", assetUrl: `/assets/gen/${a.id}.glb` });
+    expect(after(b.id).status).toBe("ready");
+    expect(s().level.locked).toBe(true);
+  });
+
+  it("an unlock proposal unlocks; resizing a dressed box then asks for a new model", () => {
+    s().loadPreset("market-square-pass");
+    s().runProve();
+    s().lock();
+    dressAll();
+    s().addProposal({ id: "u", source: "text", why: "", unlock: true });
+    s().acceptProposal("u");
+    expect(s().level.locked).toBe(false);
+    const box = s().level.volumes.find((v) => v.role === "block")!;
+    s().updateVolume(box.id, { size: [5, 5, 5] });
+    expect(s().level.volumes.find((v) => v.id === box.id)!.status).toBe("empty");
+  });
+});

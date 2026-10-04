@@ -60,7 +60,7 @@ export interface AgentResponse {
   /** 2–3 short follow-up suggestions for the chips. */
   chips: string[];
   /** What the agent decided to do. */
-  intent: "fix" | "explain" | "edit" | "sketch" | "build" | "style" | "chat";
+  intent: "fix" | "explain" | "edit" | "sketch" | "build" | "style" | "restyle" | "chat";
   model?: string;
   error?: string;
 }

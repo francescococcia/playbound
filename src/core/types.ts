@@ -27,6 +27,8 @@ export interface Volume {
   stage?: string;
   /** Regenerate counter: 0 = first generation, +1 per Regenerate (part of the cache key). */
   variant?: number;
+  /** Look-only request for this box ("glassier facade"), added to its Rodin prompt. */
+  lookNote?: string;
 }
 
 export type ProveReason = "NO_PATH" | "NO_COVER" | null;
@@ -103,6 +105,10 @@ export interface Proposal {
   styleNotes?: string;
   /** Name for the level (sketch / map / description), applied with replaceAll. */
   levelName?: string;
+  /** Look change after (or before) Dress: these boxes get a new model; gameplay boxes don't move. */
+  redress?: { ids: string[]; note?: string };
+  /** Unlock the layout (the designer asked for a layout change on a locked level). */
+  unlock?: boolean;
   /** Floor image for a replaceAll layout read from an image (the client fills imageUrl). */
   ground?: GroundImage;
   /** New map half-extent in metres (20 = 40 m square, 30 = 60 m, 40 = 80 m). */

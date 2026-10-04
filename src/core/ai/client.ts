@@ -24,7 +24,7 @@ export async function isAiAvailable(): Promise<boolean> {
 
 /** Sketch / map / screenshot → a whole greybox layout (replaces the level on Accept). */
 export async function aiSketch(image: File | string): Promise<AiOutcome> {
-  return call("sketch", { image: await toDataUrl(image) });
+  return call("sketch", { image: await toDataUrl(image) }, await toDataUrl(image, GROUND_PX));
 }
 
 /** Reference picture → style notes for every Rodin prompt (applies even when locked). */
@@ -42,7 +42,10 @@ export async function aiSuggestFix(): Promise<AiOutcome> {
   return call("fix", { level: usePlaybound.getState().level });
 }
 
-async function call(action: string, body: unknown): Promise<AiOutcome> {
+/** The floor image is seen at eye level: keep it sharper than what the AI reads (1024 px). */
+const GROUND_PX = 2048;
+
+async function call(action: string, body: unknown, groundImg?: string): Promise<AiOutcome> {
   const r = await fetch(`/api/ai/${action}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -50,7 +53,7 @@ async function call(action: string, body: unknown): Promise<AiOutcome> {
   });
   const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as AiResponse;
   if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
-  const img = (body as { image?: string }).image;
+  const img = groundImg ?? (body as { image?: string }).image;
   if (j.proposal && img) j.proposal = await withGround(j.proposal, img);
   if (j.proposal) usePlaybound.getState().addProposal(j.proposal);
   return { proposal: j.proposal, note: j.note, model: j.model };
@@ -98,7 +101,10 @@ export async function aiAgent(message: string, image?: File | string, opts: { in
     });
     const j = (await r.json().catch(() => ({ error: `AI request failed (HTTP ${r.status})` }))) as Partial<AgentResponse> & { error?: string };
     if (!r.ok || j.error) throw new Error(j.error ?? `AI request failed (HTTP ${r.status})`);
-    if (img) j.proposals = await Promise.all((j.proposals ?? []).map((p) => withGround(p, img)));
+    if (image && img) {
+      const ground = await toDataUrl(image, GROUND_PX);
+      j.proposals = await Promise.all((j.proposals ?? []).map((p) => withGround(p, ground)));
+    }
     for (const p of j.proposals ?? []) usePlaybound.getState().addProposal(p);
     usePlaybound.getState().updateAgentMessage(replyId, {
       pending: false,

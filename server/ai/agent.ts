@@ -6,13 +6,13 @@
 //      or validation + Prove preview of every edit. Claims are checked, not trusted.
 import { prove } from "../../src/core/prove/prove.js";
 import type { AgentRequest, AgentResponse } from "../../src/core/ai/types.js";
-import type { Level, Proposal, ProveResult } from "../../src/core/types.js";
+import { DRESS_ROLES, type Level, type Proposal, type ProveResult } from "../../src/core/types.js";
 import { geminiJson } from "./gemini.js";
 import { MAP_SIZES } from "../../src/core/layout.js";
 import { buildEditProposal, fix, longestExposedStretch, sketch, style, volumeRules } from "./handler.js";
 
 type Intent = AgentResponse["intent"];
-const INTENTS: Intent[] = ["fix", "explain", "edit", "sketch", "build", "style", "chat"];
+const INTENTS: Intent[] = ["fix", "explain", "edit", "sketch", "build", "style", "restyle", "chat"];
 
 export async function agent(key: string, req: AgentRequest): Promise<AgentResponse> {
   const level = req?.level;
@@ -40,13 +40,15 @@ Choose ONE intent:
   STRICT: every object your "why" mentions adding (cart, wall, crates...) MUST be a full entry in that proposal's "add" (label, role, position [x,0,z], size [w,h,d]). Every box you move/resize MUST be in "update" with its id. Don't describe changes you didn't include.
 - "sketch": the attached image is a layout drawing/map to turn into a greybox
 - "build": no image, the designer describes a WHOLE NEW level in words ("build me a smugglers' harbour"); our level builder drafts it, you just introduce it
-- "style": the attached image is a look/mood reference for the 3D art, OR (no image) the designer asks for a look/style/art direction in words
+- "style": the attached image is a look/mood reference for the 3D art, OR (no image) the designer asks for a new overall look/style/art direction in words
+- "restyle": change how SPECIFIC boxes look (materials, colours, details, "make the Maxwell Centre glassier") without moving them. Put their ids in "targets" and a short look note (max 15 words) in "look". Works on locked and dressed levels: those boxes get a new 3D model.
 - "chat": anything else
-Rules: reply in 1-3 short sentences, plain words, refer to boxes by their labels, use numbers from FACTS. Nothing is applied until the designer clicks Accept: say "I propose" / "here are options", never "I've added / locked in / applied". Never claim a change passes unless it is a "fix". If the level is locked, don't propose layout edits; explain it must be unlocked.
+The FLOOR is the map/sketch image the layout was read from; it can't be restyled. If asked, explain that and suggest re-importing a cleaner map image.
+Rules: reply in 1-3 short sentences, plain words, refer to boxes by their labels, use numbers from FACTS. Nothing is applied until the designer clicks Accept: say "I propose" / "here are options", never "I've added / locked in / applied". Never claim a change passes unless it is a "fix". If the level is locked and the designer wants a LAYOUT change, still choose "edit" (our code offers an Unlock step first); look changes never need unlocking.
 Also give 2-3 short follow-up suggestions the designer could click next (max 6 words each).
-Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id","position"?,"size"?,"rotationY"?}], "remove": [ids]}], "mapSize"?: 40|60|80, "chips": [..]}`;
+Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id","position"?,"size"?,"rotationY"?}], "remove": [ids]}], "mapSize"?: 40|60|80, "targets"?: [ids], "look"?: "...", "chips": [..]}`;
 
-  const { data, model } = await geminiJson<{ intent?: string; reply?: string; edits?: unknown[]; mapSize?: number; chips?: unknown[] }>(key, prompt, {
+  const { data, model } = await geminiJson<{ intent?: string; reply?: string; edits?: unknown[]; mapSize?: number; targets?: unknown[]; look?: string; chips?: unknown[] }>(key, prompt, {
     // No responseSchema here on purpose: with the deeply nested schema Gemini drops the
     // "add" arrays. Free JSON is complete, and every edit is validated server-side anyway.
     image: req.image,
@@ -77,12 +79,38 @@ Return JSON: {"intent", "reply", "edits": [{"why", "add": [...], "update": [{"id
       if (r.proposal) proposals.push(r.proposal);
     }
   } else if (intent === "style") {
-    const r = await style(key, req.image ? { image: req.image } : { text: `${message}${level.styleNotes ? "" : ` (level: ${levelSummary(level)})`}` });
-    if (r.proposal) proposals.push(r.proposal);
+    const current = level.styleNotes ? ` (current look: ${level.styleNotes})` : ` (level: ${levelSummary(level)})`;
+    const r = await style(key, req.image ? { image: req.image } : { text: `${message}${current}` });
+    if (r.proposal) {
+      const ids = dressedIds(level);
+      proposals.push(ids.length ? { ...r.proposal, redress: { ids } } : r.proposal);
+      if (ids.length) reply = `${reply} Accepting re-dresses ${ids.length} model${ids.length > 1 ? "s" : ""} with the new look (about ${ids.length * 0.5} credits).`;
+    }
+  } else if (intent === "restyle") {
+    const valid = new Set(level.volumes.filter((v) => DRESS_ROLES.includes(v.role)).map((v) => v.id));
+    const ids = (data.targets ?? []).filter((t): t is string => typeof t === "string" && valid.has(t)).slice(0, 12);
+    const look = String(data.look ?? "").replace(/\s+/g, " ").trim().replace(/[.\s]+$/, "").slice(0, 120);
+    if (!ids.length || !look) {
+      reply = `${reply} (Tell me which building or object to change, e.g. "make the Maxwell Centre glassier".)`;
+    } else {
+      const names = ids.map((id) => level.volumes.find((v) => v.id === id)?.label ?? id).join(", ");
+      proposals.push({
+        id: `look-${Date.now().toString(36)}`,
+        source: "style",
+        why: `New look for ${names}: ${look}. The boxes don't move; ${ids.length > 1 ? "they get new models" : "it gets a new model"} (about ${ids.length * 0.5} credits).`,
+        redress: { ids, note: look },
+      });
+    }
   } else if (intent === "edit") {
     const size = MAP_SIZES.find((m) => m.bounds * 2 === Number(data.mapSize));
     if (level.locked) {
-      reply = "The layout is locked, so boxes can't change. Unlock it in the Lock step, then ask again.";
+      proposals.push({
+        id: `unlock-${Date.now().toString(36)}`,
+        source: "text",
+        why: "Unlock the layout so boxes can move. Then ask for your change again, run Prove and Lock. Models stay on the boxes you don't change.",
+        unlock: true,
+      });
+      reply = "The layout is locked, so its boxes can't change yet. I propose unlocking it first: accept, then ask me again.";
     } else if (size && size.bounds === level.bounds) {
       reply = `The map is already ${size.bounds * 2} m × ${size.bounds * 2} m. Sizes: 40, 60 or 80 m.`;
     } else if (size) {
@@ -115,7 +143,7 @@ function levelFacts(level: Level, r: ProveResult): string {
   const open = r.exposure?.filter((x) => x >= 0).length ?? 1;
   const exposed = longestExposedStretch(r);
   const lines = [
-    `Locked: ${level.locked ? "yes" : "no"}. Style notes: "${level.styleNotes ?? "none"}".`,
+    `Locked: ${level.locked ? "yes" : "no"}. Style notes: "${level.styleNotes ?? "none"}". Dressed (have 3D models): ${dressedIds(level).length} of ${level.volumes.filter((v) => DRESS_ROLES.includes(v.role)).length} boxes.`,
     `Boxes: ${[...counts].map(([k, n]) => `${n} ${k}`).join(", ") || "none"}.`,
     `Prove: ${r.status}${r.reason ? ` (${r.reason})` : ""}. ${r.message ?? ""}`,
     r.path?.length ? `Route length ${Math.round(r.path.length * 0.5)} m approx; ${r.exposedMeters ?? "?"} m of it in the open.` : "No route.",
@@ -124,6 +152,11 @@ function levelFacts(level: Level, r: ProveResult): string {
     `All boxes: ${JSON.stringify(level.volumes.map((v) => ({ id: v.id, label: v.label, role: v.role, at: [r1(v.position[0]), r1(v.position[2])], size: v.size })))}`,
   ];
   return lines.filter(Boolean).join("\n");
+}
+
+/** Boxes that already have a 3D model. */
+function dressedIds(level: Level): string[] {
+  return level.volumes.filter((v) => DRESS_ROLES.includes(v.role) && v.assetUrl).map((v) => v.id);
 }
 
 /** Short description of the boxes, so a style written from words fits the level. */

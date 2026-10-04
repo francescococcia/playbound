@@ -19,6 +19,7 @@ export function buildPrompt(v: Volume, styleNotes?: string): string {
     styleBlock,
     "Game-ready prop for a first-person level.",
     `Object: ${v.label}.`,
+    ...(v.lookNote?.trim() ? [`Details: ${v.lookNote.trim()}.`] : []),
     `Gameplay role: ${v.role} (${ROLE_HINTS[v.role]}).`,
     `Exact real-world size: ${m(v.size[0])} wide x ${m(v.size[1])} tall x ${m(v.size[2])} deep.`,
     "Centered, grounded, no floating parts, clean silhouette readable at gameplay distance.",

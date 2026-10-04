@@ -172,7 +172,7 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
       level: {
         ...level,
         prove: { status: "idle" },
-        volumes: level.volumes.map((v) => (v.id === id ? { ...v, ...patch } : v)),
+        volumes: level.volumes.map((v) => (v.id === id ? { ...v, ...patch, ...(patch.size && needsRedress(v)) } : v)),
       },
     });
   },
@@ -272,13 +272,23 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
     const p = proposals.find((x) => x.id === id);
     if (!p) return;
     const rest = proposals.filter((x) => x.id !== id);
+    if (p.unlock) {
+      set({ level: { ...level, locked: false, volumes: level.volumes.map((v) => ({ ...v, locked: false })) }, proposals: rest });
+      return;
+    }
     const changesLayout = !!(p.add?.length || p.update?.length || p.remove?.length || p.replaceAll);
     if (changesLayout && level.locked) return; // contract is locked: only style proposals apply
     let volumes = p.replaceAll ? [] : level.volumes.filter((v) => !p.remove?.includes(v.id));
     volumes = volumes.map((v) => {
       const u = p.update?.find((x) => x.id === v.id);
-      return u ? { ...v, ...(u.position && { position: u.position }), ...(u.rotationY !== undefined && { rotationY: u.rotationY }), ...(u.size && { size: u.size }) } : v;
+      return u ? { ...v, ...(u.position && { position: u.position }), ...(u.rotationY !== undefined && { rotationY: u.rotationY }), ...(u.size && { size: u.size, ...needsRedress(v) }) } : v;
     });
+    // Look change: the listed boxes get a new variant at the next Dress (current model stays until then).
+    if (p.redress) {
+      volumes = volumes.map((v) =>
+        p.redress!.ids.includes(v.id) ? { ...v, lookNote: p.redress!.note ?? v.lookNote, variant: (v.variant ?? 0) + 1, ...needsRedress(v) } : v,
+      );
+    }
     const taken = new Set(volumes.map((v) => v.id));
     for (const a of p.add ?? []) {
       const nid = uniqueId(a.id, taken);
@@ -314,6 +324,11 @@ export const usePlaybound = create<PlayboundState>((set, get) => ({
     return { ok: true };
   },
 }));
+
+/** A dressed box whose size or look changed: Dress makes a new model (the old one shows until then). */
+function needsRedress(v: Volume): Partial<Volume> {
+  return v.status === "ready" ? { status: "empty" } : {};
+}
 
 /** Dress is allowed once gameplay is locked and there is a written or visual style direction. */
 export function canDress(level: Level): { ok: boolean; why?: string } {

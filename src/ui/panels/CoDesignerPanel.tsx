@@ -484,6 +484,7 @@ function AgentBubble({ m, showChips, disabled }: { m: AgentMessage; showChips: b
                 live.forEach((p) => setOutcome(p.id, "accepted"));
                 acceptAll(live.map((p) => p.id));
                 if (live.some(changesLayout)) runProve();
+                if (live.some((p) => p.redress)) startRedress();
               }}
             >
               <Check size={14} strokeWidth={2} /> Accept all
@@ -498,6 +499,19 @@ function AgentBubble({ m, showChips, disabled }: { m: AgentMessage; showChips: b
 }
 
 // ---------- proposals ----------
+
+/** After a look change is accepted: make the new models now if Dress is possible, else say when. */
+function startRedress() {
+  const toast = useUiPrefs.getState().setToast;
+  if (!canDress(usePlaybound.getState().level).ok) {
+    toast("New look saved: it is used when you Dress the level.");
+    return;
+  }
+  toast("Making the new models…");
+  dressLevel()
+    .then(() => toast("New look applied."))
+    .catch((e) => toast(e instanceof Error ? e.message : String(e)));
+}
 
 function ProposalRow({
   proposal: given,
@@ -539,7 +553,10 @@ function ProposalRow({
   const blocked = layout && locked;
   const pv = proposal.previewProve;
   const pct = pv?.coveredFraction != null ? Math.round(pv.coveredFraction * 100) : null;
-  const tag = optionLabel ?? { fix: "Fix", sketch: "From sketch", style: "Style", text: "Edit" }[proposal.source];
+  const tag =
+    optionLabel ??
+    (proposal.unlock ? "Unlock" : proposal.redress && !proposal.styleNotes ? "New look" : { fix: "Fix", sketch: "From sketch", style: "Style", text: "Edit" }[proposal.source]);
+  const redressN = proposal.redress?.ids.length ?? 0;
   const hasGhosts = layout && !proposal.replaceAll;
 
   return (
@@ -589,9 +606,11 @@ function ProposalRow({
               }
             }
             if (layout) runProve(); // show the result straight away
+            if (proposal.redress) startRedress();
           }}
         >
-          <Check size={14} strokeWidth={2} /> Accept
+          <Check size={14} strokeWidth={2} />{" "}
+          {proposal.unlock ? "Unlock layout" : redressN ? `Accept · re-dress ${redressN} model${redressN > 1 ? "s" : ""}` : "Accept"}
         </button>
         <button
           type="button"
