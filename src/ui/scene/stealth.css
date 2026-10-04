@@ -1,10 +1,11 @@
-/* Walk / Play stealth HUD (Round 5). */
+/* Walk / Play stealth HUD (Round 5). Colours keep their meaning: green = safe (hidden / in cover),
+   coral = seen. The icon tells hidden (out of sight) from in cover (near a box). */
 .stealth-vignette {
   position: absolute;
   inset: 0;
   pointer-events: none;
   box-shadow: inset 0 0 0 0 rgba(255, 107, 90, 0);
-  transition: box-shadow 0.25s ease;
+  transition: box-shadow 0.3s var(--ease-out, ease-out);
   z-index: 4;
 }
 .stealth-vignette--on {
@@ -16,32 +17,65 @@
 }
 
 .stealth-pill {
+  --tone: var(--proof, #3ddc97);
   position: absolute;
   top: 1rem;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.9rem;
+  gap: 0.65rem;
+  min-width: 15.5rem;
+  padding: 0.4rem 1rem 0.4rem 0.4rem;
   border-radius: 999px;
-  background: rgba(14, 19, 32, 0.82);
-  border: 1px solid var(--border-strong, #354468);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--tone) 16%, transparent), transparent 70%),
+    rgba(11, 16, 28, 0.88);
+  border: 1px solid color-mix(in srgb, var(--tone) 55%, transparent);
   color: var(--text, #e8edf7);
-  font-size: 0.85rem;
+  box-shadow: 0 10px 30px -10px #000000cc;
   pointer-events: none;
   z-index: 5;
-  backdrop-filter: blur(4px);
+  backdrop-filter: blur(6px);
+  transition: border-color 0.25s var(--ease-out, ease-out), background 0.25s var(--ease-out, ease-out);
 }
-.stealth-pill strong { font-family: var(--font-display, sans-serif); letter-spacing: 0.02em; }
+.stealth-pill--hidden { --tone: var(--proof, #3ddc97); }
+.stealth-pill--cover { --tone: #7fe6b6; }
+.stealth-pill--seen { --tone: var(--danger, #ff6b5a); }
+
+.stealth-badge {
+  display: inline-grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--tone);
+  color: var(--ink, #0e1320);
+  animation: stealth-pop 0.28s var(--ease-out, ease-out);
+}
+.stealth-pill--seen .stealth-badge { animation: stealth-pop 0.28s var(--ease-out, ease-out), stealth-ring 1.1s ease-out 0.28s infinite; }
+@keyframes stealth-pop { from { transform: scale(0.6); opacity: 0.4; } }
+@keyframes stealth-ring {
+  from { box-shadow: 0 0 0 0 rgba(255, 107, 90, 0.55); }
+  to { box-shadow: 0 0 0 10px rgba(255, 107, 90, 0); }
+}
+
+.stealth-text { display: grid; gap: 0.05rem; line-height: 1.2; }
+.stealth-pill strong {
+  font-family: var(--font-display, sans-serif);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--tone);
+}
 .stealth-hint { color: var(--text-muted, #8b95a8); font-size: 0.75rem; }
-.stealth-dot { width: 0.6rem; height: 0.6rem; border-radius: 50%; background: currentColor; }
-.stealth-pill--hidden { color: #5ea8ff; border-color: #5ea8ff66; }
-.stealth-pill--cover { color: var(--proof, #3ddc97); border-color: #3ddc9766; }
-.stealth-pill--seen { color: var(--danger, #ff6b5a); border-color: #ff6b5a99; }
-.stealth-pill strong, .stealth-pill .stealth-hint { color: var(--text, #e8edf7); }
-.stealth-pill .stealth-hint { color: var(--text-muted, #8b95a8); }
+
+@media (max-width: 760px) {
+  .stealth-pill { min-width: 0; max-width: calc(100% - 1.5rem); }
+}
 
 @media (prefers-reduced-motion: reduce) {
-  .stealth-vignette, .stealth-vignette--on { animation: none; transition: none; }
+  .stealth-vignette, .stealth-vignette--on, .stealth-badge, .stealth-pill--seen .stealth-badge { animation: none; transition: none; }
+  .stealth-pill { transition: none; }
 }

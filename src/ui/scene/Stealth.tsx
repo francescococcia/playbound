@@ -2,6 +2,7 @@
 // to see you? Same rule as Prove (src/core/prove/stealth.ts). The probe lives in the canvas,
 // the HUD is DOM. Red screen edges when seen.
 import { useFrame, useThree } from "@react-three/fiber";
+import { Eye, EyeOff, Shield } from "lucide-react";
 import { useEffect, useMemo } from "react";
 import { prove } from "../../core/prove/prove";
 import { stealthAt, useStealth } from "../../core/prove/stealth";
@@ -28,6 +29,7 @@ export function StealthProbe({ level, counting = false }: { level: Level; counti
 
 const LABEL = { hidden: "Hidden", cover: "In cover", seen: "Seen by defenders" } as const;
 const HINT = { hidden: "Out of the goal's line of sight", cover: "Cover within 2.5 m", seen: "The goal can see you: find cover" } as const;
+const ICON = { hidden: EyeOff, cover: Shield, seen: Eye } as const;
 
 /** DOM overlay: a status pill + red edges when seen. */
 export function StealthHud() {
@@ -37,9 +39,17 @@ export function StealthHud() {
     <>
       <div className={`stealth-vignette${state === "seen" ? " stealth-vignette--on" : ""}`} aria-hidden />
       <div className={`stealth-pill stealth-pill--${state}`} role="status" aria-live="polite">
-        <span className="stealth-dot" aria-hidden />
-        <strong>{LABEL[state]}</strong>
-        <span className="stealth-hint">{HINT[state]}</span>
+        {/* keyed: the badge pops on each state change */}
+        <span key={state} className="stealth-badge" aria-hidden>
+          {(() => {
+            const I = ICON[state];
+            return <I size={15} strokeWidth={2} />;
+          })()}
+        </span>
+        <span className="stealth-text">
+          <strong>{LABEL[state]}</strong>
+          <span className="stealth-hint">{HINT[state]}</span>
+        </span>
       </div>
     </>
   );
