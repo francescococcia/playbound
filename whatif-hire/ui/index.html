@@ -1,0 +1,336 @@
+<title>WhatIfHire</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;700&family=Public+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: cockpit — question and verdict lead the left column; the agent's own work (feed, slide) runs down the right */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --ink:#0F1B2D; --muted:#5D6B80; --line:#DDE3EC;
+  --accent:#2445D6; --accent-soft:#E6EBFD; --base:#9AA6B8;
+  --ok:#137A4B; --ok-soft:#E1F3EA; --warn:#A8650B; --warn-soft:#FBEFD9; --bad:#B4291F; --bad-soft:#FBE3E0;
+  --f-display:"Familjen Grotesk", "Segoe UI", system-ui, sans-serif;
+  --f-body:"Public Sans", system-ui, -apple-system, sans-serif;
+  --f-mono:"JetBrains Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B111C; --surface:#121A28; --ink:#E7ECF4; --muted:#93A0B5; --line:#223047;
+  --accent:#7D95FF; --accent-soft:#1B2650; --base:#5E6B80;
+  --ok:#4FCB8C; --ok-soft:#10301F; --warn:#F0B354; --warn-soft:#33240B; --bad:#FF7A6E; --bad-soft:#3A1612; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B111C; --surface:#121A28; --ink:#E7ECF4; --muted:#93A0B5; --line:#223047;
+  --accent:#7D95FF; --accent-soft:#1B2650; --base:#5E6B80;
+  --ok:#4FCB8C; --ok-soft:#10301F; --warn:#F0B354; --warn-soft:#33240B; --bad:#FF7A6E; --bad-soft:#3A1612; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body)}
+.wrap{max-width:1180px;margin:0 auto;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:20px}
+h1,h2,h3{font-family:var(--f-display);margin:0;line-height:1.15;text-wrap:balance}
+.label{font:500 .7rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:baseline;gap:4px;font:700 1.4rem var(--f-display)}
+.brand em{font-style:normal;color:var(--accent)}
+.co{display:flex;gap:10px;align-items:center;flex-wrap:wrap;font-size:.85rem;color:var(--muted)}
+.conn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 10px;font:500 .75rem var(--f-mono);color:var(--ink);background:var(--surface)}
+.conn::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,360px);gap:20px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:1fr}}
+.col{display:grid;gap:16px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.ask{display:grid;gap:14px}
+.q{font:700 clamp(1.35rem,3vw,1.9rem)/1.2 var(--f-display)}
+.q b{color:var(--accent);font-weight:700}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:500 .8rem var(--f-body);border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:5px 11px;cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.sliders{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media (max-width:620px){.sliders{grid-template-columns:1fr}}
+.sl{display:grid;gap:4px}
+.sl label{display:flex;justify-content:space-between;font-size:.82rem;color:var(--muted)}
+.sl output{font:500 .95rem var(--f-mono);color:var(--ink)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.verdict{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center;border-radius:14px;padding:18px;border:1px solid transparent}
+.verdict.ok{background:var(--ok-soft);border-color:var(--ok)} .verdict.warn{background:var(--warn-soft);border-color:var(--warn)} .verdict.bad{background:var(--bad-soft);border-color:var(--bad)}
+.light{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font:700 1.2rem var(--f-display);color:var(--surface)}
+.ok .light{background:var(--ok)} .warn .light{background:var(--warn)} .bad .light{background:var(--bad)}
+.verdict h2{font-size:1.35rem}
+.verdict p{margin:4px 0 0;color:var(--ink)}
+.kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+@media (max-width:620px){.kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.kpi{display:grid;gap:2px}
+.kpi strong{font:500 1.25rem var(--f-mono);font-variant-numeric:tabular-nums}
+.kpi small{color:var(--muted);font-size:.78rem}
+.chartbox{overflow-x:auto}
+svg text{font-family:var(--f-mono);font-size:11px;fill:var(--muted)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.8rem;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin-right:6px;border-radius:2px}
+.finds{display:grid;gap:10px}
+.find{display:grid;grid-template-columns:8px minmax(0,1fr) auto;gap:12px;align-items:start;padding:12px;border:1px solid var(--line);border-radius:10px}
+.find .bar{align-self:stretch;border-radius:4px}
+.find p{margin:2px 0 0;font-size:.88rem;color:var(--muted)}
+.find button{white-space:nowrap}
+.btn{font:600 .88rem var(--f-body);border-radius:9px;padding:9px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:var(--surface)}
+.btn.ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn:disabled{opacity:.5;cursor:default}
+.btn:focus-visible,.chip:focus-visible,input:focus-visible{outline:3px solid var(--warn);outline-offset:2px}
+.approve{display:grid;gap:14px;border:2px solid var(--accent)}
+.approve.done{border-color:var(--ok)}
+.flow{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);gap:10px;align-items:center}
+.acct{border:1px solid var(--line);border-radius:10px;padding:10px;display:grid;gap:2px}
+.acct .num{font-size:.85rem}
+.arrow{font:700 1.3rem var(--f-display);color:var(--accent)}
+.rules{display:flex;gap:8px;flex-wrap:wrap}
+.rule{font:500 .72rem var(--f-mono);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--muted)}
+.actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stamp{font:500 .8rem var(--f-mono);color:var(--ok)}
+.feed{display:grid;gap:0;max-height:430px;overflow-y:auto}
+.step{display:grid;grid-template-columns:16px minmax(0,1fr);gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);animation:in .25s ease both}
+.step:last-child{border-bottom:0}
+.step .dot{width:10px;height:10px;border-radius:50%;margin-top:5px;background:var(--accent)}
+.step.think .dot{background:var(--base)} .step.human .dot{background:var(--ok)} .step.flag .dot{background:var(--warn)}
+.step code{font:500 .78rem var(--f-mono);color:var(--accent);word-break:break-all}
+.step p{margin:0;font-size:.84rem}
+.step time{font:400 .7rem var(--f-mono);color:var(--muted)}
+@keyframes in{from{opacity:.2;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.step{animation:none}}
+.slide{aspect-ratio:16/9;max-width:100%;border:1px solid var(--line);border-radius:8px;padding:14px;display:grid;grid-template-rows:auto 1fr auto;gap:8px;background:var(--bg)}
+.slide h3{font-size:1rem}
+.slide .big{font:700 1.6rem var(--f-display)}
+.slide footer{font:400 .65rem var(--f-mono);color:var(--muted)}
+.note{font-size:.75rem;color:var(--muted)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="brand">WhatIf<em>Hire</em></div>
+    <div class="co"><span>Northwind Labs Ltd · Seed · London</span><span class="conn">Seapoint sandbox</span></div>
+  </header>
+
+  <div class="grid">
+    <div class="col">
+      <section class="card ask" aria-labelledby="qtitle">
+        <span class="label">Ask a what-if</span>
+        <div class="q" id="qtitle">What if I hire <b id="qN">2</b> <b id="qRole">engineers</b> at <b id="qSal">£70k</b> from <b id="qStart">March 2027</b>?</div>
+        <div class="chips" id="chips">
+          <button class="chip" data-p="2,70000,4,engineers">2 engineers at £70k in March</button>
+          <button class="chip" data-p="5,75000,1,engineers">5 engineers at £75k in December</button>
+          <button class="chip" data-p="1,55000,2,salespeople">1 salesperson at £55k in January</button>
+        </div>
+        <div class="sliders">
+          <div class="sl"><label for="n">People <output id="nO">2</output></label><input id="n" type="range" min="1" max="8" value="2"></div>
+          <div class="sl"><label for="sal">Salary each <output id="salO">£70k</output></label><input id="sal" type="range" min="30000" max="150000" step="5000" value="70000"></div>
+          <div class="sl"><label for="st">Start <output id="stO">Mar 2027</output></label><input id="st" type="range" min="0" max="18" value="4"></div>
+        </div>
+      </section>
+
+      <section class="verdict ok" id="verdict" aria-live="polite">
+        <div class="light" id="vIcon">✓</div>
+        <div><h2 id="vTitle">–</h2><p id="vText">–</p></div>
+      </section>
+
+      <section class="card" aria-label="Runway">
+        <div class="kpis">
+          <div class="kpi"><span class="label">Real cost / person</span><strong id="kCost">–</strong><small id="kCostSub">–</small></div>
+          <div class="kpi"><span class="label">Runway today</span><strong id="kBase">–</strong><small id="kBaseSub">–</small></div>
+          <div class="kpi"><span class="label">Runway with hires</span><strong id="kPlan">–</strong><small id="kPlanSub">–</small></div>
+          <div class="kpi"><span class="label">After R&amp;D credit</span><strong id="kRd">–</strong><small>estimate · not counted</small></div>
+        </div>
+        <div class="chartbox"><svg id="chart" viewBox="0 0 700 270" width="100%" role="img" aria-label="Cash projection with and without the hires"></svg></div>
+        <div class="legend"><span><i style="background:var(--base)"></i>Without hires</span><span><i style="background:var(--accent)"></i>With hires</span><span><i style="background:var(--warn)"></i>12-month minimum</span><span><i style="background:var(--ok)"></i>R&amp;D credit lands</span></div>
+      </section>
+
+      <section class="card" aria-label="Findings">
+        <div style="display:grid;gap:12px">
+          <span class="label">I also noticed</span>
+          <div class="finds" id="finds"></div>
+        </div>
+      </section>
+
+      <section class="card approve" id="approve" aria-label="Approval">
+        <div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap"><span class="label">Needs your approval</span><span class="label" id="aRef">–</span></div>
+        <h2 style="font-size:1.2rem" id="aTitle">–</h2>
+        <div class="flow">
+          <div class="acct"><span class="label">Main account</span><span class="num" id="aFrom">–</span></div>
+          <div class="arrow" aria-hidden="true">→</div>
+          <div class="acct"><span class="label">Payroll reserve pot</span><span class="num" id="aTo">–</span></div>
+        </div>
+        <div class="rules"><span class="rule">Own accounts only</span><span class="rule">No new payees</span><span class="rule">≤ 3 months of new payroll</span><span class="rule">One-time key</span></div>
+        <div class="actions"><button class="btn" id="aOk">Approve move</button><button class="btn ghost" id="aNo">Reject</button><span class="stamp" id="aStamp"></span></div>
+      </section>
+    </div>
+
+    <aside class="col">
+      <section class="card" aria-label="Agent activity">
+        <div style="display:flex;justify-content:space-between;gap:8px;align-items:baseline"><span class="label">Agent activity · audit log</span><span class="note">demo replay</span></div>
+        <div class="feed" id="feed" aria-live="polite"></div>
+      </section>
+      <section class="card" aria-label="Board slide">
+        <div style="display:grid;gap:10px">
+          <span class="label">Board pack · draft slide</span>
+          <div class="slide">
+            <h3>Hiring plan &amp; runway</h3>
+            <div style="display:grid;gap:6px;align-content:center">
+              <div class="big num" id="sBig">–</div>
+              <div style="font-size:.82rem" id="sLine">–</div>
+            </div>
+            <footer id="sFoot">–</footer>
+          </div>
+        </div>
+      </section>
+    </aside>
+  </div>
+  <p class="note">Prototype with seeded sandbox data. UK 2025/26 employer NI and pension rates. R&amp;D credit is an estimate to confirm with an accountant.</p>
+</div>
+
+<script>
+/*ENGINE*/
+const DATA={
+  accounts:[{id:"acc_main",name:"Main account",balance:842000},{id:"acc_treasury",name:"Treasury reserve",balance:300000}],
+  months:[["2026-04",38000,101000],["2026-05",41500,104200],["2026-06",40200,108900],["2026-07",46800,112300],["2026-08",44100,110700],["2026-09",49300,115400]],
+  bills:[{vendor:"AWS",amount:9840,due:"2026-10-28"},{vendor:"WeWork",amount:7200,due:"2026-11-01"},{vendor:"Deel (contractors)",amount:14500,due:"2026-10-31"},{vendor:"Legal - Taylor & Co",amount:4250,due:"2026-11-12"}],
+  invoices:[{id:"inv_2041",customer:"Acme Retail",amount:18000,due:"2026-10-30",status:"sent"},{id:"inv_2042",customer:"Brightside Health",amount:12500,due:"2026-11-15",status:"overdue"}],
+};
+const MIN_RUNWAY=12, YE_MONTH=3, LAG=6, RD_RATE=0.2*(1-0.19), RESERVE_MONTHS=3, START=[2026,11];
+function hireCost(s){const ni=Math.max(0,s-5000)*.15, pen=Math.max(0,Math.min(s,50270)-6240)*.03, t=s+ni+pen;return{ni,pen,annual:t,monthly:t/12};}
+function burnRunway(){const l=DATA.months.slice(-3),burn=l.reduce((a,m)=>a+m[2]-m[1],0)/l.length,cash=DATA.accounts.reduce((a,x)=>a+x.balance,0);return{cash,burn};}
+function addM([y,m],n){const t=y*12+(m-1)+n;return[Math.floor(t/12),t%12+1];}
+function project(cash,burn,hire,months=36,includeRd=true){
+  const rows=[];let bal=cash,acc=0;const due={};
+  for(let i=0;i<months;i++){
+    const [y,m]=addM(START,i), active=hire&&i>=hire.startIdx;
+    const extra=active?hireCost(hire.salary).monthly*hire.n:0;
+    if(active)acc+=extra*hire.rdShare*RD_RATE;
+    if(m===YE_MONTH&&acc){const k=i+LAG;due[k]=(due[k]||0)+acc;acc=0;}
+    const credit=includeRd?(due[i]||0):0;delete due[i];
+    bal+=credit-burn-extra;rows.push({i,y,m,credit,cash:bal});
+  }
+  return rows;
+}
+const runway=rows=>{const k=rows.findIndex(r=>r.cash<0);return k<0?rows.length:k;};
+function scenario(n,salary,startIdx,role){
+  const {cash,burn}=burnRunway(), rdShare=role==="engineers"?0.8:0, hire={n,salary,startIdx,rdShare};
+  const base=project(cash,burn,null), plan=project(cash,burn,hire), noRd=project(cash,burn,hire,36,false);
+  const rB=runway(base), rP=runway(plan), rN=runway(noRd);
+  let safeStart=null;
+  if(rN<MIN_RUNWAY){for(let s=startIdx;s<=30;s++){if(runway(project(cash,burn,{...hire,startIdx:s},36,false))>=MIN_RUNWAY){safeStart=s;break;}}}
+  const c=hireCost(salary), rdPerYear=c.annual*rdShare*RD_RATE;
+  const creditsBefore=plan.slice(0,rP).filter(r=>r.credit>0);
+  return{cash,burn,base,plan,rB,rP,rN,safeStart,cost:c,rdPerYear,creditsBefore,reserve:c.monthly*n*RESERVE_MONTHS,rdShare};
+}
+/*END ENGINE*/
+
+const $=id=>document.getElementById(id);
+const gbp=(v,d=0)=>new Intl.NumberFormat('en-GB',{style:'currency',currency:'GBP',maximumFractionDigits:d}).format(v);
+const k=v=>'£'+Math.round(v/1000)+'k';
+const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const FULL=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const mlabel=(i,full)=>{const [y,m]=addM(START,i);return (full?FULL:MN)[m-1]+' '+y;};
+let role='engineers', approved=null, runId=0;
+
+function render(){
+  const n=+$('n').value, sal=+$('sal').value, st=+$('st').value, S=scenario(n,sal,st,role);
+  $('nO').textContent=n; $('salO').textContent=k(sal); $('stO').textContent=mlabel(st);
+  $('qN').textContent=n; $('qRole').textContent=n===1?role.replace(/s$/,''):role; $('qSal').textContent=k(sal); $('qStart').textContent=mlabel(st,true);
+
+  const v=$('verdict'), lost=S.rB-S.rN;
+  if(S.safeStart!==null){v.className='verdict bad';$('vIcon').textContent='!';$('vTitle').textContent=`Not yet. Earliest safe start is ${mlabel(S.safeStart,true)}.`;
+    $('vText').textContent=`Starting in ${mlabel(st,true)} leaves ${S.rN} months of runway, below your ${MIN_RUNWAY}-month minimum.`;}
+  else if(S.rN<MIN_RUNWAY+3){v.className='verdict warn';$('vIcon').textContent='~';$('vTitle').textContent='Yes, but it gets tight.';
+    $('vText').textContent=`Runway drops from ${S.rB} to ${S.rN} months, just above your ${MIN_RUNWAY}-month minimum. Plan the next raise now.`;}
+  else{v.className='verdict ok';$('vIcon').textContent='✓';$('vTitle').textContent='Yes, you can afford it.';
+    $('vText').textContent=`Runway drops from ${S.rB} to ${S.rN} months (${lost} lost), still above your ${MIN_RUNWAY}-month minimum.`;}
+
+  $('kCost').textContent=gbp(S.cost.annual); $('kCostSub').textContent=`+${gbp(S.cost.ni)} NI · +${gbp(S.cost.pen)} pension`;
+  $('kBase').textContent=S.rB+' mo'; $('kBaseSub').textContent='cash out '+mlabel(S.rB);
+  $('kPlan').textContent=S.rN+' mo'; $('kPlanSub').textContent=S.rN>=36?'beyond 3 years':'cash out '+mlabel(S.rN);
+  $('kRd').textContent=S.rdShare?gbp(S.cost.annual-S.rdPerYear):'n/a';
+
+  chart(S);
+  findings(S,st);
+  approval(S,n);
+  slide(S,n,sal,st);
+  feed(S,n,sal,st);
+}
+
+function chart(S){
+  const W=700,H=270,L=56,R=12,T=14,B=30,N=36;
+  const max=Math.max(S.cash,...S.base.map(r=>r.cash)), min=Math.min(0,...S.plan.map(r=>r.cash),...S.base.map(r=>r.cash));
+  const x=i=>L+(W-L-R)*(i+1)/N, y=v=>T+(H-T-B)*(max-v)/(max-min);
+  const path=rows=>`M${L},${y(S.cash)} `+rows.map(r=>`L${x(r.i).toFixed(1)},${y(r.cash).toFixed(1)}`).join(' ');
+  let g='';
+  for(let v=0;v<=max;v+=250000){g+=`<line x1="${L}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}" stroke="var(--line)"/><text x="${L-6}" y="${y(v)+4}" text-anchor="end">${v?'£'+(v/1000)+'k':'£0'}</text>`;}
+  for(let i=5;i<N;i+=6)g+=`<text x="${x(i)}" y="${H-10}" text-anchor="middle">${mlabel(i)}</text>`;
+  const mx=x(MIN_RUNWAY-1);
+  g+=`<rect x="${L}" y="${T}" width="${mx-L}" height="${H-T-B}" fill="var(--warn)" opacity=".08"/><line x1="${mx}" x2="${mx}" y1="${T}" y2="${H-B}" stroke="var(--warn)" stroke-dasharray="4 4"/><text x="${mx+4}" y="${T+10}" style="fill:var(--warn)">12-month minimum</text>`;
+  g+=`<line x1="${L}" x2="${W-R}" y1="${y(0)}" y2="${y(0)}" stroke="var(--muted)"/>`;
+  g+=`<path d="${path(S.base)}" fill="none" stroke="var(--base)" stroke-width="2" stroke-dasharray="6 5"/>`;
+  g+=`<path d="${path(S.plan)}" fill="none" stroke="var(--accent)" stroke-width="3"/>`;
+  S.plan.filter(r=>r.credit>0).forEach(r=>{g+=`<circle cx="${x(r.i)}" cy="${y(r.cash)}" r="5" fill="var(--ok)"/>`;});
+  [[S.rB,'var(--base)'],[S.rP,'var(--accent)']].forEach(([m,c])=>{if(m<N){g+=`<circle cx="${x(m)}" cy="${y(0)}" r="5" fill="${c}"/>`;}});
+  $('chart').innerHTML=g;
+}
+
+function findings(S,st){
+  const f=[], over=DATA.invoices.filter(i=>i.status==='overdue');
+  over.forEach(i=>f.push(['var(--warn)',`${i.customer} owes you ${gbp(i.amount)}, overdue`,'Collecting it adds about a week of runway.','Draft reminder']));
+  const bills=DATA.bills.reduce((a,b)=>a+b.amount,0);
+  f.push(['var(--accent)',`${gbp(bills)} of bills due in the next 4 weeks`,`${DATA.bills.length} bills (AWS, WeWork, Deel, legal). Covered by the main account.`,'Review run']);
+  if(S.rdShare){const before=S.creditsBefore.reduce((a,r)=>a+r.credit,0);
+    f.push(['var(--ok)',`R&D credit: about ${gbp(S.rdPerYear*+$('n').value)} a year, but it arrives late`,`HMRC pays about ${LAG} months after your March year end, so only ${gbp(before)} lands before cash runs out. I left it out of the decision. Confirm with your accountant.`,null]);}
+  $('finds').innerHTML=f.map(([c,t,p,b])=>`<div class="find"><span class="bar" style="background:${c}"></span><div><strong>${t}</strong><p>${p}</p></div>${b?`<button class="btn ghost" type="button">${b}</button>`:'<span></span>'}</div>`).join('');
+}
+
+function approval(S,n){
+  const amt=Math.round(S.reserve), main=DATA.accounts[0].balance, ref='act_'+(n*1000+amt%997);
+  const same=approved&&approved.ref===ref;
+  $('aRef').textContent=ref;
+  $('aTitle').textContent=`Move ${gbp(amt)} into the payroll reserve: ${RESERVE_MONTHS} months of pay for the ${n} new ${n===1?'hire':'hires'}.`;
+  $('aFrom').textContent=`${gbp(main)} → ${gbp(main-amt)}`;
+  $('aTo').textContent=`${gbp(0)} → ${gbp(amt)}`;
+  $('approve').classList.toggle('done',!!same);
+  $('aOk').disabled=!!same; $('aNo').disabled=!!same;
+  $('aStamp').textContent=same?`Approved by you · ${approved.at}`:'';
+  $('approve').dataset.ref=ref; $('approve').dataset.amt=amt;
+}
+
+function slide(S,n,sal,st){
+  $('sBig').textContent=`${S.rB} → ${S.rN} months runway`;
+  $('sLine').textContent=`Plan: ${n} ${n===1?role.replace(/s$/,''):role} at ${k(sal)} from ${mlabel(st,true)}. Fully loaded ${gbp(S.cost.annual*n)} a year. Net burn today ${gbp(S.burn)} a month.`;
+  $('sFoot').textContent='Source: Seapoint balances & cashflow, 3-month average burn · generated by WhatIfHire';
+}
+
+function feed(S,n,sal,st){
+  const id=++runId, now=new Date(), t=s=>new Date(now.getTime()+s*1000).toTimeString().slice(0,8);
+  const steps=[
+    ['think','Plan',`Need cash, burn, upcoming bills and receivables to answer this.`],
+    ['tool','seapoint.get_balances',`${gbp(S.cash)} across ${DATA.accounts.length} accounts`],
+    ['tool','seapoint.get_monthly_cashflow',`Avg net burn ${gbp(S.burn)}/mo (Jul–Sep)`],
+    ['tool','seapoint.list_bills',`${DATA.bills.length} bills due, ${gbp(DATA.bills.reduce((a,b)=>a+b.amount,0))}`],
+    ['tool','seapoint.list_invoices',`1 overdue: Brightside Health ${gbp(12500)}`],
+    ['tool','whatif.simulate',`${n} × ${k(sal)} from ${mlabel(st)} → runway ${S.rB} → ${S.rN} mo`],
+  ];
+  if(S.safeStart!==null)steps.push(['flag','whatif.find_safe_start',`Below minimum. Earliest safe start ${mlabel(S.safeStart)}`]);
+  if(S.rdShare)steps.push(['flag','Check','R&D credit lands after the cash-out month. Excluded from the decision.']);
+  steps.push(['tool','propose.move_to_pot',`${gbp(S.reserve)} → Payroll reserve · waiting for approval`]);
+  const el=$('feed'); el.innerHTML='';
+  if(approved)el.innerHTML=approved.log;
+  steps.forEach((s,i)=>setTimeout(()=>{if(id!==runId)return;
+    el.insertAdjacentHTML('beforeend',`<div class="step ${s[0]}"><span class="dot"></span><div><code>${s[1]}</code><p>${s[2]}</p><time>${t(i*0.4)}</time></div></div>`);
+    el.scrollTop=el.scrollHeight;},i*180));
+}
+
+$('aOk').addEventListener('click',()=>{
+  const a=$('approve'), at=new Date().toTimeString().slice(0,5)+' today';
+  const line=`<div class="step human"><span class="dot"></span><div><code>execute.move_to_pot</code><p>Approved by you. ${gbp(+a.dataset.amt)} moved to Payroll reserve (key ${a.dataset.ref}).</p><time>${at}</time></div></div>`;
+  approved={ref:a.dataset.ref,at,log:line};
+  $('feed').insertAdjacentHTML('beforeend',line); $('feed').scrollTop=1e6;
+  approval(scenario(+$('n').value,+$('sal').value,+$('st').value,role),+$('n').value);
+});
+$('aNo').addEventListener('click',()=>{
+  $('feed').insertAdjacentHTML('beforeend',`<div class="step human"><span class="dot"></span><div><code>reject.move_to_pot</code><p>Rejected by you. No money moved.</p><time>${new Date().toTimeString().slice(0,8)}</time></div></div>`);
+  $('feed').scrollTop=1e6;
+});
+['n','sal','st'].forEach(id=>$(id).addEventListener('input',render));
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(!b)return;const [n,s,st,r]=b.dataset.p.split(',');
+  $('n').value=n;$('sal').value=s;$('st').value=st;role=r;render();});
+render();
+</script>

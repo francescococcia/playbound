@@ -1,0 +1,208 @@
+<title>WhatIfHire</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one narrow column of working panels — hero, split calculator, assistant, deadlines — like a founder's desk checklist */
+:root{
+  --bg:#F6F8F7; --surface:#FFFFFF; --ink:#13201D; --muted:#5B6B67; --line:#DCE3E0;
+  --accent:#0E6B57; --accent-soft:#DDEFE9; --stamp:#B5462E;
+  --pot-net:#0E6B57; --pot-tax:#C7852B; --pot-inps:#3E6FA8; --pot-tfr:#8A5BA6; --pot-inail:#7C8A86;
+  --f-display:"Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --f-body:"IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --f-mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1614; --surface:#16201D; --ink:#E6EEEB; --muted:#93A39F; --line:#26332F;
+  --accent:#4CC3A3; --accent-soft:#163A31; --stamp:#E0745A;
+  --pot-net:#4CC3A3; --pot-tax:#E3A64F; --pot-inps:#6E9FD8; --pot-tfr:#B48BCF; --pot-inail:#8E9C98; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1614; --surface:#16201D; --ink:#E6EEEB; --muted:#93A39F; --line:#26332F;
+  --accent:#4CC3A3; --accent-soft:#163A31; --stamp:#E0745A;
+  --pot-net:#4CC3A3; --pot-tax:#E3A64F; --pot-inps:#6E9FD8; --pot-tfr:#B48BCF; --pot-inail:#8E9C98; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body)}
+.wrap{max-width:980px;margin:0 auto;padding-block:28px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:40px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.1}
+h1{font-size:clamp(2.1rem,5vw,3.3rem);font-weight:700;letter-spacing:-.02em}
+h2{font-size:1.6rem;font-weight:700}
+h3{font-size:1.05rem;font-weight:500}
+p{margin:0;max-width:65ch}
+.eyebrow{font:500 .75rem var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.muted{color:var(--muted)}
+nav{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.logo{font:700 1.35rem var(--f-display);display:flex;align-items:center;gap:10px}
+.logo i{display:inline-grid;place-items:center;width:30px;height:30px;border:2px solid var(--stamp);color:var(--stamp);border-radius:50%;font:700 .7rem var(--f-mono);font-style:normal;transform:rotate(-12deg)}
+.hero{display:grid;gap:18px}
+.hero .lede{font-size:1.15rem;color:var(--muted)}
+.ctas{display:flex;gap:10px;flex-wrap:wrap}
+.btn{font:600 .95rem var(--f-body);border:1px solid var(--accent);background:var(--accent);color:var(--bg);padding:10px 16px;border-radius:8px;cursor:pointer;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,.chip:focus-visible{outline:3px solid var(--pot-tax);outline-offset:2px}
+.proof{display:flex;gap:24px;flex-wrap:wrap;font:500 .85rem var(--f-mono);color:var(--muted)}
+.proof b{color:var(--ink);font-weight:500}
+section{display:grid;gap:18px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px}
+.calc{display:grid;grid-template-columns:minmax(0,280px) minmax(0,1fr);gap:24px}
+@media (max-width:720px){.calc{grid-template-columns:1fr}}
+.field{display:grid;gap:6px}
+.field label{font-size:.85rem;font-weight:600}
+input,select{font:500 1rem var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;width:100%}
+.form{display:grid;gap:14px;align-content:start}
+.bar{display:flex;height:34px;border-radius:6px;overflow:hidden;border:1px solid var(--line)}
+.bar span{display:block;height:100%;transition:width .3s ease}
+@media (prefers-reduced-motion:reduce){.bar span{transition:none}}
+.pots{display:grid;gap:8px;margin-top:14px}
+.pot{display:grid;grid-template-columns:14px minmax(0,1fr) auto;gap:10px;align-items:baseline;padding:8px 0;border-bottom:1px dashed var(--line)}
+.pot:last-child{border-bottom:0}
+.dot{width:12px;height:12px;border-radius:3px;align-self:center}
+.amt{font:500 1rem var(--f-mono);font-variant-numeric:tabular-nums;text-align:right}
+.pot small{display:block;color:var(--muted);font-size:.8rem}
+.totals{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-bottom:16px}
+@media (max-width:480px){.totals{grid-template-columns:1fr}}
+.totals div{display:grid;gap:2px}
+.totals strong{font:500 1.3rem var(--f-mono);font-variant-numeric:tabular-nums}
+.note{font-size:.8rem;color:var(--muted)}
+.chat{display:grid;gap:12px}
+.log{display:grid;gap:10px;max-height:340px;overflow-y:auto;padding:4px}
+.msg{max-width:85%;padding:10px 12px;border-radius:10px;font-size:.95rem}
+.msg.me{justify-self:end;background:var(--accent);color:var(--bg)}
+.msg.bot{background:var(--accent-soft)}
+.msg.bot .meta{display:block;margin-top:6px;font:400 .72rem var(--f-mono);color:var(--muted)}
+.msg.human{background:transparent;border:1px dashed var(--stamp)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{font:500 .82rem var(--f-body);background:transparent;border:1px solid var(--line);color:var(--ink);padding:6px 10px;border-radius:999px;cursor:pointer}
+.chip:hover{border-color:var(--accent)}
+.ask{display:flex;gap:8px}
+.ask input{font-family:var(--f-body)}
+table{width:100%;border-collapse:collapse;font-size:.92rem}
+td,th{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 .72rem var(--f-mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+td.when{font-family:var(--f-mono);white-space:nowrap}
+.pill{display:inline-block;font:500 .72rem var(--f-mono);padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+.pill.auto{color:var(--accent)} .pill.you{color:var(--stamp)}
+.tablebox{overflow-x:auto}
+footer{font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);padding-top:16px}
+</style>
+
+<div class="wrap">
+  <nav>
+    <div class="logo"><i>if?</i>WhatIfHire</div>
+    <span class="eyebrow">Hackathon prototype · demo data</span>
+  </nav>
+
+  <header class="hero">
+    <span class="eyebrow">Payroll and labour admin for founders hiring their first 1–20 people</span>
+    <h1>What if I hire someone at €32k? Know the answer before you sign.</h1>
+    <p class="lede">Founders find out the true cost of a hire too late: taxes, contributions and severance add 30–40% on top of the salary. They have no one to ask quickly, either. WhatIfHire turns every hiring question into a "what if…" scenario. You see the real cost, the money split into pots before each deadline, and an answer with its source in seconds. A licensed labour consultant handles the risky cases.</p>
+    <div class="ctas">
+      <a class="btn" href="#split">Run a "what if"</a>
+      <a class="btn ghost" href="#assistant">Ask the assistant</a>
+    </div>
+    <div class="proof"><span><b>~2 s</b> typical answer</span><span><b>4 h</b> consultant reply target</span><span><b>0</b> missed F24 deadlines (goal)</span></div>
+  </header>
+
+  <section id="split">
+    <div><span class="eyebrow">1 · What if I hire…</span><h2>Change the salary to see the real cost and where each euro goes</h2></div>
+    <div class="panel calc">
+      <div class="form">
+        <div class="field"><label for="ral">Gross annual salary (RAL), €</label><input id="ral" type="number" min="0" step="1000" value="32000"></div>
+        <div class="field"><label for="months">Monthly payments</label>
+          <select id="months"><option value="13" selected>13 (CCNL Commercio)</option><option value="14">14</option><option value="12">12</option></select></div>
+        <div class="field"><label for="emp">Employer INPS rate, %</label><input id="emp" type="number" min="0" max="45" step="0.1" value="30"></div>
+        <div class="field"><label for="add">Regional and municipal surtax, %</label><input id="add" type="number" min="0" max="5" step="0.1" value="2.0"></div>
+        <p class="note">These are estimates. Employee INPS is 9.19%, IRPEF uses the 23/35/43% brackets with the employee tax credit, TFR is RAL ÷ 13.5 and INAIL is 0.4%. A consultant confirms the figures before the first payroll run.</p>
+      </div>
+      <div style="min-width:0">
+        <div class="totals">
+          <div><span class="eyebrow">Your yearly cost</span><strong id="tCost">–</strong></div>
+          <div><span class="eyebrow">Employee net / year</span><strong id="tNet">–</strong></div>
+          <div><span class="eyebrow">Net per payslip</span><strong id="tSlip">–</strong></div>
+        </div>
+        <span class="eyebrow">Average month: WhatIfHire splits the money into these pots</span>
+        <div class="bar" id="bar" role="img" aria-label="Monthly cost split"></div>
+        <div class="pots" id="pots"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="assistant">
+    <div><span class="eyebrow">2 · What if I'm not sure…</span><h2>Ask anything. If the AI isn't sure, a consultant answers.</h2></div>
+    <div class="panel chat">
+      <div class="log" id="log" aria-live="polite">
+        <div class="msg bot">Hi! Ask me about payroll, contracts or deadlines. Every answer names its source, and anything risky goes to a licensed consultant.<span class="meta">WhatIfHire assistant</span></div>
+      </div>
+      <div class="chips" id="chips"></div>
+      <form class="ask" id="ask"><input id="q" placeholder="What if I hire a freelancer instead?" aria-label="Your question"><button class="btn" type="submit">Ask</button></form>
+    </div>
+  </section>
+
+  <section id="deadlines">
+    <div><span class="eyebrow">3 · What if I forget a deadline…</span><h2>You won't. The paperwork calendar runs itself.</h2></div>
+    <div class="panel tablebox">
+      <table>
+        <thead><tr><th>When</th><th>What</th><th>Who</th></tr></thead>
+        <tbody>
+          <tr><td class="when">Monthly · 16th</td><td>F24 payment: IRPEF withheld from pay plus INPS contributions for the previous month</td><td><span class="pill auto">WhatIfHire pays from the tax pot</span></td></tr>
+          <tr><td class="when">Monthly · end</td><td>UniEmens report to INPS for the previous month</td><td><span class="pill auto">WhatIfHire files</span></td></tr>
+          <tr><td class="when">Payday</td><td>Payslip (LUL) issued and salary transfer sent</td><td><span class="pill you">You approve in 1 tap</span></td></tr>
+          <tr><td class="when">16 March</td><td>Certificazione Unica (CU) delivered to employees</td><td><span class="pill auto">WhatIfHire files</span></td></tr>
+          <tr><td class="when">31 October</td><td>Form 770 (withholding agent return)</td><td><span class="pill auto">Consultant signs</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>WhatIfHire is a hackathon prototype. All figures are estimates for demo purposes and are not tax or legal advice. In Italy, payroll is processed together with a licensed consulente del lavoro.</footer>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const eur=n=>new Intl.NumberFormat('it-IT',{style:'currency',currency:'EUR',maximumFractionDigits:0}).format(n);
+
+function irpef(t){let tax=0,prev=0;for(const [cap,r] of [[28000,.23],[50000,.35],[Infinity,.43]]){if(t>prev){tax+=(Math.min(t,cap)-prev)*r;}prev=cap;}return tax;}
+function credit(r){let d;if(r<=15000)d=1955;else if(r<=28000)d=1910+1190*(28000-r)/13000;else if(r<=50000)d=1910*(50000-r)/22000;else d=0;if(r>25000&&r<=35000)d+=65;return Math.max(0,d);}
+
+function compute(){
+  const ral=Math.max(0,+$('ral').value||0), months=+$('months').value, er=(+$('emp').value||0)/100, add=(+$('add').value||0)/100;
+  const inpsEe=ral*.0919, taxable=ral-inpsEe;
+  const irpefNet=Math.max(0,irpef(taxable)-credit(taxable)), surtax=taxable*add;
+  const net=ral-inpsEe-irpefNet-surtax;
+  const inpsEr=ral*er, tfr=ral/13.5, inail=ral*.004, cost=ral+inpsEr+tfr+inail;
+  $('tCost').textContent=eur(cost); $('tNet').textContent=eur(net); $('tSlip').textContent=eur(net/months);
+  const pots=[
+    ['Salary pot','Paid to the employee on payday',net,'--pot-net'],
+    ['Tax pot (IRPEF)','Withheld from pay, sent with the F24 by the 16th of next month',irpefNet+surtax,'--pot-tax'],
+    ['INPS pot','Employee and employer contributions, sent with the F24 by the 16th',inpsEe+inpsEr,'--pot-inps'],
+    ['TFR reserve','Severance building up, kept aside so it never surprises you',tfr,'--pot-tfr'],
+    ['INAIL','Workplace insurance, paid yearly',inail,'--pot-inail'],
+  ];
+  $('bar').innerHTML=pots.map(p=>`<span title="${p[0]}" style="width:${cost?p[2]/cost*100:0}%;background:var(${p[3]})"></span>`).join('');
+  $('pots').innerHTML=pots.map(p=>`<div class="pot"><span class="dot" style="background:var(${p[3]})"></span><div>${p[0]}<small>${p[1]}</small></div><span class="amt">${eur(p[2]/12)}</span></div>`).join('');
+}
+['ral','months','emp','add'].forEach(id=>$(id).addEventListener('input',compute));
+compute();
+
+const KB=[
+  {k:['f24','16','pay tax','taxes'],q:'When do I pay the F24?',a:'By the 16th of the month after you paid salaries. It covers the IRPEF you withheld and the INPS contributions. WhatIfHire fills the tax and INPS pots on payday and pays the F24 on the 15th.',src:'DPR 602/1973 art. 18; Agenzia delle Entrate F24 calendar'},
+  {k:['freelance','partita iva','contractor','p.iva'],q:'Freelancer or employee?',a:'It depends on how the work is organised, not on the contract name. If you set the hours, the place and the tools, the law can treat a freelancer as an employee. I\'ve sent your case to a consultant to confirm.',src:'D.Lgs. 81/2015 art. 2 (etero-organizzazione)',human:true},
+  {k:['tfr','severance','liquidazione'],q:'What is TFR and when do I pay it?',a:'TFR is severance pay that builds up at about RAL ÷ 13.5 each year and is revalued annually. You pay it when the employment ends. WhatIfHire keeps it in a separate reserve so the money is there when you need it.',src:'Codice Civile art. 2120'},
+  {k:['first hire','hire','assumere','onboard'],q:'What do I need for my first hire?',a:'1) Register as an employer with INPS and INAIL. 2) Choose the collective agreement (CCNL). 3) Send the UniLav notice the day before the start date. 4) Sign the contract and give the privacy notice. WhatIfHire prepares 3 of the 4 steps. You only sign.',src:'L. 296/2006 art. 1 c. 1180 (UniLav)'},
+  {k:['cost','how much','costa'],q:'How much does a €30k hire cost?',a:'About €41k a year with these defaults: 30% employer INPS, TFR and INAIL on top of the RAL. Use the cost splitter above to try your own numbers.',src:'WhatIfHire estimator'},
+];
+function addMsg(cls,html){const d=document.createElement('div');d.className='msg '+cls;d.innerHTML=html;$('log').appendChild(d);$('log').scrollTop=1e6;}
+function answer(text){
+  addMsg('me',text.replace(/</g,'&lt;'));
+  const t=text.toLowerCase(), hit=KB.find(e=>e.k.some(k=>t.includes(k)));
+  const t0=performance.now();
+  setTimeout(()=>{
+    const s=((performance.now()-t0)/1000).toFixed(1);
+    if(hit){addMsg('bot',`${hit.a}<span class="meta">Source: ${hit.src} · answered in ${s}s</span>`);
+      if(hit.human)addMsg('human','<b>Escalated</b> to Giulia R., consulente del lavoro. Expected reply within 4 working hours.');}
+    else{addMsg('bot',`I'm not confident enough to answer this one. I've sent it to a licensed consultant. You'll get a reply within 4 working hours, and I'll add it to your company handbook.<span class="meta">answered in ${s}s · escalated</span>`);}
+  },700);
+}
+$('chips').innerHTML=KB.map((e,i)=>`<button type="button" class="chip" data-i="${i}">${e.q}</button>`).join('');
+$('chips').addEventListener('click',e=>{const b=e.target.closest('.chip');if(b)answer(KB[b.dataset.i].q);});
+$('ask').addEventListener('submit',e=>{e.preventDefault();const v=$('q').value.trim();if(v){answer(v);$('q').value='';}});
+</script>
